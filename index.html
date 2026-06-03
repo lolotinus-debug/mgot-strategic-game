@@ -2,76 +2,72 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT Civilization Neon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MGOT Mobile Civilization</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background: radial-gradient(circle at top, #0b1b3a, #020617 60%, #000);
+    background: radial-gradient(circle at top, #0b1b3a, #020617 70%, #000);
     color:#dbeafe;
 }
 
-/* neon glow */
-h1,h3{
+/* MOBILE FIRST */
+.container{
+    max-width:100%;
+    padding:12px;
+}
+
+h1{
+    font-size:20px;
+    text-align:center;
     color:#38bdf8;
     text-shadow:0 0 10px #38bdf8;
-}
-
-.container{
-    max-width:1000px;
-    margin:auto;
-    padding:20px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
 }
 
 .card{
     background:rgba(15,23,42,0.85);
     border:1px solid #1e3a8a;
-    box-shadow:0 0 15px rgba(56,189,248,0.2);
-    padding:15px;
+    box-shadow:0 0 10px rgba(56,189,248,0.2);
+    padding:12px;
     border-radius:12px;
+    margin-bottom:10px;
 }
 
 button{
     width:100%;
-    padding:12px;
+    padding:14px;
     margin-top:6px;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
     background:#0ea5e9;
     color:white;
-    cursor:pointer;
-    transition:0.2s;
-    box-shadow:0 0 10px rgba(14,165,233,0.4);
+    font-size:14px;
 }
 
-button:hover{
-    background:#38bdf8;
-    box-shadow:0 0 20px rgba(56,189,248,0.6);
+button:active{
+    transform:scale(0.98);
 }
 
 .node{
-    padding:8px;
+    padding:10px;
     margin-top:6px;
     background:#0f172a;
     border:1px solid #1e3a8a;
-    border-radius:8px;
-    cursor:pointer;
+    border-radius:10px;
+    text-align:center;
 }
 
-.node:hover{
-    box-shadow:0 0 10px #38bdf8;
+.node:active{
+    background:#1e3a8a;
 }
 
 .good{color:#34d399;}
 .bad{color:#f87171;}
 .warn{color:#fbbf24;}
+.small{font-size:12px; opacity:0.8;}
 </style>
 </head>
 
@@ -79,30 +75,23 @@ button:hover{
 
 <div class="container">
 
-<h1>🧠 MGOT CIVILIZATION — NEON CORE</h1>
-
-<div class="grid">
-
-<!-- PLAYER -->
-<div>
+<h1>🧠 MGOT CIVILIZATION MOBILE</h1>
 
 <div class="card">
-<h3>🌍 CIVILIZATION CORE</h3>
-
-💰 Economy: <span id="e">50</span><br>
+🌍 Economy: <span id="e">50</span><br>
 🧠 Tech: <span id="t">50</span><br>
 ⚔ Military: <span id="m">50</span><br>
-⚖ Stability: <span id="s">100</span>
+⚖ Stability: <span id="s">100</span><br>
+🤖 AI Power: <span id="ai">80</span>
 </div>
 
 <div class="card">
-<h3>🧬 STRATEGY</h3>
+<h3>🎮 STRATEGY OPTIONS</h3>
 
-<button onclick="strategy('eco')">💰 Economic Growth</button>
-<button onclick="strategy('tech')">🧠 Tech Expansion</button>
-<button onclick="strategy('war')">⚔ Military Power</button>
-
-<button onclick="nextTurn()">▶ NEXT TURN</button>
+<button onclick="act('eco')">💰 Invest Economy</button>
+<button onclick="act('tech')">🧠 Research Tech</button>
+<button onclick="act('mil')">⚔ Build Military</button>
+<button onclick="act('stability')">🛡 Stabilize Nation</button>
 </div>
 
 <div class="card">
@@ -111,31 +100,19 @@ button:hover{
 <div class="node" onclick="capture('EU')">EUROPE</div>
 <div class="node" onclick="capture('US')">AMERICA</div>
 <div class="node" onclick="capture('ASIA')">ASIA</div>
+<div class="node" onclick="capture('AFRICA')">AFRICA</div>
 
-</div>
-
-</div>
-
-<!-- WORLD -->
-<div>
-
-<div class="card">
-<h3>🤖 AI CIVILIZATION</h3>
-AI Power: <span id="ai">80</span>
+<div class="small">Each region gives passive bonuses</div>
 </div>
 
 <div class="card">
 <h3>⚠ WORLD EVENT</h3>
-<div id="event" class="warn">Neon world is stabilizing...</div>
+<div id="event" class="warn">World is unstable...</div>
 </div>
 
 <div class="card">
 <h3>🏆 STATUS</h3>
-<div id="status">Build your empire</div>
-</div>
-
-</div>
-
+<div id="status">Expand your civilization</div>
 </div>
 
 </div>
@@ -145,17 +122,22 @@ AI Power: <span id="ai">80</span>
 let e=50,t=50,m=50,s=100;
 let ai=80;
 
-let regions={EU:false,US:false,ASIA:false};
+let regions={
+EU:false,
+US:false,
+ASIA:false,
+AFRICA:false
+};
 
 function power(){
 return e+t+m+s;
 }
 
-function strategy(type){
+function act(type){
 
 if(type==='eco'){
 e += 12;
-s -= 4;
+s -= 3;
 }
 
 if(type==='tech'){
@@ -163,9 +145,14 @@ t += 15;
 e -= 5;
 }
 
-if(type==='war'){
+if(type==='mil'){
 m += 15;
 e -= 8;
+}
+
+if(type==='stability'){
+s += 12;
+e -= 5;
 }
 
 worldEvent();
@@ -178,7 +165,7 @@ function capture(r){
 
 if(m < 45){
 document.getElementById("status").innerHTML =
-"<span class='bad'>⚔ Insufficient military power</span>";
+"<span class='bad'>⚔ Not enough military power</span>";
 return;
 }
 
@@ -187,15 +174,16 @@ m -= 10;
 ai += 8;
 
 document.getElementById("status").innerHTML =
-"<span class='good'>🌍 Region captured: " + r + "</span>";
+"<span class='good'>🌍 Captured " + r + "</span>";
 
 update();
 }
 
 function aiTurn(){
 
-ai += Math.random()*12;
+ai += Math.random()*10;
 
+// AI pressure system
 if(ai > power()){
 s -= 10;
 e -= 6;
@@ -205,49 +193,38 @@ document.getElementById("status").innerHTML =
 "<span class='bad'>🤖 AI is surpassing your civilization</span>";
 }
 
-if(Math.random() < 0.2){
-ai += 10;
+// AI expansion
+if(Math.random() < 0.25){
+ai += 12;
 }
 }
 
 function worldEvent(){
 
 let events=[
-"💥 Neon economic fluctuation detected",
-"⚠ AI neural expansion growing",
-"📈 Quantum research breakthrough",
-"⚔ Global tension rising",
-"🌍 System stability weakening"
+"💥 Global economic instability",
+"⚠ AI neural expansion accelerating",
+"📈 Scientific breakthrough discovered",
+"⚔ Regional conflicts rising",
+"🌍 Climate pressure increasing"
 ];
 
 document.getElementById("event").innerText =
 events[Math.floor(Math.random()*events.length)];
 }
 
-function nextTurn(){
-
-if(regions.EU) t += 5;
-if(regions.US) e += 5;
-if(regions.ASIA) m += 5;
-
-s -= 2;
-
-aiTurn();
-worldEvent();
-update();
-check();
-}
-
 function check(){
 
-if(power() > 380){
+let score = power() + (Object.values(regions).filter(Boolean).length * 30);
+
+if(score > 420){
 document.getElementById("status").innerHTML =
-"<span class='good'>🏆 NEON GLOBAL DOMINATION ACHIEVED</span>";
+"<span class='good'>🏆 GLOBAL DOMINATION ACHIEVED</span>";
 }
 
-if(ai > 230){
+if(ai > 240){
 document.getElementById("status").innerHTML =
-"<span class='bad'>💀 AI CONTROLLED THE NEON WORLD</span>";
+"<span class='bad'>💀 AI CONTROLLED THE WORLD</span>";
 }
 
 if(s <= 0){
@@ -265,7 +242,7 @@ document.getElementById("s").innerText=Math.floor(s);
 document.getElementById("ai").innerText=Math.floor(ai);
 }
 
-setInterval(worldEvent,4500);
+setInterval(worldEvent,4000);
 
 update();
 
