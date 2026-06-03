@@ -1,176 +1,137 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>MGOT Empire War v1</title>
-
+<title>MGOT Strategy</title>
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:radial-gradient(circle at top,#0b1b3a,#020617 70%,#000);
-color:#dbeafe;
+body {
+    margin: 0;
+    background: #020617;
+    overflow: hidden;
+    font-family: Arial;
 }
-
-.container{
-max-width:900px;
-margin:auto;
-padding:12px;
+canvas {
+    display: block;
+    margin: 0 auto;
+    background: radial-gradient(circle at center, #0f172a, #020617);
 }
-
-h1{
-text-align:center;
-color:#38bdf8;
-text-shadow:0 0 10px #38bdf8;
-}
-
-.card{
-background:rgba(15,23,42,0.9);
-border:1px solid #1e3a8a;
-padding:12px;
-border-radius:12px;
-margin-bottom:10px;
-box-shadow:0 0 10px rgba(56,189,248,0.2);
-}
-
-button{
-width:100%;
-padding:12px;
-margin-top:6px;
-border:none;
-border-radius:10px;
-background:#0ea5e9;
-color:white;
-}
-
-button:active{transform:scale(0.98);}
-
-.good{color:#34d399;}
-.bad{color:#f87171;}
 </style>
 </head>
-
 <body>
 
-<div class="container">
-
-<h1>🏰 MGOT EMPIRE WAR v1</h1>
-
-<div class="card">
-<h3>🏗 BASE</h3>
-💰 Gold: <span id="g">100</span><br>
-🪵 Wood: <span id="w">100</span><br>
-⚔ Defense: <span id="d">50</span><br>
-🧠 Tech: <span id="t">50</span>
-</div>
-
-<div class="card">
-<h3>⚙ BUILD</h3>
-
-<button onclick="build('gold')">⛏ Gold Mine (+income)</button>
-<button onclick="build('wood')">🌲 Lumber Camp (+income)</button>
-<button onclick="build('def')">🛡 Defense Tower (+defense)</button>
-<button onclick="build('tech')">🧠 Research Lab (+tech)</button>
-</div>
-
-<div class="card">
-<h3>⚔ RAID EVENT</h3>
-<div id="event">Peaceful world...</div>
-
-<button onclick="raid()">⚔ DEFEND RAID</button>
-</div>
-
-<div class="card">
-<h3>🏆 STATUS</h3>
-<div id="status">Build your empire</div>
-</div>
-
-</div>
+<canvas id="game"></canvas>
 
 <script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-let g=100,w=100,d=50,t=50;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-function income(){
-g += 5;
-w += 5;
+const GRID = 40;
+const COLS = Math.floor(canvas.width / GRID);
+const ROWS = Math.floor(canvas.height / GRID);
+
+class Unit {
+    constructor(x, y, team) {
+        this.x = x;
+        this.y = y;
+        this.team = team;
+        this.hp = 100;
+        this.target = null;
+        this.color = team === "player" ? "#00d4ff" : "#ff3b3b";
+    }
+
+    moveToward(tx, ty) {
+        if (this.x < tx) this.x++;
+        if (this.x > tx) this.x--;
+        if (this.y < ty) this.y--;
+        if (this.y > ty) this.y++;
+    }
+
+    update(enemies) {
+        // attack logic
+        for (let e of enemies) {
+            if (Math.abs(e.x - this.x) < 1 && Math.abs(e.y - this.y) < 1) {
+                e.hp -= 1;
+                if (e.hp <= 0) enemies.splice(enemies.indexOf(e), 1);
+                return;
+            }
+        }
+
+        // move
+        if (this.target) {
+            this.moveToward(this.target.x, this.target.y);
+        }
+    }
+
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x * GRID, this.y * GRID, GRID - 2, GRID - 2);
+
+        // HP bar
+        ctx.fillStyle = "green";
+        ctx.fillRect(this.x * GRID, this.y * GRID - 5, (GRID - 2) * (this.hp / 100), 3);
+    }
 }
 
-function build(type){
-
-if(type==='gold' && g>=20){
-g -= 20;
-g += 5;
-}
-
-if(type==='wood' && w>=20){
-w -= 20;
-w += 5;
-}
-
-if(type==='def' && g>=30){
-g -= 30;
-d += 10;
-}
-
-if(type==='tech' && g>=40){
-g -= 40;
-t += 10;
-}
-
-update();
-}
-
-function raid(){
-
-let enemy = Math.random()*100 + 20;
-
-if(d + t > enemy){
-document.getElementById("status").innerHTML =
-"<span class='good'>🏆 RAID DEFENDED</span>";
-g += 20;
-w += 20;
-}
-else{
-document.getElementById("status").innerHTML =
-"<span class='bad'>💀 BASE LOOTED</span>";
-g -= 30;
-w -= 30;
-}
-update();
-}
-
-function event(){
-
-let events=[
-"⚔ Enemy scouts detected",
-"💥 Barbarian raid incoming",
-"📈 Economy stabilizing",
-"🧠 Tech breakthrough possible",
-"🌍 Peaceful expansion window"
+let playerUnits = [
+    new Unit(5, 5, "player"),
+    new Unit(6, 5, "player")
 ];
 
-document.getElementById("event").innerText =
-events[Math.floor(Math.random()*events.length)];
+let aiUnits = [
+    new Unit(15, 10, "ai"),
+    new Unit(16, 10, "ai")
+];
+
+// AI simple behaviour
+function updateAI() {
+    for (let ai of aiUnits) {
+        let target = playerUnits[0];
+        if (target) {
+            ai.target = target;
+        }
+    }
 }
 
-function update(){
-document.getElementById("g").innerText=Math.floor(g);
-document.getElementById("w").innerText=Math.floor(w);
-document.getElementById("d").innerText=Math.floor(d);
-document.getElementById("t").innerText=Math.floor(t);
+canvas.addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / GRID);
+    const y = Math.floor((e.clientY - rect.top) / GRID);
+
+    // move all player units to click
+    playerUnits.forEach(u => {
+        u.target = {x, y};
+    });
+});
+
+function drawGrid() {
+    ctx.strokeStyle = "#1e293b";
+    for (let x = 0; x < COLS; x++) {
+        for (let y = 0; y < ROWS; y++) {
+            ctx.strokeRect(x * GRID, y * GRID, GRID, GRID);
+        }
+    }
 }
 
-setInterval(()=>{
-income();
-event();
-update();
-},3000);
+function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-update();
+    drawGrid();
 
+    updateAI();
+
+    for (let u of playerUnits) u.update(aiUnits);
+    for (let a of aiUnits) a.update(playerUnits);
+
+    for (let u of playerUnits) u.draw();
+    for (let a of aiUnits) a.draw();
+
+    requestAnimationFrame(loop);
+}
+
+loop();
 </script>
 
 </body>
