@@ -1,130 +1,227 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja Mini Stratégia</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #222; color: #fff; padding: 20px; text-align: center; }
-        .container { max-width: 600px; margin: auto; background: #333; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        .resources, .stats { display: flex; justify-content: space-around; background: #444; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
-        .resource, .stat { font-size: 18px; font-weight: bold; }
-        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 12px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; background: #28a745; color: white; font-weight: bold; transition: 0.2s; }
-        button:hover { background: #218838; }
-        button:disabled { background: #555; cursor: not-allowed; }
-        .log { margin-top: 20px; background: #111; padding: 10px; border-radius: 5px; height: 100px; overflow-y: auto; text-align: left; font-size: 14px; color: #aaa; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGOT - Strategy Base</title>
+
+<style>
+body {
+font-family: Arial;
+background: radial-gradient(circle,#0b1220,#020617);
+color:white;
+text-align:center;
+margin:0;
+padding:20px;
+}
+
+.container {
+max-width:650px;
+margin:auto;
+background:rgba(255,255,255,0.05);
+padding:20px;
+border-radius:12px;
+box-shadow:0 0 25px rgba(0,212,255,0.15);
+backdrop-filter: blur(10px);
+}
+
+h1 {
+color:#00d4ff;
+}
+
+.resources, .stats {
+display:flex;
+justify-content:space-around;
+padding:10px;
+background:rgba(0,0,0,0.3);
+border-radius:10px;
+margin-bottom:15px;
+}
+
+.resource, .stat {
+font-weight:bold;
+}
+
+.actions {
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+button {
+padding:12px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+transition:0.2s;
+}
+
+button:hover {
+transform:scale(1.03);
+}
+
+.green{background:#22c55e;color:white;}
+.blue{background:#00d4ff;color:black;}
+.orange{background:#f97316;color:white;}
+.red{background:#ef4444;color:white;}
+
+.log {
+margin-top:15px;
+height:120px;
+overflow:auto;
+background:rgba(0,0,0,0.4);
+padding:10px;
+border-radius:8px;
+font-size:13px;
+text-align:left;
+color:#aaa;
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
-    <h1>🥷 Moja Mini Stratégia</h1>
-    
-    <!-- SUROVINY -->
-    <div class="resources">
-        <div class="resource">🪵 Drevo: <span id="wood">100</span></div>
-        <div class="resource">🍎 Jedlo: <span id="food">50</span></div>
-        <div class="resource">💰 Zlato: <span id="gold">0</span></div>
-    </div>
 
-    <!-- POPULÁCIA A BUDOVY -->
-    <div class="stats">
-        <div class="stat">🧍 Ľudia: <span id="workers">2</span> / <span id="maxWorkers">5</span></div>
-        <div class="stat">🏠 Domy: <span id="houses">1</span></div>
-        <div class="stat">⛏️ Bane: <span id="mines">0</span></div>
-    </div>
+<h1>⚔️ MGOT BASE</h1>
 
-    <!-- AKCIE -->
-    <div class="actions">
-        <button onclick="gather('wood')">🪵 Ťažiť drevo (+1)</button>
-        <button onclick="gather('food')">🍎 Zberať jedlo (+1)</button>
-        <button id="btn-worker" onclick="buyWorker()">🧍 Najímať robotníka (50 Jedla)</button>
-        <button id="btn-house" onclick="build('house')">🏠 Postaviť Dom (50 Dreva)</button>
-        <button id="btn-mine" onclick="build('mine')">⛏️ Postaviť Baňu (80 Dreva)</button>
-    </div>
+<div class="resources">
+<div>🪵 Wood: <span id="wood">100</span></div>
+<div>🍎 Food: <span id="food">50</span></div>
+<div>💰 Gold: <span id="gold">0</span></div>
+</div>
 
-    <!-- LOG UPGRADE -->
-    <div class="log" id="log">Vitajte vo vašej osade. Začnite ťažiť suroviny!</div>
+<div class="stats">
+<div>🧍 Units: <span id="workers">2</span> / <span id="maxWorkers">5</span></div>
+<div>🏠 Buildings: <span id="houses">1</span></div>
+<div>⛏️ Mines: <span id="mines">0</span></div>
+<div>🛡️ Base HP: <span id="hp">100</span></div>
+</div>
+
+<div class="actions">
+
+<button class="green" onclick="gather('wood')">🪵 Gather Wood</button>
+<button class="green" onclick="gather('food')">🍎 Gather Food</button>
+
+<button class="blue" onclick="buyWorker()">🧍 Recruit Unit (50 Food)</button>
+
+<button class="orange" onclick="build('house')">🏠 Build House</button>
+<button class="orange" onclick="build('mine')">⛏️ Build Mine</button>
+
+<button class="red" onclick="attack()">⚔️ Attack Enemy</button>
+
+</div>
+
+<div class="log" id="log">Welcome to MGOT Base.</div>
+
 </div>
 
 <script>
-    // VNÚTORNÉ NASTAVENIA HRE (Môžete prepisovať čísla)
-    let game = {
-        wood: 100, food: 50, gold: 0,
-        workers: 2, maxWorkers: 5,
-        houses: 1, mines: 0
-    };
 
-    // RUČNÝ ZBER klikaním
-    function gather(type) {
-        game[type] += 1;
-        updateUI();
-    }
+// ================= MGOT STATE =================
+let game = {
+wood:100,
+food:50,
+gold:0,
+workers:2,
+maxWorkers:5,
+houses:1,
+mines:0,
+hp:100
+};
 
-    // NAJÍMANIE ROBOTNÍKOV
-    function buyWorker() {
-        if (game.food >= 50 && game.workers < game.maxWorkers) {
-            game.food -= 50;
-            game.workers += 1;
-            logMessage("Najali ste nového robotníka. Automatická produkcia stúpla!");
-            updateUI();
-        }
-    }
+// ================= ACTIONS =================
+function gather(type){
+game[type] += 1;
+update();
+}
 
-    // STAVBA BUDOV
-    function build(type) {
-        if (type === 'house' && game.wood >= 50) {
-            game.wood -= 50;
-            game.houses += 1;
-            game.maxWorkers += 5; // Každý dom zvýši limit ľudí o 5
-            logMessage("Postavili ste dom. Môžete mať viac ľudí.");
-        } else if (type === 'mine' && game.wood >= 80) {
-            game.wood -= 80;
-            game.mines += 1;
-            logMessage("Postavili ste zlatú baňu. Robotníci teraz produkujú zlato!");
-        }
-        updateUI();
-    }
+// ================= RECRUIT =================
+function buyWorker(){
+if(game.food >= 50 && game.workers < game.maxWorkers){
+game.food -= 50;
+game.workers += 1;
+log("Unit recruited.");
+update();
+}
+}
 
-    // AUTOMATICKÁ PRODUKCIA (Beží každú sekundu)
-    setInterval(function() {
-        if (game.workers > 0) {
-            // Každý voľný robotník produkuje jedlo a drevo, ak máte baňu tak aj zlato
-            game.wood += game.workers * 0.5;
-            game.food += game.workers * 0.3;
-            
-            if (game.mines > 0) {
-                game.gold += game.mines * game.workers * 0.2;
-            }
-            updateUI();
-        }
-    }, 1000);
+// ================= BUILD =================
+function build(type){
 
-    // AKTUALIZÁCIA TEXTOV NA OBRAZOVKE
-    function updateUI() {
-        document.getElementById('wood').innerText = Math.floor(game.wood);
-        document.getElementById('food').innerText = Math.floor(game.food);
-        document.getElementById('gold').innerText = Math.floor(game.gold);
-        document.getElementById('workers').innerText = game.workers;
-        document.getElementById('maxWorkers').innerText = game.maxWorkers;
-        document.getElementById('houses').innerText = game.houses;
-        document.getElementById('mines').innerText = game.mines;
+if(type === "house" && game.wood >= 50){
+game.wood -= 50;
+game.houses++;
+game.maxWorkers += 5;
+game.hp += 20;
+log("House built (+population +HP)");
 
-        // Kontrola, či máte dosť peňazí na tlačidlá (ak nie, zošednú)
-        document.getElementById('btn-worker').disabled = (game.food < 50 || game.workers >= game.maxWorkers);
-        document.getElementById('btn-house').disabled = (game.wood < 50);
-        document.getElementById('btn-mine').disabled = (game.wood < 80);
-    }
+}
 
-    function logMessage(text) {
-        let logDiv = document.getElementById('log');
-        logDiv.innerHTML += "<br>> " + text;
-        logDiv.scrollTop = logDiv.scrollHeight;
-    }
+if(type === "mine" && game.wood >= 80){
+game.wood -= 80;
+game.mines++;
+log("Mine built (+gold income)");
+}
 
-    // Spustenie na začiatku
-    updateUI();
+update();
+}
+
+// ================= ATTACK SYSTEM (NEW MGOT FEATURE) =================
+function attack(){
+
+let enemyHP = 80 + Math.random()*120;
+let damage = game.workers * 10 + game.mines * 5;
+
+enemyHP -= damage;
+
+if(enemyHP <= 0){
+game.gold += 50;
+log("Victory! Enemy base destroyed (+50 gold)");
+} else {
+game.hp -= 20;
+log("Attack failed. You lost HP.");
+}
+
+update();
+}
+
+// ================= AUTO ECONOMY =================
+setInterval(()=>{
+
+game.wood += game.workers * 0.5;
+game.food += game.workers * 0.3;
+game.gold += game.mines * game.workers * 0.2;
+
+update();
+
+},1000);
+
+// ================= UI =================
+function update(){
+
+document.getElementById("wood").innerText = Math.floor(game.wood);
+document.getElementById("food").innerText = Math.floor(game.food);
+document.getElementById("gold").innerText = Math.floor(game.gold);
+document.getElementById("workers").innerText = game.workers;
+document.getElementById("maxWorkers").innerText = game.maxWorkers;
+document.getElementById("houses").innerText = game.houses;
+document.getElementById("mines").innerText = game.mines;
+document.getElementById("hp").innerText = game.hp;
+
+}
+
+// ================= LOG =================
+function log(text){
+let div = document.getElementById("log");
+div.innerHTML += "<br>➤ " + text;
+div.scrollTop = div.scrollHeight;
+}
+
+// INIT
+update();
+
 </script>
 
 </body>
