@@ -2,13 +2,13 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT PLAYABLE</title>
+<title>MGOT ACTIVE STRATEGY</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#0b1020;
+    background:#050b1a;
     color:white;
 }
 
@@ -16,7 +16,6 @@ body{
     text-align:center;
     padding:15px;
     color:#22d3ee;
-    font-size:20px;
 }
 
 .container{
@@ -34,91 +33,76 @@ body{
     border-radius:12px;
 }
 
-.stat{
-    margin:6px 0;
-    display:flex;
-    justify-content:space-between;
-}
-
 button{
     width:100%;
     padding:10px;
-    margin-top:6px;
-    background:#0891b2;
+    margin-top:8px;
     border:none;
+    border-radius:8px;
+    background:#0891b2;
     color:white;
-    border-radius:8px;
     cursor:pointer;
 }
 
-.node{
-    padding:8px;
+.event{
+    padding:10px;
     background:#0f172a;
-    margin-top:6px;
     border-radius:8px;
-    cursor:pointer;
-    border:1px solid #1f2937;
-}
-
-.active{
-    border:2px solid #22d3ee;
-}
-
-.log{
-    font-size:12px;
-    color:#94a3b8;
     margin-top:10px;
+    color:#fbbf24;
+}
+
+.bad{
+    color:#f87171;
+}
+
+.good{
+    color:#34d399;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">🧠 MGOT — PLAYABLE STRATEGY FIXED</div>
+<div class="header">🧠 MGOT — ACTIVE STRATEGY WORLD</div>
 
 <div class="container">
 
 <!-- LEFT -->
 <div class="panel">
 
-<h3>📊 Resources</h3>
+<h3>📊 RESOURCES</h3>
 
-<div class="stat">🧠 Knowledge <span id="k">0</span></div>
-<div class="stat">⚡ Energy <span id="e">0</span></div>
-<div class="stat">👥 Community <span id="c">0</span></div>
-
-<hr>
-
-<h3>🏗 Build</h3>
-
-<button onclick="build('lab')">📚 Research Lab (-50 🧠)</button>
-<button onclick="build('plant')">⚡ Energy Plant (-50 ⚡)</button>
-<button onclick="build('hub')">🤝 Community Hub (-50 👥)</button>
+🧠 Knowledge: <span id="k">0</span><br>
+⚡ Energy: <span id="e">0</span><br>
+👥 Community: <span id="c">0</span>
 
 <hr>
 
-<button onclick="tick()">▶ NEXT TURN</button>
+<button onclick="nextTurn()">▶ NEXT TURN</button>
 
-<div class="log" id="log">Ready...</div>
+<button onclick="choice('knowledge')">📚 Focus Knowledge</button>
+<button onclick="choice('energy')">⚡ Focus Energy</button>
+<button onclick="choice('community')">🤝 Focus Community</button>
+
+<div id="event" class="event">Waiting for world event...</div>
 
 </div>
 
 <!-- RIGHT -->
 <div class="panel">
 
-<h3>🌍 MAP</h3>
+<h3>🌍 WORLD STATUS</h3>
 
-<div class="node" onclick="capture(this,'EU')">EU</div>
-<div class="node" onclick="capture(this,'US')">US</div>
-<div class="node" onclick="capture(this,'ASIA')">ASIA</div>
+<div>🔥 Stability: <span id="stability">100</span>%</div>
+
+<div>⭐ Era: <span id="era">Individual</span></div>
 
 <hr>
 
-<h3>⭐ ERA</h3>
-<div id="era">Individual</div>
+<h3>⚠️ CONSEQUENCES</h3>
 
-<h3>📈 POWER</h3>
-<div id="power">0</div>
+<div id="log">Game started...</div>
 
 </div>
 
@@ -126,55 +110,79 @@ button{
 
 <script>
 
-let k=100,e=100,c=100;
+let k=50,e=50,c=50;
+let stability=100;
 
-let lab=0,plant=0,hub=0;
+let lastChoice="none";
 
-let regions={};
+function randEvent(){
 
-function log(msg){
-document.getElementById("log").innerText = msg;
+let events=[
+{
+text:"💥 Economic crash hits system",
+effect:()=>{e-=10; stability-=10; return "bad"}
+},
+{
+text:"📈 Viral growth in community",
+effect:()=>{c+=15; stability+=5; return "good"}
+},
+{
+text:"🧠 Research breakthrough",
+effect:()=>{k+=15; return "good"}
+},
+{
+text:"⚡ Energy shortage",
+effect:()=>{e-=15; stability-=5; return "bad"}
+},
+{
+text:"🤝 Global alliance formed",
+effect:()=>{c+=10; k+=5; return "good"}
+}
+];
+
+let ev = events[Math.floor(Math.random()*events.length)];
+
+let result = ev.effect();
+
+document.getElementById("event").innerHTML =
+result==="good"
+? `<span class="good">${ev.text}</span>`
+: `<span class="bad">${ev.text}</span>`;
+
+document.getElementById("log").innerText = ev.text;
 }
 
-function build(type){
+function choice(type){
 
-if(type==="lab" && k>=50){
-k-=50; lab++;
-log("Built Research Lab");
-}
+lastChoice = type;
 
-else if(type==="plant" && e>=50){
-e-=50; plant++;
-log("Built Energy Plant");
-}
+if(type==="knowledge") k += 10;
+if(type==="energy") e += 10;
+if(type==="community") c += 10;
 
-else if(type==="hub" && c>=50){
-c-=50; hub++;
-log("Built Community Hub");
-}
-
-else{
-log("Not enough resources");
-}
+stability -= 2;
 
 update();
 }
 
-function tick(){
+function nextTurn(){
 
-k += lab * 5;
-e += plant * 5;
-c += hub * 5;
+randEvent();
 
-log("Turn processed");
+// natural decay
+k -= 2;
+e -= 2;
+c -= 2;
 
-update();
+stability -= 1;
+
+// consequences
+if(stability < 50){
+k -= 5;
+e -= 5;
+c -= 5;
 }
 
-function capture(el,node){
-regions[node]=true;
-el.classList.add("active");
-log("Captured " + node);
 update();
 }
 
@@ -182,10 +190,10 @@ function era(){
 
 let t=k+e+c;
 
-if(t>500) return "Tribe";
-if(t>1200) return "Academy";
-if(t>2500) return "City";
-if(t>5000) return "Global";
+if(t>200) return "Tribe";
+if(t>500) return "Academy";
+if(t>1200) return "City";
+if(t>2500) return "Global";
 
 return "Individual";
 }
@@ -196,9 +204,9 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
+document.getElementById("stability").innerText=Math.floor(stability);
 document.getElementById("era").innerText=era();
 
-document.getElementById("power").innerText=Math.floor(k+e+c);
 }
 
 update();
