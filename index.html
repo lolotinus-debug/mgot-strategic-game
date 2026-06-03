@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT - Strategy Base</title>
+<title>MGOT Economy Upgrade</title>
 
 <style>
 body {
@@ -16,18 +16,15 @@ padding:20px;
 }
 
 .container {
-max-width:650px;
+max-width:700px;
 margin:auto;
 background:rgba(255,255,255,0.05);
 padding:20px;
 border-radius:12px;
 box-shadow:0 0 25px rgba(0,212,255,0.15);
-backdrop-filter: blur(10px);
 }
 
-h1 {
-color:#00d4ff;
-}
+h1 { color:#00d4ff; }
 
 .resources, .stats {
 display:flex;
@@ -36,20 +33,19 @@ padding:10px;
 background:rgba(0,0,0,0.3);
 border-radius:10px;
 margin-bottom:15px;
-}
-
-.resource, .stat {
-font-weight:bold;
+flex-wrap:wrap;
+gap:10px;
 }
 
 .actions {
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
+margin-top:10px;
 }
 
 button {
-padding:12px;
+padding:10px;
 border:none;
 border-radius:8px;
 cursor:pointer;
@@ -57,24 +53,23 @@ font-weight:bold;
 transition:0.2s;
 }
 
-button:hover {
-transform:scale(1.03);
-}
+button:hover { transform:scale(1.03); }
 
-.green{background:#22c55e;color:white;}
+.green{background:#22c55e;}
 .blue{background:#00d4ff;color:black;}
-.orange{background:#f97316;color:white;}
-.red{background:#ef4444;color:white;}
+.orange{background:#f97316;}
+.yellow{background:#eab308;}
+.red{background:#ef4444;}
 
 .log {
 margin-top:15px;
-height:120px;
+height:130px;
 overflow:auto;
 background:rgba(0,0,0,0.4);
 padding:10px;
 border-radius:8px;
-font-size:13px;
 text-align:left;
+font-size:13px;
 color:#aaa;
 }
 </style>
@@ -84,36 +79,42 @@ color:#aaa;
 
 <div class="container">
 
-<h1>⚔️ MGOT BASE</h1>
+<h1>⚔️ MGOT ECONOMY SYSTEM</h1>
 
 <div class="resources">
 <div>🪵 Wood: <span id="wood">100</span></div>
 <div>🍎 Food: <span id="food">50</span></div>
 <div>💰 Gold: <span id="gold">0</span></div>
+<div>🪨 Stone: <span id="stone">0</span></div>
 </div>
 
 <div class="stats">
-<div>🧍 Units: <span id="workers">2</span> / <span id="maxWorkers">5</span></div>
-<div>🏠 Buildings: <span id="houses">1</span></div>
+<div>🧍 Units: <span id="workers">2</span></div>
+<div>🏠 Houses: <span id="houses">1</span></div>
 <div>⛏️ Mines: <span id="mines">0</span></div>
-<div>🛡️ Base HP: <span id="hp">100</span></div>
+<div>🏦 Economy Level: <span id="eco">1</span></div>
 </div>
 
 <div class="actions">
 
 <button class="green" onclick="gather('wood')">🪵 Gather Wood</button>
 <button class="green" onclick="gather('food')">🍎 Gather Food</button>
+<button class="yellow" onclick="gather('stone')">🪨 Gather Stone</button>
 
 <button class="blue" onclick="buyWorker()">🧍 Recruit Unit (50 Food)</button>
 
-<button class="orange" onclick="build('house')">🏠 Build House</button>
-<button class="orange" onclick="build('mine')">⛏️ Build Mine</button>
+<button class="orange" onclick="buildHouse()">🏠 Build House (50 Wood)</button>
+<button class="orange" onclick="buildMine()">⛏️ Build Mine (80 Wood)</button>
 
 <button class="red" onclick="attack()">⚔️ Attack Enemy</button>
 
+<!-- TRADE SYSTEM -->
+<button onclick="trade('goldToWood')">💱 1 Gold → 1 Wood</button>
+<button onclick="trade('goldToFood')">💱 1 Gold → 1 Food</button>
+
 </div>
 
-<div class="log" id="log">Welcome to MGOT Base.</div>
+<div class="log" id="log">MGOT Economy online...</div>
 
 </div>
 
@@ -124,22 +125,22 @@ let game = {
 wood:100,
 food:50,
 gold:0,
+stone:0,
 workers:2,
-maxWorkers:5,
 houses:1,
 mines:0,
-hp:100
+eco:1
 };
 
-// ================= ACTIONS =================
+// ================= GATHER =================
 function gather(type){
-game[type] += 1;
+game[type] += 1 * game.eco;
 update();
 }
 
 // ================= RECRUIT =================
 function buyWorker(){
-if(game.food >= 50 && game.workers < game.maxWorkers){
+if(game.food >= 50){
 game.food -= 50;
 game.workers += 1;
 log("Unit recruited.");
@@ -148,40 +149,55 @@ update();
 }
 
 // ================= BUILD =================
-function build(type){
-
-if(type === "house" && game.wood >= 50){
+function buildHouse(){
+if(game.wood >= 50){
 game.wood -= 50;
 game.houses++;
-game.maxWorkers += 5;
-game.hp += 20;
-log("House built (+population +HP)");
-
+game.eco += 0.2;
+log("House built (+economy boost)");
+update();
+}
 }
 
-if(type === "mine" && game.wood >= 80){
+function buildMine(){
+if(game.wood >= 80){
 game.wood -= 80;
 game.mines++;
-log("Mine built (+gold income)");
+log("Mine built (+gold production)");
+update();
+}
+}
+
+// ================= ATTACK =================
+function attack(){
+
+let enemy = 100 + Math.random()*150;
+let power = game.workers*10 + game.mines*8 + game.stone*2;
+
+if(power > enemy){
+game.gold += 50;
+log("Victory! +50 gold");
+} else {
+game.food -= 10;
+log("Defeat! You lost food");
 }
 
 update();
 }
 
-// ================= ATTACK SYSTEM (NEW MGOT FEATURE) =================
-function attack(){
+// ================= TRADE SYSTEM (NEW) =================
+function trade(type){
 
-let enemyHP = 80 + Math.random()*120;
-let damage = game.workers * 10 + game.mines * 5;
+if(type === "goldToWood" && game.gold >= 1){
+game.gold -= 1;
+game.wood += 1;
+log("Trade: 1 Gold → 1 Wood");
+}
 
-enemyHP -= damage;
-
-if(enemyHP <= 0){
-game.gold += 50;
-log("Victory! Enemy base destroyed (+50 gold)");
-} else {
-game.hp -= 20;
-log("Attack failed. You lost HP.");
+if(type === "goldToFood" && game.gold >= 1){
+game.gold -= 1;
+game.food += 1;
+log("Trade: 1 Gold → 1 Food");
 }
 
 update();
@@ -190,9 +206,10 @@ update();
 // ================= AUTO ECONOMY =================
 setInterval(()=>{
 
-game.wood += game.workers * 0.5;
-game.food += game.workers * 0.3;
-game.gold += game.mines * game.workers * 0.2;
+game.wood += game.workers * 0.5 * game.eco;
+game.food += game.workers * 0.3 * game.eco;
+game.gold += game.mines * 0.3;
+game.stone += game.workers * 0.1;
 
 update();
 
@@ -204,11 +221,11 @@ function update(){
 document.getElementById("wood").innerText = Math.floor(game.wood);
 document.getElementById("food").innerText = Math.floor(game.food);
 document.getElementById("gold").innerText = Math.floor(game.gold);
+document.getElementById("stone").innerText = Math.floor(game.stone);
 document.getElementById("workers").innerText = game.workers;
-document.getElementById("maxWorkers").innerText = game.maxWorkers;
 document.getElementById("houses").innerText = game.houses;
 document.getElementById("mines").innerText = game.mines;
-document.getElementById("hp").innerText = game.hp;
+document.getElementById("eco").innerText = game.eco.toFixed(1);
 
 }
 
