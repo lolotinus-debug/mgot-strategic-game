@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Tech Tree</title>
+<title>MGOT Civilization FINAL</title>
 
 <style>
 body{
@@ -14,42 +14,48 @@ body{
     padding:20px;
 }
 
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
 h1{
     text-align:center;
     color:#22d3ee;
 }
 
-.container{
-    max-width:900px;
-    margin:auto;
+.top{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:15px;
 }
 
-.stats{
-    display:flex;
-    justify-content:space-around;
-    margin-bottom:20px;
+.box{
     background:#0f172a;
     padding:15px;
     border-radius:10px;
+    text-align:center;
+}
+
+.era{
+    background:#0f172a;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+    margin-bottom:15px;
 }
 
 .tree{
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-}
-
-.level{
-    background:#0f172a;
-    padding:15px;
-    border-radius:10px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
 }
 
 .node{
     background:#111827;
-    padding:10px;
-    margin-top:10px;
-    border-radius:8px;
+    padding:12px;
+    border-radius:10px;
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -60,17 +66,29 @@ button{
     border:none;
     color:white;
     padding:8px 12px;
-    border-radius:6px;
+    border-radius:8px;
     cursor:pointer;
 }
 
 button:disabled{
     background:#334155;
-    cursor:not-allowed;
 }
 
-.active{
-    border-left:4px solid #22d3ee;
+.locked{
+    opacity:0.4;
+}
+
+.progress{
+    height:10px;
+    background:#1e293b;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.fill{
+    height:100%;
+    width:0%;
+    background:#22d3ee;
 }
 </style>
 </head>
@@ -79,71 +97,53 @@ button:disabled{
 
 <div class="container">
 
-<h1>🌳 MGOT Tech Tree</h1>
+<h1>🧠 MGOT Civilization FINAL</h1>
 
-<div class="stats">
-    <div>🧠 Knowledge: <span id="k">0</span></div>
-    <div>⚡ Energy: <span id="e">0</span></div>
-    <div>👥 Community: <span id="c">0</span></div>
+<div class="top">
+<div class="box">🧠 <div id="k">0</div></div>
+<div class="box">⚡ <div id="e">0</div></div>
+<div class="box">👥 <div id="c">0</div></div>
 </div>
 
-<div style="text-align:center;margin-bottom:15px;">
-    <button onclick="add()">+ Gain Resources</button>
+<div class="era">
+⭐ Era: <span id="era">Individual</span>
+<br><br>
+<div class="progress"><div class="fill" id="bar"></div></div>
 </div>
 
 <div class="tree">
 
-<!-- LEVEL 1 -->
-<div class="level">
-<h3>🧠 FOUNDATION</h3>
-
+<!-- FOUNDATION -->
 <div class="node" id="n1">
-Discipline I (+Energy +10%)
+Discipline I (+Energy)
 <button onclick="buy('n1',50,'k')">50 🧠</button>
 </div>
 
 <div class="node" id="n2">
-Focus I (+Knowledge +10%)
+Focus I (+Knowledge)
 <button onclick="buy('n2',50,'k')">50 🧠</button>
 </div>
 
 <div class="node" id="n3">
-Social Awareness (+Community +10%)
+Social Awareness (+Community)
 <button onclick="buy('n3',50,'k')">50 🧠</button>
 </div>
 
-</div>
-
-<!-- LEVEL 2 -->
-<div class="level">
-<h3>👥 COMMUNITY</h3>
-
+<!-- COMMUNITY -->
 <div class="node locked" id="n4">
-Communication Skills (+Network)
+Communication Skills
 <button onclick="buy('n4',120,'c')">120 👥</button>
 </div>
 
 <div class="node locked" id="n5">
-Group Motivation (+efficiency)
+Network Effect
 <button onclick="buy('n5',120,'c')">120 👥</button>
 </div>
 
-</div>
-
-<!-- LEVEL 3 -->
-<div class="level">
-<h3>🏫 ACADEMY</h3>
-
+<!-- ACADEMY -->
 <div class="node locked" id="n6">
-Knowledge Systems (+50% income)
+Knowledge System (+50% income)
 <button onclick="buy('n6',300,'k')">300 🧠</button>
-</div>
-
-<div class="node locked" id="n7">
-Mentor Network (auto boost)
-<button onclick="buy('n7',300,'c')">300 👥</button>
-</div>
-
 </div>
 
 </div>
@@ -154,63 +154,117 @@ Mentor Network (auto boost)
 
 let k=0,e=0,c=0;
 
-let unlocked = {
-n1:false,n2:false,n3:false,
-n4:false,n5:false,n6:false,n7:false
-};
+let era=0;
+
+let nodes={};
+
+function total(){return k+e+c;}
 
 function update(){
-document.getElementById("k").innerText=k;
-document.getElementById("e").innerText=e;
-document.getElementById("c").innerText=c;
+
+document.getElementById("k").innerText=Math.floor(k);
+document.getElementById("e").innerText=Math.floor(e);
+document.getElementById("c").innerText=Math.floor(c);
+
+let eras=[
+"🧍 Individual",
+"👥 Tribe",
+"🏫 Academy",
+"🏙️ City",
+"🌍 Global"
+];
+
+document.getElementById("era").innerText=eras[era];
+
+let progress = total()%100;
+document.getElementById("bar").style.width = progress+"%";
+
+checkEra();
+save();
 }
 
 function add(){
-k+=10;
-e+=10;
-c+=10;
-update();
-save();
+k++;e++;c++;
 }
 
 function buy(id,cost,type){
 
-if(type==="k" && k>=cost){
-k-=cost;
-}
-else if(type==="c" && c>=cost){
-c-=cost;
-}
+if(type==="k" && k>=cost) k-=cost;
+else if(type==="c" && c>=cost) c-=cost;
+else if(type==="e" && e>=cost) e-=cost;
 else return;
 
-unlocked[id]=true;
+nodes[id]=true;
 
 document.getElementById(id).classList.add("active");
 
-unlockNext(id);
+unlock(id);
 
 update();
-save();
 }
 
-function unlockNext(id){
+function unlock(id){
 
-if(id==="n1") document.getElementById("n4").classList.remove("locked");
-if(id==="n2") document.getElementById("n5").classList.remove("locked");
-if(id==="n3") document.getElementById("n6").classList.remove("locked");
+if(id==="n1"){
+document.getElementById("n4").classList.remove("locked");
+}
+
+if(id==="n2"){
+document.getElementById("n5").classList.remove("locked");
+}
+
+if(id==="n3"){
+document.getElementById("n6").classList.remove("locked");
+}
+
+}
+
+function checkEra(){
+
+if(total()>100) era=1;
+if(total()>400) era=2;
+if(total()>1200) era=3;
+if(total()>3000) era=4;
 
 }
 
 function save(){
-localStorage.setItem("mgottree",JSON.stringify({k,e,c,unlocked}));
+localStorage.setItem("mgot_final",JSON.stringify({
+k,e,c,era,nodes
+}));
 }
 
 function load(){
-let d=JSON.parse(localStorage.getItem("mgottree"));
+
+let d=JSON.parse(localStorage.getItem("mgot_final"));
 if(!d)return;
+
 k=d.k;e=d.e;c=d.c;
-unlocked=d.unlocked;
+era=d.era;
+nodes=d.nodes||{};
+
+for(let id in nodes){
+if(nodes[id]){
+let el=document.getElementById(id);
+if(el) el.classList.add("active");
 }
+}
+
+}
+
+setInterval(()=>{
+
+// passive income (basic system)
+if(nodes.n1) e+=0.5;
+if(nodes.n2) k+=0.5;
+if(nodes.n3) c+=0.5;
+if(nodes.n6){
+k*=1.001; // small scaling effect
+}
+
+update();
+
+},1000);
 
 load();
 update();
