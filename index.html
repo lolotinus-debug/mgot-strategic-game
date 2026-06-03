@@ -2,18 +2,18 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT Rogue Strategy</title>
+<title>MGOT World Strategy</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#050b1a;
+    background:#070b18;
     color:white;
 }
 
 .container{
-    max-width:800px;
+    max-width:900px;
     margin:auto;
     padding:20px;
 }
@@ -36,8 +36,8 @@ button{
     cursor:pointer;
 }
 
-.bad{color:#f87171;}
 .good{color:#34d399;}
+.bad{color:#f87171;}
 .warn{color:#fbbf24;}
 </style>
 </head>
@@ -46,57 +46,60 @@ button{
 
 <div class="container">
 
-<h1>🧠 MGOT — ROGUE CIVILIZATION</h1>
+<h1>🧠 MGOT — WORLD STRATEGY</h1>
 
 <div class="card">
-🌍 Stability: <span id="s">100</span><br>
-🧠 Knowledge: <span id="k">50</span><br>
-⚡ Economy: <span id="e">50</span><br>
-👥 Society: <span id="c">50</span>
-</div>
+<h3>🌍 CIVILIZATION</h3>
 
-<div class="card">
-
-<h3>⚠ CRISIS EVENT</h3>
-<div id="event" class="warn">Waiting for disaster...</div>
-
-<button onclick="choice(1)">1) Fix problem (risk economy)</button>
-<button onclick="choice(2)">2) Ignore (risk collapse)</button>
-<button onclick="choice(3)">3) Invest long-term (slow recovery)</button>
-
+💰 Economy: <span id="e">50</span><br>
+🧠 Research: <span id="r">50</span><br>
+⚔ Military: <span id="m">50</span><br>
+⚖ Stability: <span id="s">100</span>
 </div>
 
 <div class="card">
 <h3>🤖 AI CIVILIZATION</h3>
-AI Power: <span id="ai">80</span><br>
-Player Power: <span id="p">0</span>
+AI Power: <span id="ai">80</span>
+</div>
+
+<div class="card">
+<h3>🎮 ACTIONS (TURN)</h3>
+
+<button onclick="act('eco')">💰 Invest Economy</button>
+<button onclick="act('res')">🧠 Research</button>
+<button onclick="act('mil')">⚔ Build Military</button>
+</div>
+
+<div class="card">
+<h3>⚠ WORLD EVENT</h3>
+<div id="event" class="warn">World is stable...</div>
 </div>
 
 <div class="card">
 <h3>🏆 STATUS</h3>
-<div id="status">Survive...</div>
+<div id="status">Survive and grow</div>
 </div>
 
 </div>
 
 <script>
 
+let e=50,r=50,m=50;
 let s=100;
-let k=50,e=50,c=50;
 let ai=80;
 
 function power(){
-return k+e+c;
+return e+r+m;
 }
 
-function crisis(){
+function event(){
 
 let events=[
-"⚠ Energy shortage hits system",
-"⚠ Economic instability rising",
-"⚠ Social unrest detected",
-"⚠ AI expansion accelerating",
-"⚠ Global pressure increasing"
+"💥 Economic shock in global markets",
+"⚠ AI expansion detected",
+"📈 Research breakthrough available",
+"⚔ Border tensions rising",
+"🌍 Stability pressure increasing"
 ];
 
 document.getElementById("event").innerText =
@@ -105,42 +108,40 @@ events[Math.floor(Math.random()*events.length)];
 
 function aiTurn(){
 
-ai += Math.random()*15;
+ai += Math.random()*10;
 
 if(ai > power()){
-k -= 5;
-e -= 5;
-c -= 5;
 s -= 10;
+e -= 5;
+m -= 5;
 
 document.getElementById("status").innerHTML =
-"<span class='bad'>⚠ AI is dominating your civilization!</span>";
+"<span class='bad'>⚠ AI is ahead of your civilization!</span>";
 }
 }
 
-function choice(x){
+function act(type){
 
-crisis();
+event();
 
-if(x===1){
-k -= 5;
-e += 5;
-s += 5;
+if(type==='eco'){
+e += 10;
+s -= 3;
 }
 
-if(x===2){
-s -= 15;
-}
-
-if(x===3){
-k += 10;
+if(type==='res'){
+r += 10;
 e -= 5;
-s += 2;
+}
+
+if(type==='mil'){
+m += 10;
+e -= 5;
 }
 
 aiTurn();
-update();
 check();
+update();
 }
 
 function check(){
@@ -157,21 +158,20 @@ document.getElementById("status").innerHTML =
 
 if(power() > 300){
 document.getElementById("status").innerHTML =
-"<span class='good'>🏆 YOU SURVIVED AND DOMINATED</span>";
+"<span class='good'>🏆 YOU ACHIEVED GLOBAL DOMINANCE</span>";
 }
 }
 
 function update(){
 
-document.getElementById("s").innerText=Math.floor(s);
-document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
-document.getElementById("c").innerText=Math.floor(c);
+document.getElementById("r").innerText=Math.floor(r);
+document.getElementById("m").innerText=Math.floor(m);
+document.getElementById("s").innerText=Math.floor(s);
 document.getElementById("ai").innerText=Math.floor(ai);
-document.getElementById("p").innerText=Math.floor(power());
 }
 
-setInterval(crisis,4000);
+setInterval(event,5000);
 
 update();
 
