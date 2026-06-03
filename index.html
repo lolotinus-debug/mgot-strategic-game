@@ -3,20 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Civilization FULL</title>
+<title>MGOT PRO</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#020617;
+    background:#050b1a;
     color:white;
-    padding:20px;
 }
 
 .container{
-    max-width:900px;
+    max-width:1100px;
     margin:auto;
+    padding:20px;
+}
+
+/* TOP BAR */
+.topbar{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+.card{
+    background:#0f172a;
+    padding:15px;
+    border-radius:12px;
+    text-align:center;
+    border:1px solid #1e293b;
 }
 
 h1{
@@ -24,68 +39,57 @@ h1{
     color:#22d3ee;
 }
 
-.top{
+/* LAYOUT */
+.grid{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-    margin-bottom:15px;
+    grid-template-columns:2fr 1fr;
+    gap:15px;
+    margin-top:15px;
 }
 
-.box{
+.panel{
     background:#0f172a;
     padding:15px;
-    text-align:center;
-    border-radius:10px;
-}
-
-.era{
-    background:#0f172a;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:15px;
-    text-align:center;
+    border-radius:12px;
+    border:1px solid #1e293b;
 }
 
 button{
     width:100%;
     padding:10px;
-    margin-top:5px;
-    background:#0891b2;
+    margin-top:6px;
     border:none;
-    color:white;
     border-radius:8px;
+    background:#0891b2;
+    color:white;
     cursor:pointer;
 }
 
-button:hover{opacity:0.9}
-
-.tree{
-    margin-top:10px;
+button:hover{
+    opacity:0.9;
 }
 
 .node{
-    background:#0f172a;
-    padding:12px;
-    border-radius:10px;
+    background:#111827;
+    padding:10px;
+    border-radius:8px;
     margin-bottom:10px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
 }
 
-.locked{opacity:0.4}
+/* LEADERBOARD */
+.lb{
+    font-size:14px;
+    color:#94a3b8;
+}
 
-.progress{
-    height:10px;
+/* ACHIEVEMENTS */
+.badge{
+    display:inline-block;
+    padding:5px 10px;
+    margin:3px;
+    border-radius:20px;
     background:#1e293b;
-    border-radius:10px;
-    overflow:hidden;
-}
-
-.fill{
-    height:100%;
-    width:0%;
-    background:#22d3ee;
+    font-size:12px;
 }
 </style>
 </head>
@@ -94,47 +98,62 @@ button:hover{opacity:0.9}
 
 <div class="container">
 
-<h1>🧠 MGOT CIVILIZATION</h1>
+<h1>🧠 MGOT CIVILIZATION PRO</h1>
 
-<div class="top">
-<div class="box">🧠 <div id="k">0</div></div>
-<div class="box">⚡ <div id="e">0</div></div>
-<div class="box">👥 <div id="c">0</div></div>
+<div class="topbar">
+<div class="card">🧠<br><span id="k">0</span></div>
+<div class="card">⚡<br><span id="e">0</span></div>
+<div class="card">👥<br><span id="c">0</span></div>
+<div class="card">⭐ Era<br><span id="era">Individual</span></div>
 </div>
 
-<div class="era">
-⭐ Era: <span id="era">Individual</span>
-<br><br>
-<div class="progress"><div class="fill" id="bar"></div></div>
+<div class="grid">
+
+<!-- LEFT -->
+<div class="panel">
+
+<h2>🎮 Actions</h2>
+
+<button onclick="act()">🔥 ACT (Grow)</button>
+
+<hr>
+
+<h3>🌳 Tech</h3>
+
+<div class="node">
+📚 Discipline (+Energy/sec)
+<button onclick="buy('d',50,'k')">Buy 50 🧠</button>
 </div>
 
-<button onclick="act()">🔥 ACT (train & grow)</button>
-
-<div class="tree">
-
-<div class="node" id="n1">
-📚 Discipline I (+Energy/sec)
-<button onclick="buy('n1',50,'k')">50 🧠</button>
+<div class="node">
+🎯 Focus (+Knowledge/sec)
+<button onclick="buy('f',50,'k')">Buy 50 🧠</button>
 </div>
 
-<div class="node" id="n2">
-🎯 Focus I (+Knowledge/sec)
-<button onclick="buy('n2',50,'k')">50 🧠</button>
+<div class="node">
+🤝 Social (+Community/sec)
+<button onclick="buy('s',50,'k')">Buy 50 🧠</button>
 </div>
 
-<div class="node" id="n3">
-🤝 Social Awareness (+Community/sec)
-<button onclick="buy('n3',50,'k')">50 🧠</button>
+<hr>
+
+<h3>🏆 Achievements</h3>
+<div id="ach"></div>
+
 </div>
 
-<div class="node locked" id="n4">
-🗣 Communication (+Community boost)
-<button onclick="buy('n4',120,'c')">120 👥</button>
-</div>
+<!-- RIGHT -->
+<div class="panel">
 
-<div class="node locked" id="n5">
-🧠 Knowledge System (+50% Knowledge)
-<button onclick="buy('n5',300,'k')">300 🧠</button>
+<h2>📊 Leaderboard</h2>
+
+<div class="lb" id="lb"></div>
+
+<hr>
+
+<h3>⚙️ Stats</h3>
+<div>Total Power: <span id="t">0</span></div>
+
 </div>
 
 </div>
@@ -144,62 +163,77 @@ button:hover{opacity:0.9}
 <script>
 
 let k=0,e=0,c=0;
-let era=0;
+let d=0,f=0,s=0;
 
-let n={};
+let achievements=[];
 
 function act(){
-k+=2;
-e+=2;
-c+=2;
+k+=3;
+e+=3;
+c+=3;
 update();
 }
 
-function buy(id,cost,type){
+function buy(type,cost,resource){
 
-if(type==="k" && k>=cost) k-=cost;
-else if(type==="c" && c>=cost) c-=cost;
+if(resource==="k" && k>=cost) k-=cost;
 else return;
 
-n[id]=true;
-document.getElementById(id).classList.add("active");
+if(type==="d") d++;
+if(type==="f") f++;
+if(type==="s") s++;
 
-unlock();
 update();
-}
-
-function unlock(){
-
-if(n.n1){
-document.getElementById("n4").classList.remove("locked");
-}
-
-if(n.n2){
-document.getElementById("n5").classList.remove("locked");
-}
-
 }
 
 function total(){return k+e+c;}
 
-function eraCheck(){
+function era(){
 
 let t=total();
 
-if(t>100) era=1;
-if(t>400) era=2;
-if(t>1200) era=3;
-if(t>3000) era=4;
+if(t>100) return "Tribe";
+if(t>500) return "Academy";
+if(t>1500) return "City";
+if(t>4000) return "Global";
+return "Individual";
+}
 
-let names=[
-"🧍 Individual",
-"👥 Tribe",
-"🏫 Academy",
-"🏙️ City",
-"🌍 Global Network"
+function checkAchievements(){
+
+if(total()>50 && !achievements.includes("First Steps")){
+achievements.push("First Steps");
+}
+
+if(total()>300 && !achievements.includes("Builder")){
+achievements.push("Builder");
+}
+
+if(d+f+s>5 && !achievements.includes("Tech Starter")){
+achievements.push("Tech Starter");
+}
+
+document.getElementById("ach").innerHTML =
+achievements.map(a=>`<div class="badge">🏅 ${a}</div>`).join("");
+}
+
+function leaderboard(){
+
+let power = total() + (d+f+s)*10;
+
+let fake=[
+{name:"You",score:power},
+{name:"Alpha Player",score:power+120},
+{name:"Beta Mind",score:power+80},
+{name:"Sigma Node",score:power+40}
 ];
 
-document.getElementById("era").innerText=names[era];
+fake.sort((a,b)=>b.score-a.score);
+
+document.getElementById("lb").innerHTML =
+fake.map((p,i)=>`
+<div>${i+1}. ${p.name} — ${p.score}</div>
+`).join("");
 }
 
 function update(){
@@ -208,44 +242,44 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
-document.getElementById("bar").style.width=(total()%100)+"%";
+document.getElementById("era").innerText=era();
 
-eraCheck();
+document.getElementById("t").innerText=total();
+
+checkAchievements();
+leaderboard();
 save();
 }
 
 setInterval(()=>{
 
-// passive income system
-if(n.n1) e+=0.6;
-if(n.n2) k+=0.6;
-if(n.n3) c+=0.6;
-if(n.n5) k*=1.001;
+if(d) e+=d*0.5;
+if(f) k+=f*0.5;
+if(s) c+=s*0.5;
 
 update();
 
 },1000);
 
 function save(){
-localStorage.setItem("mgot_full",JSON.stringify({k,e,c,era,n}));
+localStorage.setItem("mgot_pro",JSON.stringify({
+k,e,c,d,f,s,achievements
+}));
 }
 
 function load(){
-let d=JSON.parse(localStorage.getItem("mgot_full"));
+let d=JSON.parse(localStorage.getItem("mgot_pro"));
 if(!d)return;
 
 k=d.k||0;
 e=d.e||0;
 c=d.c||0;
-era=d.era||0;
-n=d.n||{};
 
-for(let id in n){
-if(n[id]){
-let el=document.getElementById(id);
-if(el) el.classList.add("active");
-}
-}
+d=d.d||0;
+f=d.f||0;
+s=d.s||0;
+
+achievements=d.achievements||[];
 }
 
 load();
