@@ -2,105 +2,142 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT PRO CORE</title>
+<title>MGOT Strategy</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#050b1a;
+    background:#0b1020;
     color:white;
-    padding:20px;
 }
 
-h1{text-align:center;color:#22d3ee}
+.header{
+    text-align:center;
+    padding:15px;
+    font-size:20px;
+    color:#22d3ee;
+}
 
-.grid{
+.wrap{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:15px;
-    max-width:1000px;
+    max-width:1100px;
     margin:auto;
+    padding:15px;
 }
 
-.card{
-    background:#0f172a;
+.panel{
+    background:#111827;
     padding:15px;
     border-radius:12px;
+    border:1px solid #1f2937;
+}
+
+.stat{
+    display:flex;
+    justify-content:space-between;
+    margin:5px 0;
 }
 
 button{
     width:100%;
     padding:10px;
-    margin-top:5px;
+    margin-top:6px;
     background:#0891b2;
     border:none;
     color:white;
     border-radius:8px;
+    cursor:pointer;
 }
+
+button:hover{opacity:0.9}
 
 .map{
     display:grid;
     grid-template-columns:repeat(3,1fr);
-    gap:5px;
+    gap:6px;
     margin-top:10px;
 }
 
 .node{
-    background:#111827;
+    background:#0f172a;
     padding:10px;
     text-align:center;
     border-radius:8px;
     cursor:pointer;
+    border:1px solid #1f2937;
 }
 
-.active{border:2px solid #22d3ee;}
+.active{
+    border:2px solid #22d3ee;
+}
+
+.small{
+    font-size:12px;
+    color:#94a3b8;
+}
 </style>
 </head>
 
 <body>
 
-<h1>🧠 MGOT PRO CORE STRATEGY</h1>
+<div class="header">
+🧠 MGOT — STEAM STRATEGY CORE
+</div>
 
-<div class="grid">
+<div class="wrap">
 
-<div class="card">
+<!-- LEFT -->
+<div class="panel">
 
-<h3>📊 RESOURCES</h3>
+<h3>📊 Resources</h3>
 
-🧠 Knowledge: <span id="k">0</span><br>
-⚡ Energy: <span id="e">0</span><br>
-👥 Community: <span id="c">0</span>
-
-<button onclick="tick()">⚙️ SIMULATE TURN</button>
+<div class="stat">🧠 Knowledge <span id="k">0</span></div>
+<div class="stat">⚡ Energy <span id="e">0</span></div>
+<div class="stat">👥 Community <span id="c">0</span></div>
 
 <hr>
 
-<h3>🏗 BUILD</h3>
+<h3>🏗 Build</h3>
+
+<div class="small">Každá budova generuje pasívny rast</div>
 
 <button onclick="build('lab')">📚 Research Lab (+Knowledge)</button>
-<button onclick="build('hub')">🤝 Community Hub (+Community)</button>
 <button onclick="build('plant')">⚡ Energy Plant (+Energy)</button>
+<button onclick="build('hub')">🤝 Community Hub (+Community)</button>
+
+<hr>
+
+<h3>⚙️ Economy Tick</h3>
+<button onclick="tick()">▶ Advance Turn</button>
 
 </div>
 
-<div class="card">
+<!-- RIGHT -->
+<div class="panel">
 
-<h3>🌍 MAP</h3>
+<h3>🌍 MAP CONTROL</h3>
+
+<div class="small">Obsadené regióny dávajú bonus</div>
 
 <div class="map">
-<div class="node" onclick="capture('EU')">EU</div>
-<div class="node" onclick="capture('GLOBAL')">GLOBAL</div>
-<div class="node" onclick="capture('ASIA')">ASIA</div>
-<div class="node" onclick="capture('US')">US</div>
-<div class="node" onclick="capture('CORE')">MGOT CORE</div>
-<div class="node" onclick="capture('AFRICA')">AFRICA</div>
+<div class="node" onclick="capture(this,'EU')">EU</div>
+<div class="node" onclick="capture(this,'US')">US</div>
+<div class="node" onclick="capture(this,'ASIA')">ASIA</div>
+<div class="node" onclick="capture(this,'AFRICA')">AFRICA</div>
+<div class="node" onclick="capture(this,'GLOBAL')">GLOBAL</div>
+<div class="node" onclick="capture(this,'CORE')">CORE</div>
 </div>
 
 <hr>
 
 <h3>⭐ ERA</h3>
 <div id="era">Individual</div>
+
+<h3>📈 Power</h3>
+<div id="power">0</div>
 
 </div>
 
@@ -110,42 +147,52 @@ button{
 
 let k=0,e=0,c=0;
 
-let lab=0,hub=0,plant=0;
+let lab=0,plant=0,hub=0;
 
-let nodes={};
-
-function tick(){
-
-k += lab*2;
-e += plant*2;
-c += hub*2;
-
-update();
-}
+let regions={};
 
 function build(type){
 
-if(type==="lab" && k>=50){
-k-=50; lab++;
-}
-
-if(type==="hub" && c>=50){
-c-=50; hub++;
-}
-
-if(type==="plant" && e>=50){
-e-=50; plant++;
-}
+if(type==="lab" && k>=50){k-=50; lab++;}
+if(type==="plant" && e>=50){e-=50; plant++;}
+if(type==="hub" && c>=50){c-=50; hub++;}
 
 update();
 }
 
-function capture(node){
-nodes[node]=true;
-document.querySelectorAll(".node").forEach(n=>{
-if(nodes[n.innerText]) n.classList.add("active");
-});
+function tick(){
+
+// passive economy
+k += lab * 2;
+e += plant * 2;
+c += hub * 2;
+
+// region bonuses
+if(regions.EU) k += 2;
+if(regions.US) e += 2;
+if(regions.ASIA) c += 2;
+if(regions.GLOBAL) k += e += c += 1;
+
 update();
+}
+
+function capture(el,node){
+
+regions[node]=true;
+el.classList.add("active");
+update();
+}
+
+function eraCalc(){
+
+let t = k+e+c;
+
+if(t>200) return "Tribe";
+if(t>800) return "Academy";
+if(t>2000) return "City";
+if(t>5000) return "Global Network";
+
+return "Individual";
 }
 
 function update(){
@@ -154,15 +201,9 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
-let total = k+e+c;
+document.getElementById("era").innerText=eraCalc();
 
-let era="Individual";
-if(total>200) era="Tribe";
-if(total>800) era="Academy";
-if(total>2000) era="City";
-if(total>5000) era="Global Network";
-
-document.getElementById("era").innerText=era;
+document.getElementById("power").innerText=Math.floor(k+e+c);
 }
 
 update();
