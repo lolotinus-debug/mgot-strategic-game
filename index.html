@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2D RTS Strategická Hra</title>
-<style>
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-#game-container { display: flex; gap: 20px; background: #2a2a2a; padding: 15px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
-canvas { background: #34495e; border: 4px solid #2c3e50; border-radius: 5px; cursor: crosshair; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D RTS Strategická Hra</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        #game-container { display: flex; gap: 20px; background: #2a2a2a; padding: 15px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
+        canvas { background: #34495e; border: 4px solid #2c3e50; border-radius: 5px; cursor: crosshair; }
         #ui-panel { width: 250px; display: flex; flex-direction: column; gap: 15px; }
         .resource-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #111; padding: 10px; border-radius: 5px; font-weight: bold; font-size: 15px; }
         .btn { padding: 12px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; text-align: left; }
@@ -224,17 +224,4 @@ canvas { background: #34495e; border: 4px solid #2c3e50; border-radius: 5px; cur
                     baseHp = 100; buildings = [{ x: 280, y: 180, w: 40, h: 40, type: 'castle', color: '#95a5a6' }]; units = []; enemies = [];
                 }
             }
-
-
-// Vykreslenie nepriateľa (Červený)
-ctx.fillStyle = '#e74c3c';
-ctx.beginPath();
-ctx.arc(e.x, e.y, 6, 0, Math.PI * 2);
-ctx.fill();
-});
-requestAnimationFrame(gameLoop);
-}
-// Štart hry
-updateUI();
-gameLoop();
 
