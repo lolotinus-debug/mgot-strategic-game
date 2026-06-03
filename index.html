@@ -2,7 +2,7 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT ACTIVE STRATEGY</title>
+<title>MGOT CIVILIZATION LIGHT</title>
 
 <style>
 body{
@@ -16,14 +16,15 @@ body{
     text-align:center;
     padding:15px;
     color:#22d3ee;
+    font-size:20px;
 }
 
-.container{
-    max-width:900px;
-    margin:auto;
+.grid{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:15px;
+    max-width:1100px;
+    margin:auto;
     padding:15px;
 }
 
@@ -36,27 +37,26 @@ body{
 button{
     width:100%;
     padding:10px;
-    margin-top:8px;
-    border:none;
-    border-radius:8px;
+    margin-top:6px;
     background:#0891b2;
+    border:none;
     color:white;
+    border-radius:8px;
     cursor:pointer;
 }
 
-.event{
+.node{
     padding:10px;
+    margin-top:6px;
     background:#0f172a;
     border-radius:8px;
-    margin-top:10px;
-    color:#fbbf24;
 }
 
-.bad{
+.ai{
     color:#f87171;
 }
 
-.good{
+.player{
     color:#34d399;
 }
 </style>
@@ -64,45 +64,61 @@ button{
 
 <body>
 
-<div class="header">🧠 MGOT — ACTIVE STRATEGY WORLD</div>
+<div class="header">🧠 MGOT CIVILIZATION LIGHT (MAX)</div>
 
-<div class="container">
+<div class="grid">
 
-<!-- LEFT -->
+<!-- PLAYER -->
 <div class="panel">
 
-<h3>📊 RESOURCES</h3>
+<h3 class="player">👤 PLAYER CIVILIZATION</h3>
 
-🧠 Knowledge: <span id="k">0</span><br>
-⚡ Energy: <span id="e">0</span><br>
-👥 Community: <span id="c">0</span>
+🧠 Knowledge: <span id="k">50</span><br>
+⚡ Energy: <span id="e">50</span><br>
+👥 Community: <span id="c">50</span><br>
+
+<hr>
+
+<button onclick="build('lab')">📚 Build Lab</button>
+<button onclick="build('plant')">⚡ Build Energy</button>
+<button onclick="build('hub')">🤝 Build Community</button>
+
+<hr>
+
+<h3>🌍 MAP CONTROL</h3>
+
+<div class="node" onclick="capture('EU')">EU</div>
+<div class="node" onclick="capture('US')">US</div>
+<div class="node" onclick="capture('ASIA')">ASIA</div>
 
 <hr>
 
 <button onclick="nextTurn()">▶ NEXT TURN</button>
 
-<button onclick="choice('knowledge')">📚 Focus Knowledge</button>
-<button onclick="choice('energy')">⚡ Focus Energy</button>
-<button onclick="choice('community')">🤝 Focus Community</button>
-
-<div id="event" class="event">Waiting for world event...</div>
-
 </div>
 
-<!-- RIGHT -->
+<!-- AI -->
 <div class="panel">
 
-<h3>🌍 WORLD STATUS</h3>
+<h3 class="ai">🤖 AI CIVILIZATION</h3>
 
-<div>🔥 Stability: <span id="stability">100</span>%</div>
-
-<div>⭐ Era: <span id="era">Individual</span></div>
+AI Power: <span id="ai">100</span><br>
 
 <hr>
 
-<h3>⚠️ CONSEQUENCES</h3>
+<div id="event">World is stable...</div>
 
-<div id="log">Game started...</div>
+<hr>
+
+<h3>📊 STATUS</h3>
+
+Player Power: <span id="pp">0</span><br>
+AI Power: <span id="ap">0</span><br>
+
+<hr>
+
+<h3>🏆 WIN CONDITION</h3>
+<div id="win">Reach 1000 power to win</div>
 
 </div>
 
@@ -111,91 +127,80 @@ button{
 <script>
 
 let k=50,e=50,c=50;
-let stability=100;
 
-let lastChoice="none";
+let lab=0,plant=0,hub=0;
 
-function randEvent(){
+let ai=100;
 
-let events=[
-{
-text:"💥 Economic crash hits system",
-effect:()=>{e-=10; stability-=10; return "bad"}
-},
-{
-text:"📈 Viral growth in community",
-effect:()=>{c+=15; stability+=5; return "good"}
-},
-{
-text:"🧠 Research breakthrough",
-effect:()=>{k+=15; return "good"}
-},
-{
-text:"⚡ Energy shortage",
-effect:()=>{e-=15; stability-=5; return "bad"}
-},
-{
-text:"🤝 Global alliance formed",
-effect:()=>{c+=10; k+=5; return "good"}
-}
-];
+let regions={};
 
-let ev = events[Math.floor(Math.random()*events.length)];
+function build(type){
 
-let result = ev.effect();
-
-document.getElementById("event").innerHTML =
-result==="good"
-? `<span class="good">${ev.text}</span>`
-: `<span class="bad">${ev.text}</span>`;
-
-document.getElementById("log").innerText = ev.text;
-}
-
-function choice(type){
-
-lastChoice = type;
-
-if(type==="knowledge") k += 10;
-if(type==="energy") e += 10;
-if(type==="community") c += 10;
-
-stability -= 2;
+if(type==="lab" && k>=50){k-=50; lab++;}
+if(type==="plant" && e>=50){e-=50; plant++;}
+if(type==="hub" && c>=50){c-=50; hub++;}
 
 update();
+}
+
+function capture(r){
+regions[r]=true;
+update();
+}
+
+function aiTurn(){
+
+let choice = Math.random();
+
+if(choice<0.33) ai += 20;
+else if(choice<0.66) ai += 10;
+else ai -= 5;
+
+if(Math.random()<0.3){
+k -= 5;
+e -= 5;
+c -= 5;
+document.getElementById("event").innerText = "⚠ AI attacked your economy!";
+}
+}
+
+function calcPower(){
+return k+e+c + lab*20 + plant*20 + hub*20;
 }
 
 function nextTurn(){
 
-randEvent();
+// player growth
+k += lab*5;
+e += plant*5;
+c += hub*5;
 
-// natural decay
-k -= 2;
-e -= 2;
-c -= 2;
+// AI growth
+aiTurn();
 
-stability -= 1;
+// map bonuses
+if(regions.EU) k += 5;
+if(regions.US) e += 5;
+if(regions.ASIA) c += 5;
 
-// consequences
-if(stability < 50){
+// stability pressure
+if(ai > calcPower()){
 k -= 5;
 e -= 5;
 c -= 5;
+document.getElementById("event").innerText = "🔥 AI is stronger than you!";
+}
+
+// win/lose
+if(calcPower() > 1000){
+document.getElementById("win").innerText = "🏆 YOU WIN (MGOT DOMINANCE)";
+}
+
+if(ai > 1200){
+document.getElementById("win").innerText = "💀 YOU LOST (AI DOMINATES)";
 }
 
 update();
-}
-
-function era(){
-
-let t=k+e+c;
-
-if(t>200) return "Tribe";
-if(t>500) return "Academy";
-if(t>1200) return "City";
-if(t>2500) return "Global";
-
-return "Individual";
 }
 
 function update(){
@@ -204,8 +209,10 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
-document.getElementById("stability").innerText=Math.floor(stability);
-document.getElementById("era").innerText=era();
+document.getElementById("ai").innerText=Math.floor(ai);
+
+document.getElementById("pp").innerText=Math.floor(calcPower());
+document.getElementById("ap").innerText=Math.floor(ai);
 
 }
 
