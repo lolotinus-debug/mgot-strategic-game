@@ -2,22 +2,54 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MGOT Strategy</title>
+<title>MGOT Strategy FULL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body {
     margin: 0;
     background: #020617;
-    overflow: hidden;
+    color: white;
     font-family: Arial;
+    overflow: hidden;
 }
+
 canvas {
     display: block;
     margin: 0 auto;
     background: radial-gradient(circle at center, #0f172a, #020617);
 }
+
+#ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.5);
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+button {
+    background: #0ea5e9;
+    border: none;
+    color: white;
+    padding: 5px;
+    margin: 3px;
+    cursor: pointer;
+    border-radius: 5px;
+}
 </style>
 </head>
 <body>
+
+<div id="ui">
+<div>🧠 MGOT Energy: <span id="energy">100</span></div>
+<div>🏗 HQ Level: <span id="hq">1</span></div>
+<button onclick="buildMine()">Mine</button>
+<button onclick="buildBarracks()">Barracks</button>
+<button onclick="upgradeHQ()">Upgrade HQ</button>
+</div>
 
 <canvas id="game"></canvas>
 
@@ -32,102 +64,174 @@ const GRID = 40;
 const COLS = Math.floor(canvas.width / GRID);
 const ROWS = Math.floor(canvas.height / GRID);
 
+let energy = 100;
+let hqLevel = 1;
+
+let buildings = [];
+let units = [];
+
+class Building {
+    constructor(x,y,type,team){
+        this.x=x;
+        this.y=y;
+        this.type=type;
+        this.team=team;
+        this.level=1;
+    }
+    draw(){
+        ctx.fillStyle =
+            this.type==="HQ"?"#00d4ff":
+            this.type==="Mine"?"#22c55e":
+            "#f97316";
+
+        ctx.fillRect(this.x*GRID,this.y*GRID,GRID-2,GRID-2);
+    }
+}
+
 class Unit {
-    constructor(x, y, team) {
-        this.x = x;
-        this.y = y;
-        this.team = team;
-        this.hp = 100;
-        this.target = null;
-        this.color = team === "player" ? "#00d4ff" : "#ff3b3b";
+    constructor(x,y,team){
+        this.x=x;
+        this.y=y;
+        this.team=team;
+        this.hp=100;
+        this.target=null;
+        this.color=team==="player"?"#00d4ff":"#ff3b3b";
     }
 
-    moveToward(tx, ty) {
-        if (this.x < tx) this.x++;
-        if (this.x > tx) this.x--;
-        if (this.y < ty) this.y--;
-        if (this.y > ty) this.y++;
+    move(){
+        if(!this.target) return;
+        if(this.x<this.target.x) this.x++;
+        if(this.x>this.target.x) this.x--;
+        if(this.y<this.target.y) this.y--;
+        if(this.y>this.target.y) this.y--;
     }
 
-    update(enemies) {
-        // attack logic
-        for (let e of enemies) {
-            if (Math.abs(e.x - this.x) < 1 && Math.abs(e.y - this.y) < 1) {
-                e.hp -= 1;
-                if (e.hp <= 0) enemies.splice(enemies.indexOf(e), 1);
+    attack(enemyList){
+        for(let e of enemyList){
+            if(Math.abs(e.x-this.x)<1 && Math.abs(e.y-this.y)<1){
+                e.hp -= 2;
+                if(e.hp<=0){
+                    enemyList.splice(enemyList.indexOf(e),1);
+                    energy += 5;
+                }
                 return;
             }
         }
-
-        // move
-        if (this.target) {
-            this.moveToward(this.target.x, this.target.y);
-        }
     }
 
-    draw() {
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x * GRID, this.y * GRID, GRID - 2, GRID - 2);
+    update(enemies){
+        this.attack(enemies);
+        this.move();
+    }
 
-        // HP bar
-        ctx.fillStyle = "green";
-        ctx.fillRect(this.x * GRID, this.y * GRID - 5, (GRID - 2) * (this.hp / 100), 3);
+    draw(){
+        ctx.fillStyle=this.color;
+        ctx.fillRect(this.x*GRID,this.y*GRID,GRID-2,GRID-2);
     }
 }
 
-let playerUnits = [
-    new Unit(5, 5, "player"),
-    new Unit(6, 5, "player")
-];
+// PLAYER HQ
+buildings.push(new Building(5,5,"HQ","player"));
 
-let aiUnits = [
-    new Unit(15, 10, "ai"),
-    new Unit(16, 10, "ai")
-];
+// AI HQ Africa region
+let aiBuildings = [new Building(20,10,"HQ","ai")];
 
-// AI simple behaviour
-function updateAI() {
-    for (let ai of aiUnits) {
-        let target = playerUnits[0];
-        if (target) {
-            ai.target = target;
-        }
-    }
+let aiUnits = [new Unit(20,11,"ai")];
+
+function buildMine(){
+    if(energy<20) return;
+    energy-=20;
+    buildings.push(new Building(6+Math.random()*3|0,6+Math.random()*3|0,"Mine","player"));
 }
 
-canvas.addEventListener("click", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / GRID);
-    const y = Math.floor((e.clientY - rect.top) / GRID);
+function buildBarracks(){
+    if(energy<30) return;
+    energy-=30;
+    buildings.push(new Building(7+Math.random()*3|0,7+Math.random()*3|0,"Barracks","player"));
+}
 
-    // move all player units to click
-    playerUnits.forEach(u => {
-        u.target = {x, y};
+function upgradeHQ(){
+    if(energy<50) return;
+    energy-=50;
+    hqLevel++;
+}
+
+canvas.addEventListener("click",(e)=>{
+    const rect=canvas.getBoundingClientRect();
+    const x=Math.floor((e.clientX-rect.left)/GRID);
+    const y=Math.floor((e.clientY-rect.top)/GRID);
+
+    units.forEach(u=>{
+        u.target={x,y};
     });
 });
 
-function drawGrid() {
-    ctx.strokeStyle = "#1e293b";
-    for (let x = 0; x < COLS; x++) {
-        for (let y = 0; y < ROWS; y++) {
-            ctx.strokeRect(x * GRID, y * GRID, GRID, GRID);
+// spawn player unit from barracks
+function spawnUnits(){
+    for(let b of buildings){
+        if(b.type==="Barracks" && Math.random()<0.02){
+            units.push(new Unit(b.x,b.y,"player"));
         }
     }
 }
 
-function loop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+// AI logic (expand + attack)
+function aiLogic(){
+    if(Math.random()<0.02){
+        aiUnits.push(new Unit(20,10,"ai"));
+    }
+
+    aiUnits.forEach(u=>{
+        let target=buildings[0];
+        u.target={x:target.x,y:target.y};
+    });
+}
+
+// resource system
+function resourceTick(){
+    buildings.forEach(b=>{
+        if(b.type==="Mine"){
+            energy+=0.2;
+        }
+    });
+}
+
+function update(){
+    spawnUnits();
+    aiLogic();
+    resourceTick();
+
+    units.forEach(u=>u.update(aiUnits));
+    aiUnits.forEach(u=>u.update(units));
+
+    document.getElementById("energy").innerText=Math.floor(energy);
+    document.getElementById("hq").innerText=hqLevel;
+}
+
+function drawGrid(){
+    ctx.strokeStyle="#1e293b";
+    for(let x=0;x<COLS;x++){
+        for(let y=0;y<ROWS;y++){
+            ctx.strokeRect(x*GRID,y*GRID,GRID,GRID);
+        }
+    }
+}
+
+function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
     drawGrid();
 
-    updateAI();
+    buildings.forEach(b=>b.draw());
+    aiBuildings.forEach(b=>b.draw());
 
-    for (let u of playerUnits) u.update(aiUnits);
-    for (let a of aiUnits) a.update(playerUnits);
+    units.forEach(u=>u.draw());
+    aiUnits.forEach(u=>u.draw());
+}
 
-    for (let u of playerUnits) u.draw();
-    for (let a of aiUnits) a.draw();
-
+function loop(){
+    update();
+    draw();
     requestAnimationFrame(loop);
 }
 
