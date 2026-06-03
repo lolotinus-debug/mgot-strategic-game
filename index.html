@@ -3,53 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Economy Shop V3</title>
+<title>MGOT Economy Upgrade</title>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:radial-gradient(circle,#050816,#020617);
+body {
+font-family: Arial;
+background: radial-gradient(circle,#0b1220,#020617);
 color:white;
 text-align:center;
+margin:0;
 padding:20px;
 }
 
-.container{
-max-width:800px;
+.container {
+max-width:700px;
 margin:auto;
-background:rgba(255,255,255,0.04);
+background:rgba(255,255,255,0.05);
 padding:20px;
-border-radius:14px;
+border-radius:12px;
+box-shadow:0 0 25px rgba(0,212,255,0.15);
 }
 
-h1{color:#00d4ff;}
+h1 { color:#00d4ff; }
 
-.panel{
-background:rgba(0,0,0,0.3);
-padding:12px;
-border-radius:10px;
-margin-bottom:12px;
-}
-
-.resources{
+.resources, .stats {
 display:flex;
 justify-content:space-around;
+padding:10px;
+background:rgba(0,0,0,0.3);
+border-radius:10px;
+margin-bottom:15px;
 flex-wrap:wrap;
 gap:10px;
 }
 
-.card{
-font-weight:bold;
-}
-
-.shop{
+.actions {
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
+margin-top:10px;
 }
 
-button{
+button {
 padding:10px;
 border:none;
 border-radius:8px;
@@ -58,21 +53,21 @@ font-weight:bold;
 transition:0.2s;
 }
 
-button:hover{transform:scale(1.03);}
+button:hover { transform:scale(1.03); }
 
-.blue{background:#00d4ff;color:black;}
 .green{background:#22c55e;}
-.purple{background:#a855f7;}
+.blue{background:#00d4ff;color:black;}
 .orange{background:#f97316;}
+.yellow{background:#eab308;}
 .red{background:#ef4444;}
 
-.log{
-margin-top:12px;
-height:140px;
+.log {
+margin-top:15px;
+height:130px;
 overflow:auto;
 background:rgba(0,0,0,0.4);
 padding:10px;
-border-radius:10px;
+border-radius:8px;
 text-align:left;
 font-size:13px;
 color:#aaa;
@@ -84,51 +79,42 @@ color:#aaa;
 
 <div class="container">
 
-<h1>⚔️ MGOT ECONOMY SHOP V3</h1>
-<p>Optimize your system. Every decision has cost.</p>
+<h1>⚔️ MGOT ECONOMY SYSTEM</h1>
 
-<div class="panel">
 <div class="resources">
-
-<div class="card">🪙 Tokens: <span id="tokens">30</span></div>
-<div class="card">⚡ Energy: <span id="energy">20</span></div>
-<div class="card">🧠 Knowledge: <span id="knowledge">10</span></div>
-<div class="card">🎯 Focus: <span id="focus">5</span></div>
-
-</div>
+<div>🪵 Wood: <span id="wood">100</span></div>
+<div>🍎 Food: <span id="food">50</span></div>
+<div>💰 Gold: <span id="gold">0</span></div>
+<div>🪨 Stone: <span id="stone">0</span></div>
 </div>
 
-<div class="panel shop">
+<div class="stats">
+<div>🧍 Units: <span id="workers">2</span></div>
+<div>🏠 Houses: <span id="houses">1</span></div>
+<div>⛏️ Mines: <span id="mines">0</span></div>
+<div>🏦 Economy Level: <span id="eco">1</span></div>
+</div>
 
-<button class="blue" onclick="buy('energy')">
-⚡ Energy Pack<br>5💰 → +10 Energy
-</button>
+<div class="actions">
 
-<button class="blue" onclick="buy('knowledge')">
-🧠 Knowledge Pack<br>5💰 → +5 Knowledge
-</button>
+<button class="green" onclick="gather('wood')">🪵 Gather Wood</button>
+<button class="green" onclick="gather('food')">🍎 Gather Food</button>
+<button class="yellow" onclick="gather('stone')">🪨 Gather Stone</button>
 
-<button class="purple" onclick="buy('focus')">
-🎯 Focus Boost<br>10💰 → +3 Focus
-</button>
+<button class="blue" onclick="buyWorker()">🧍 Recruit Unit (50 Food)</button>
 
-<button class="green" onclick="buy('agent')">
-🧍 Deploy Agent<br>10💰 → +1 Agent
-</button>
+<button class="orange" onclick="buildHouse()">🏠 Build House (50 Wood)</button>
+<button class="orange" onclick="buildMine()">⛏️ Build Mine (80 Wood)</button>
 
-<button class="orange" onclick="buy('system')">
-🏗 System Upgrade<br>15💰 → +0.2 Efficiency
-</button>
+<button class="red" onclick="attack()">⚔️ Attack Enemy</button>
 
-<button class="red" onclick="challenge()">
-⚔️ MGOT Challenge<br>Risk vs Reward
-</button>
+<!-- TRADE SYSTEM -->
+<button onclick="trade('goldToWood')">💱 1 Gold → 1 Wood</button>
+<button onclick="trade('goldToFood')">💱 1 Gold → 1 Food</button>
 
 </div>
 
-<div class="panel log" id="log">
-MGOT Shop initialized...
-</div>
+<div class="log" id="log">MGOT Economy online...</div>
 
 </div>
 
@@ -136,75 +122,94 @@ MGOT Shop initialized...
 
 // ================= MGOT STATE =================
 let game = {
-tokens:30,
-energy:20,
-knowledge:10,
-focus:5,
-agents:1,
-eff:1.0
+wood:100,
+food:50,
+gold:0,
+stone:0,
+workers:2,
+houses:1,
+mines:0,
+eco:1
 };
 
-// ================= SHOP SYSTEM =================
-function buy(item){
-
-if(item === "energy" && game.tokens >= 5){
-game.tokens -= 5;
-game.energy += 10;
-log("Purchased Energy Pack (-5 tokens)");
-}
-
-if(item === "knowledge" && game.tokens >= 5){
-game.tokens -= 5;
-game.knowledge += 5;
-log("Purchased Knowledge Pack (-5 tokens)");
-}
-
-if(item === "focus" && game.tokens >= 10){
-game.tokens -= 10;
-game.focus += 3;
-log("Focus Boost applied (-10 tokens)");
-}
-
-if(item === "agent" && game.tokens >= 10){
-game.tokens -= 10;
-game.agents += 1;
-game.eff += 0.1;
-log("Agent deployed (+efficiency)");
-}
-
-if(item === "system" && game.tokens >= 15){
-game.tokens -= 15;
-game.eff += 0.2;
-log("System upgraded (+efficiency)");
-}
-
+// ================= GATHER =================
+function gather(type){
+game[type] += 1 * game.eco;
 update();
 }
 
-// ================= CHALLENGE SYSTEM =================
-function challenge(){
+// ================= RECRUIT =================
+function buyWorker(){
+if(game.food >= 50){
+game.food -= 50;
+game.workers += 1;
+log("Unit recruited.");
+update();
+}
+}
 
-let power = (game.agents * 10) + (game.energy * 0.5) + (game.focus * 2);
-let difficulty = 40 + Math.random() * 120;
+// ================= BUILD =================
+function buildHouse(){
+if(game.wood >= 50){
+game.wood -= 50;
+game.houses++;
+game.eco += 0.2;
+log("House built (+economy boost)");
+update();
+}
+}
 
-if(power > difficulty){
-game.tokens += 20;
-log("Challenge SUCCESS → +20 tokens");
+function buildMine(){
+if(game.wood >= 80){
+game.wood -= 80;
+game.mines++;
+log("Mine built (+gold production)");
+update();
+}
+}
+
+// ================= ATTACK =================
+function attack(){
+
+let enemy = 100 + Math.random()*150;
+let power = game.workers*10 + game.mines*8 + game.stone*2;
+
+if(power > enemy){
+game.gold += 50;
+log("Victory! +50 gold");
 } else {
-game.tokens -= 8;
-game.energy -= 3;
-log("Challenge FAILED → -tokens & energy");
+game.food -= 10;
+log("Defeat! You lost food");
 }
 
 update();
 }
 
-// ================= AUTO GROWTH =================
+// ================= TRADE SYSTEM (NEW) =================
+function trade(type){
+
+if(type === "goldToWood" && game.gold >= 1){
+game.gold -= 1;
+game.wood += 1;
+log("Trade: 1 Gold → 1 Wood");
+}
+
+if(type === "goldToFood" && game.gold >= 1){
+game.gold -= 1;
+game.food += 1;
+log("Trade: 1 Gold → 1 Food");
+}
+
+update();
+}
+
+// ================= AUTO ECONOMY =================
 setInterval(()=>{
 
-game.tokens += game.agents * 0.2 * game.eff;
-game.energy += game.agents * 0.3 * game.eff;
-game.knowledge += game.agents * 0.2 * game.eff;
+game.wood += game.workers * 0.5 * game.eco;
+game.food += game.workers * 0.3 * game.eco;
+game.gold += game.mines * 0.3;
+game.stone += game.workers * 0.1;
 
 update();
 
@@ -213,20 +218,25 @@ update();
 // ================= UI =================
 function update(){
 
-document.getElementById("tokens").innerText = Math.floor(game.tokens);
-document.getElementById("energy").innerText = Math.floor(game.energy);
-document.getElementById("knowledge").innerText = Math.floor(game.knowledge);
-document.getElementById("focus").innerText = game.focus;
+document.getElementById("wood").innerText = Math.floor(game.wood);
+document.getElementById("food").innerText = Math.floor(game.food);
+document.getElementById("gold").innerText = Math.floor(game.gold);
+document.getElementById("stone").innerText = Math.floor(game.stone);
+document.getElementById("workers").innerText = game.workers;
+document.getElementById("houses").innerText = game.houses;
+document.getElementById("mines").innerText = game.mines;
+document.getElementById("eco").innerText = game.eco.toFixed(1);
 
 }
 
 // ================= LOG =================
 function log(text){
-let d=document.getElementById("log");
-d.innerHTML += "<br>➤ " + text;
-d.scrollTop = d.scrollHeight;
+let div = document.getElementById("log");
+div.innerHTML += "<br>➤ " + text;
+div.scrollTop = div.scrollHeight;
 }
 
+// INIT
 update();
 
 </script>
