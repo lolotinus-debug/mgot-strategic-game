@@ -3,333 +3,230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Economy Upgrade</title>
+<title>MGOT V5 Visual Tree</title>
 
 <style>
-body {
-font-family: Arial;
-background: radial-gradient(circle,#0b1220,#020617);
+body{
+margin:0;
+font-family:Arial;
+background:radial-gradient(circle,#0b1220,#020617);
 color:white;
 text-align:center;
-margin:0;
 padding:20px;
 }
 
-.container {
-max-width:700px;
+.container{
+max-width:900px;
 margin:auto;
-background:rgba(255,255,255,0.05);
+background:rgba(255,255,255,0.04);
 padding:20px;
 border-radius:12px;
-box-shadow:0 0 25px rgba(0,212,255,0.15);
 }
 
-h1 { color:#00d4ff; }
+h1{color:#00d4ff;}
 
-.resources, .stats {
+.resources{
 display:flex;
 justify-content:space-around;
-padding:10px;
-background:rgba(0,0,0,0.3);
-border-radius:10px;
-margin-bottom:15px;
+margin-bottom:10px;
 flex-wrap:wrap;
 gap:10px;
 }
 
-.actions {
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:10px;
-}
-
-button {
+.actions button{
+margin:5px;
 padding:10px;
 border:none;
 border-radius:8px;
 cursor:pointer;
 font-weight:bold;
-transition:0.2s;
 }
-
-button:hover { transform:scale(1.03); }
 
 .green{background:#22c55e;}
 .blue{background:#00d4ff;color:black;}
 .orange{background:#f97316;}
-.yellow{background:#eab308;}
 .red{background:#ef4444;}
 
-.log {
+/* ================= TREE ================= */
+.tree{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+align-items:center;
+gap:10px;
+margin-top:20px;
+}
+
+.node{
+width:150px;
+padding:12px;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+transition:0.2s;
+user-select:none;
+}
+
+.node:hover{
+transform:scale(1.05);
+}
+
+.locked{
+background:#1f2937;
+color:#555;
+cursor:not-allowed;
+}
+
+.available{
+background:#00d4ff;
+color:black;
+}
+
+.unlocked{
+background:#22c55e;
+color:black;
+}
+
+/* lines */
+.line{
+width:30px;
+height:2px;
+background:#334155;
+}
+
+/* LOG */
+.log{
 margin-top:15px;
-height:130px;
+height:120px;
 overflow:auto;
 background:rgba(0,0,0,0.4);
 padding:10px;
-border-radius:8px;
+border-radius:10px;
 text-align:left;
 font-size:13px;
 color:#aaa;
 }
 </style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-<h1>⚔️ MGOT ECONOMY SYSTEM</h1>
+<h1>🌳⚔️ MGOT V5 VISUAL TREE</h1>
 
+<!-- ================= RESOURCES ================= -->
 <div class="resources">
-<div>🪵 Wood: <span id="wood">100</span></div>
-<div>🍎 Food: <span id="food">50</span></div>
-<div>💰 Gold: <span id="gold">0</span></div>
-<div>🪨 Stone: <span id="stone">0</span></div>
+<div>🪙 Tokens: <span id="tokens">10</span></div>
+<div>⚡ Energy: <span id="energy">20</span></div>
+<div>🧠 Knowledge: <span id="knowledge">10</span></div>
+<div>🧍 Workers: <span id="workers">2</span></div>
 </div>
 
-<div class="stats">
-<div>🧍 Units: <span id="workers">2</span></div>
-<div>🏠 Houses: <span id="houses">1</span></div>
-<div>⛏️ Mines: <span id="mines">0</span></div>
-<div>🏦 Economy Level: <span id="eco">1</span></div>
-</div>
-
+<!-- ================= ACTIONS ================= -->
 <div class="actions">
 
-<button class="green" onclick="gather('wood')">🪵 Gather Wood</button>
-<button class="green" onclick="gather('food')">🍎 Gather Food</button>
-<button class="yellow" onclick="gather('stone')">🪨 Gather Stone</button>
-
-<button class="blue" onclick="buyWorker()">🧍 Recruit Unit (50 Food)</button>
-
-<button class="orange" onclick="buildHouse()">🏠 Build House (50 Wood)</button>
-<button class="orange" onclick="buildMine()">⛏️ Build Mine (80 Wood)</button>
-
-<button class="red" onclick="attack()">⚔️ Attack Enemy</button>
-
-<!-- TRADE SYSTEM -->
-<button onclick="trade('goldToWood')">💱 1 Gold → 1 Wood</button>
-<button onclick="trade('goldToFood')">💱 1 Gold → 1 Food</button>
+<button class="green" onclick="gather()">⚡ Gather (+tokens cost)</button>
+<button class="blue" onclick="convertGold()">💰 Convert Gold → Token</button>
+<button class="red" onclick="attack()">⚔️ Attack</button>
 
 </div>
 
-<div class="log" id="log">MGOT Economy online...</div>
+<!-- ================= TECH TREE ================= -->
+<h2>🌳 TECH TREE</h2>
+
+<div class="tree">
+
+<div id="gathering" class="node locked" onclick="buyNode('gathering')">
+🔵 Gathering<br>Cost: 3
+</div>
+
+<div class="line"></div>
+
+<div id="workers" class="node locked" onclick="buyNode('workers')">
+🧍 Workers<br>Cost: 5
+</div>
+
+<div class="line"></div>
+
+<div id="housing" class="node locked" onclick="buyNode('housing')">
+🏠 Housing<br>Cost: 6
+</div>
+
+<div class="line"></div>
+
+<div id="goldBoost" class="node locked" onclick="buyNode('goldBoost')">
+🟢 Gold Boost<br>Cost: 7
+</div>
+
+<div class="line"></div>
+
+<div id="tokenMulti" class="node locked" onclick="buyNode('tokenMulti')">
+🔴 Token Power<br>Cost: 10
+</div>
+
+</div>
+
+<!-- ================= LOG ================= -->
+<div class="log" id="log">MGOT V5 initialized...</div>
 
 </div>
 
 <script>
 
-// ================= MGOT STATE =================
+// ================= GAME STATE =================
 let game = {
-wood:100,
-food:50,
+tokens:10,
 gold:0,
-stone:0,
+energy:20,
+knowledge:10,
 workers:2,
-houses:1,
-mines:0,
 eco:1
 };
 
-// ================= GATHER =================
-function gather(type){
-game[type] += 1 * game.eco;
-update();
-}
-
-// ================= RECRUIT =================
-function buyWorker(){
-if(game.food >= 50){
-game.food -= 50;
-game.workers += 1;
-log("Unit recruited.");
-update();
-}
-}
-
-// ================= BUILD =================
-function buildHouse(){
-if(game.wood >= 50){
-game.wood -= 50;
-game.houses++;
-game.eco += 0.2;
-log("House built (+economy boost)");
-update();
-}
-}
-
-function buildMine(){
-if(game.wood >= 80){
-game.wood -= 80;
-game.mines++;
-log("Mine built (+gold production)");
-update();
-}
-}
-
-// ================= ATTACK =================
-function attack(){
-
-let enemy = 100 + Math.random()*150;
-let power = game.workers*10 + game.mines*8 + game.stone*2;
-
-if(power > enemy){
-game.gold += 50;
-log("Victory! +50 gold");
-} else {
-game.food -= 10;
-log("Defeat! You lost food");
-}
-
-update();
-}
-
-// ================= TRADE SYSTEM (NEW) =================
-function trade(type){
-
-if(type === "goldToWood" && game.gold >= 1){
-game.gold -= 1;
-game.wood += 1;
-log("Trade: 1 Gold → 1 Wood");
-}
-
-if(type === "goldToFood" && game.gold >= 1){
-game.gold -= 1;
-game.food += 1;
-log("Trade: 1 Gold → 1 Food");
-}
-
-update();
-}
-
-// ================= AUTO ECONOMY =================
-setInterval(()=>{
-
-game.wood += game.workers * 0.5 * game.eco;
-game.food += game.workers * 0.3 * game.eco;
-game.gold += game.mines * 0.3;
-game.stone += game.workers * 0.1;
-
-update();
-
-},1000);
-
-// ================= UI =================
-function update(){
-
-document.getElementById("wood").innerText = Math.floor(game.wood);
-document.getElementById("food").innerText = Math.floor(game.food);
-document.getElementById("gold").innerText = Math.floor(game.gold);
-document.getElementById("stone").innerText = Math.floor(game.stone);
-document.getElementById("workers").innerText = game.workers;
-document.getElementById("houses").innerText = game.houses;
-document.getElementById("mines").innerText = game.mines;
-document.getElementById("eco").innerText = game.eco.toFixed(1);
-
-}
+// ================= UNLOCKS =================
+let unlocked = {
+gathering:false,
+workers:false,
+housing:false,
+goldBoost:false,
+tokenMulti:false
+};
 
 // ================= LOG =================
-function log(text){
-let div = document.getElementById("log");
-div.innerHTML += "<br>➤ " + text;
-div.scrollTop = div.scrollHeight;
+function log(t){
+let d=document.getElementById("log");
+d.innerHTML+="<br>➤ "+t;
+d.scrollTop=d.scrollHeight;
 }
 
-// INIT
-update();
+// ================= GATHER =================
+function gather(){
 
-</script>
-
-<script>
-
-// ================= MGOT CORE STATE =================
-let game = {
-wood:100,
-food:50,
-gold:0,
-stone:0,
-
-tokens:10,
-
-workers:2,
-houses:1,
-mines:0,
-eco:1
-};
-
-// ================= UPGRADES TREE =================
-let upgrades = {
-gathering: 0,
-workers: 0,
-housing: 0,
-goldBoost: 0,
-tokenMulti: 0
-};
-
-// ================= GATHER (COST TOKENS) =================
-function gather(type){
-
-let cost = 1;
-
-if(game.tokens < cost){
-log("❌ Not enough MGOT Tokens");
+if(game.tokens < 1){
+log("❌ Not enough tokens");
 return;
 }
 
-game.tokens -= cost;
-game[type] += 1 * game.eco;
+game.tokens -= 1;
+game.energy += 1;
+game.knowledge += 1;
 
-log("Gathered " + type + " (-1 token)");
+log("⚡ Gathered (-1 token)");
 update();
 }
 
-// ================= RECRUIT =================
-function buyWorker(){
-
-if(game.tokens >= 5){
-game.tokens -= 5;
-game.workers += 1;
-log("🧍 Worker recruited (-5 tokens)");
-update();
-}
-}
-
-// ================= BUILD =================
-function buildHouse(){
-
-if(game.tokens >= 8 && game.wood >= 50){
-game.tokens -= 8;
-game.wood -= 50;
-game.houses++;
-game.eco += 0.2;
-log("🏠 House built (+eco)");
-update();
-}
-}
-
-function buildMine(){
-
-if(game.tokens >= 10 && game.wood >= 80){
-game.tokens -= 10;
-game.wood -= 80;
-game.mines++;
-log("⛏️ Mine built");
-update();
-}
-}
-
-// ================= GOLD → TOKEN CONVERSION =================
-// 1000 GOLD = 1 TOKEN
-function convertGoldToToken(){
+// ================= GOLD → TOKEN =================
+function convertGold(){
 
 if(game.gold >= 1000){
 game.gold -= 1000;
 game.tokens += 1;
-log("💰 1000 Gold → 1 MGOT Token");
+log("💰 1000 Gold → 1 Token");
 update();
-} else {
-log("❌ Need 1000 Gold");
+}else{
+log("❌ Need 1000 gold");
 }
 
 }
@@ -337,107 +234,105 @@ log("❌ Need 1000 Gold");
 // ================= ATTACK =================
 function attack(){
 
-let enemy = 100 + Math.random()*150;
-let power = game.workers*10 + game.mines*8 + game.stone*2;
+let enemy = 100 + Math.random()*100;
+let power = game.workers*10 + game.energy;
 
 if(power > enemy){
 game.gold += 50;
 log("⚔️ Victory +50 gold");
-} else {
-game.food -= 10;
-log("⚔️ Defeat -10 food");
+}else{
+game.tokens -= 1;
+log("⚔️ Defeat -1 token");
 }
 
 update();
 }
 
-// ================= AUTO ECONOMY =================
-setInterval(()=>{
+// ================= UPGRADE TREE =================
+function buyNode(type){
 
-game.wood += game.workers * 0.5 * game.eco;
-game.food += game.workers * 0.3 * game.eco;
-game.gold += game.mines * 0.3;
-game.stone += game.workers * 0.1;
-
-update();
-
-},1000);
-
-// ================= UPGRADE SYSTEM =================
-function buyUpgrade(type){
-
-switch(type){
-
-case "gathering":
-if(game.tokens >= 3){
+if(type === "gathering" && game.tokens >= 3 && !unlocked.gathering){
 game.tokens -= 3;
-upgrades.gathering++;
+unlocked.gathering = true;
 game.eco += 0.1;
-log("🔵 Gathering upgraded");
+log("🔵 Gathering unlocked");
 }
-break;
 
-case "workers":
-if(game.tokens >= 5){
+if(type === "workers" && game.tokens >= 5 && unlocked.gathering){
 game.tokens -= 5;
-upgrades.workers++;
+unlocked.workers = true;
 game.workers += 1;
-log("🔵 Worker upgraded");
+log("🧍 Workers unlocked");
 }
-break;
 
-case "housing":
-if(game.tokens >= 4){
-game.tokens -= 4;
-upgrades.housing++;
-game.eco += 0.2;
-log("🔵 Housing upgraded");
-}
-break;
-
-case "goldBoost":
-if(game.tokens >= 6){
+if(type === "housing" && game.tokens >= 6 && unlocked.workers){
 game.tokens -= 6;
-upgrades.goldBoost++;
-log("🟢 Gold boost upgraded");
+unlocked.housing = true;
+game.eco += 0.2;
+log("🏠 Housing unlocked");
 }
-break;
 
-case "tokenMulti":
-if(game.tokens >= 10){
+if(type === "goldBoost" && game.tokens >= 7 && unlocked.housing){
+game.tokens -= 7;
+unlocked.goldBoost = true;
+log("🟢 Gold Boost unlocked");
+}
+
+if(type === "tokenMulti" && game.tokens >= 10 && unlocked.goldBoost){
 game.tokens -= 10;
-upgrades.tokenMulti++;
-log("🔴 Token multiplier upgraded");
-}
-break;
-
+unlocked.tokenMulti = true;
+log("🔴 Token Power unlocked");
 }
 
+updateTree();
 update();
 }
 
-// ================= UI UPDATE =================
+// ================= TREE UI =================
+function updateTree(){
+
+setNode("gathering");
+setNode("workers");
+setNode("housing");
+setNode("goldBoost");
+setNode("tokenMulti");
+
+function setNode(id){
+
+let el=document.getElementById(id);
+
+if(unlocked[id]){
+el.className="node unlocked";
+}
+else if(
+(id==="gathering") ||
+(id==="workers" && unlocked.gathering) ||
+(id==="housing" && unlocked.workers) ||
+(id==="goldBoost" && unlocked.housing) ||
+(id==="tokenMulti" && unlocked.goldBoost)
+){
+el.className="node available";
+}
+else{
+el.className="node locked";
+}
+
+}
+
+}
+
+// ================= UPDATE =================
 function update(){
 
-document.getElementById("wood").innerText = Math.floor(game.wood);
-document.getElementById("food").innerText = Math.floor(game.food);
-document.getElementById("gold").innerText = Math.floor(game.gold);
-document.getElementById("stone").innerText = Math.floor(game.stone);
-
+document.getElementById("tokens").innerText = game.tokens;
+document.getElementById("energy").innerText = game.energy;
+document.getElementById("knowledge").innerText = game.knowledge;
 document.getElementById("workers").innerText = game.workers;
-document.getElementById("houses").innerText = game.houses;
-document.getElementById("mines").innerText = game.mines;
-document.getElementById("eco").innerText = game.eco.toFixed(1);
 
 }
 
-// ================= LOG =================
-function log(text){
-let div = document.getElementById("log");
-div.innerHTML += "<br>➤ " + text;
-div.scrollTop = div.scrollHeight;
-}
-
+// INIT
+updateTree();
 update();
 
 </script>
