@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Fixed</title>
+<title>MGOT Civilization FULL</title>
 
 <style>
 body{
@@ -14,9 +14,15 @@ body{
     padding:20px;
 }
 
-.container{max-width:900px;margin:auto;}
+.container{
+    max-width:900px;
+    margin:auto;
+}
 
-h1{text-align:center;color:#22d3ee}
+h1{
+    text-align:center;
+    color:#22d3ee;
+}
 
 .top{
     display:grid;
@@ -36,35 +42,35 @@ h1{text-align:center;color:#22d3ee}
     background:#0f172a;
     padding:15px;
     border-radius:10px;
-    text-align:center;
     margin-bottom:15px;
+    text-align:center;
 }
 
 button{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
     background:#0891b2;
     border:none;
     color:white;
-    padding:10px;
     border-radius:8px;
     cursor:pointer;
-    width:100%;
-    margin-top:5px;
 }
 
+button:hover{opacity:0.9}
+
 .tree{
-    background:#0f172a;
-    padding:15px;
-    border-radius:10px;
     margin-top:10px;
 }
 
 .node{
-    background:#111827;
-    padding:10px;
-    margin-top:10px;
-    border-radius:8px;
+    background:#0f172a;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
     display:flex;
     justify-content:space-between;
+    align-items:center;
 }
 
 .locked{opacity:0.4}
@@ -88,7 +94,7 @@ button{
 
 <div class="container">
 
-<h1>🧠 MGOT FIXED</h1>
+<h1>🧠 MGOT CIVILIZATION</h1>
 
 <div class="top">
 <div class="box">🧠 <div id="k">0</div></div>
@@ -102,29 +108,33 @@ button{
 <div class="progress"><div class="fill" id="bar"></div></div>
 </div>
 
-<!-- 🔥 CORE BUTTON (FIX) -->
-<button onclick="act()">🔥 TRAIN / ACT (+resources)</button>
+<button onclick="act()">🔥 ACT (train & grow)</button>
 
 <div class="tree">
 
 <div class="node" id="n1">
-Discipline I (+Energy/sec)
+📚 Discipline I (+Energy/sec)
 <button onclick="buy('n1',50,'k')">50 🧠</button>
 </div>
 
 <div class="node" id="n2">
-Focus I (+Knowledge/sec)
+🎯 Focus I (+Knowledge/sec)
 <button onclick="buy('n2',50,'k')">50 🧠</button>
 </div>
 
 <div class="node" id="n3">
-Social Awareness (+Community/sec)
+🤝 Social Awareness (+Community/sec)
 <button onclick="buy('n3',50,'k')">50 🧠</button>
 </div>
 
 <div class="node locked" id="n4">
-Communication Skills
+🗣 Communication (+Community boost)
 <button onclick="buy('n4',120,'c')">120 👥</button>
+</div>
+
+<div class="node locked" id="n5">
+🧠 Knowledge System (+50% Knowledge)
+<button onclick="buy('n5',300,'k')">300 🧠</button>
 </div>
 
 </div>
@@ -136,10 +146,9 @@ Communication Skills
 let k=0,e=0,c=0;
 let era=0;
 
-let nodes={};
+let n={};
 
 function act(){
-// CORE LOOP FIX
 k+=2;
 e+=2;
 c+=2;
@@ -152,24 +161,45 @@ if(type==="k" && k>=cost) k-=cost;
 else if(type==="c" && c>=cost) c-=cost;
 else return;
 
-nodes[id]=true;
+n[id]=true;
 document.getElementById(id).classList.add("active");
 
-unlock(id);
+unlock();
 update();
 }
 
-function unlock(id){
-if(id==="n1") document.getElementById("n4").classList.remove("locked");
+function unlock(){
+
+if(n.n1){
+document.getElementById("n4").classList.remove("locked");
+}
+
+if(n.n2){
+document.getElementById("n5").classList.remove("locked");
+}
+
 }
 
 function total(){return k+e+c;}
 
-function checkEra(){
-if(total()>100) era=1;
-if(total()>400) era=2;
-if(total()>1200) era=3;
-if(total()>3000) era=4;
+function eraCheck(){
+
+let t=total();
+
+if(t>100) era=1;
+if(t>400) era=2;
+if(t>1200) era=3;
+if(t>3000) era=4;
+
+let names=[
+"🧍 Individual",
+"👥 Tribe",
+"🏫 Academy",
+"🏙️ City",
+"🌍 Global Network"
+];
+
+document.getElementById("era").innerText=names[era];
 }
 
 function update(){
@@ -178,25 +208,44 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
-let eras=["🧍 Individual","👥 Tribe","🏫 Academy","🏙️ City","🌍 Global"];
-document.getElementById("era").innerText=eras[era];
-
 document.getElementById("bar").style.width=(total()%100)+"%";
 
-checkEra();
+eraCheck();
 save();
 }
 
+setInterval(()=>{
+
+// passive income system
+if(n.n1) e+=0.6;
+if(n.n2) k+=0.6;
+if(n.n3) c+=0.6;
+if(n.n5) k*=1.001;
+
+update();
+
+},1000);
+
 function save(){
-localStorage.setItem("mgot_fix",JSON.stringify({k,e,c,era,nodes}));
+localStorage.setItem("mgot_full",JSON.stringify({k,e,c,era,n}));
 }
 
 function load(){
-let d=JSON.parse(localStorage.getItem("mgot_fix"));
+let d=JSON.parse(localStorage.getItem("mgot_full"));
 if(!d)return;
-k=d.k;e=d.e;c=d.c;
-era=d.era;
-nodes=d.nodes||{};
+
+k=d.k||0;
+e=d.e||0;
+c=d.c||0;
+era=d.era||0;
+n=d.n||{};
+
+for(let id in n){
+if(n[id]){
+let el=document.getElementById(id);
+if(el) el.classList.add("active");
+}
+}
 }
 
 load();
