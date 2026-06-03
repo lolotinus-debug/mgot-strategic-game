@@ -2,246 +2,151 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT CIVILIZATION</title>
+<title>MGOT MULTIPLAYER CORE</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#070b18;
+    background:#050b1a;
     color:white;
 }
 
-.header{
-    text-align:center;
-    padding:15px;
-    color:#22d3ee;
-    font-size:20px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-    max-width:1100px;
+.container{
+    max-width:900px;
     margin:auto;
-    padding:15px;
+    padding:20px;
 }
 
-.panel{
-    background:#111827;
+.card{
+    background:#0f172a;
     padding:15px;
     border-radius:12px;
+    margin-bottom:10px;
 }
 
-button{
+input, button{
     width:100%;
     padding:10px;
     margin-top:8px;
-    border:none;
     border-radius:8px;
+    border:none;
+}
+
+button{
     background:#0891b2;
     color:white;
     cursor:pointer;
 }
-
-.node{
-    padding:8px;
-    margin:5px 0;
-    background:#0f172a;
-    border-radius:8px;
-    cursor:pointer;
-    border:1px solid #1f2937;
-}
-
-.active{border:2px solid #22d3ee;}
-
-.bad{color:#f87171;}
-.good{color:#34d399;}
-.neutral{color:#fbbf24;}
 </style>
 </head>
 
 <body>
 
-<div class="header">🧠 MGOT CIVILIZATION STRATEGY</div>
+<div class="container">
 
-<div class="grid">
+<h1>🌍 MGOT MULTIPLAYER PLATFORM</h1>
 
-<!-- PLAYER -->
-<div class="panel">
-
-<h3>👤 PLAYER CIVILIZATION</h3>
-
-🧠 Knowledge: <span id="k">50</span><br>
-⚡ Economy: <span id="e">50</span><br>
-👥 Society: <span id="c">50</span><br>
-⚖ Stability: <span id="s">100</span>
-
-<hr>
-
-<h3>🏗 STRATEGIC ACTIONS</h3>
-
-<button onclick="action('research')">🧠 Research Focus</button>
-<button onclick="action('economy')">⚡ Economic Growth</button>
-<button onclick="action('society')">👥 Social Expansion</button>
-
-<hr>
-
-<h3>🌍 MAP EXPANSION</h3>
-
-<div class="node" onclick="expand('EU')">EU REGION</div>
-<div class="node" onclick="expand('US')">US REGION</div>
-<div class="node" onclick="expand('ASIA')">ASIA REGION</div>
-<div class="node" onclick="expand('GLOBAL')">GLOBAL HUB</div>
-
+<div class="card">
+<input id="name" placeholder="Enter player name">
+<button onclick="start()">JOIN WORLD</button>
 </div>
 
-<!-- WORLD -->
-<div class="panel">
+<div class="card">
+<h3>🧠 YOUR CIVILIZATION</h3>
+🧠 Knowledge: <span id="k">0</span><br>
+⚡ Economy: <span id="e">0</span><br>
+👥 Society: <span id="c">0</span><br>
 
-<h3>🤖 AI CIVILIZATION</h3>
+<button onclick="action('research')">🧠 Research</button>
+<button onclick="action('economy')">⚡ Economy</button>
+<button onclick="action('society')">👥 Society</button>
+</div>
 
-AI Power: <span id="ai">120</span>
-
-<hr>
-
-<h3>⚠ WORLD EVENTS</h3>
-<div id="event">World is unstable but quiet...</div>
-
-<hr>
-
-<h3>🏆 STATUS</h3>
-
-Player Power: <span id="pp">0</span><br>
-AI Power: <span id="ap">0</span>
-
-<hr>
-
-<h3>🎯 WIN CONDITION</h3>
-<div id="win">Reach 1000 power OR dominate AI</div>
-
+<div class="card">
+<h3>🏆 GLOBAL LEADERBOARD</h3>
+<div id="board"></div>
 </div>
 
 </div>
 
-<script>
+<script type="module">
 
-let k=50,e=50,c=50;
-let s=100;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+getFirestore,
+doc,
+setDoc,
+collection,
+onSnapshot,
+query,
+orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let ai=120;
+const firebaseConfig = {
+apiKey: "YOUR_KEY",
+authDomain: "YOUR_DOMAIN",
+projectId: "YOUR_PROJECT"
+};
 
-let regions={};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-function power(){
-return k+e+c + s;
+let user="";
+let k=0,e=0,c=0;
+
+window.start = function(){
+user = document.getElementById("name").value;
+if(!user) return alert("Enter name");
+save();
+loadBoard();
 }
 
-function action(type){
+window.action = function(type){
 
-if(type==="research"){
-k += 12;
-e -= 5;
-s -= 3;
-}
+if(type==="research") k += 10;
+if(type==="economy") e += 10;
+if(type==="society") c += 10;
 
-if(type==="economy"){
-e += 15;
-k -= 3;
-s -= 5;
-}
-
-if(type==="society"){
-c += 15;
-s += 5;
-e -= 5;
-}
-
-eventTick();
+save();
 update();
 }
 
-function expand(r){
+async function save(){
+if(!user) return;
 
-regions[r]=true;
-
-if(r==="EU") k += 10;
-if(r==="US") e += 10;
-if(r==="ASIA") c += 10;
-if(r==="GLOBAL") ai += 20;
-
-document.getElementById("event").innerHTML =
-"<span class='good'>🌍 Expanded into " + r + "</span>";
-
-update();
+await setDoc(doc(db,"players",user),{
+name:user,
+k,e,c,
+power:k+e+c
+});
 }
 
-function aiTurn(){
+function loadBoard(){
 
-let r = Math.random();
+const q = query(collection(db,"players"),orderBy("power","desc"));
 
-if(r < 0.4) ai += 15;
-else if(r < 0.7) ai += 5;
-else ai -= 10;
+onSnapshot(q,(snap)=>{
 
-// AI pressure
-if(ai > power()){
-k -= 5;
-e -= 5;
-c -= 5;
-s -= 5;
+let html="";
 
-document.getElementById("event").innerHTML =
-"<span class='bad'>⚠ AI is dominating your economy!</span>";
-}
-}
+snap.forEach(d=>{
+let p = d.data();
+html += `<div>${p.name} — ${p.power}</div>`;
+});
 
-function eventTick(){
+document.getElementById("board").innerHTML = html;
 
-let events=[
-"💥 Market crash incoming",
-"📈 Innovation boom detected",
-"⚠ Social instability rising",
-"🌍 Global competition increases",
-"🧠 Tech breakthrough available"
-];
-
-document.getElementById("event").innerText =
-events[Math.floor(Math.random()*events.length)];
-
-aiTurn();
-checkWin();
-}
-
-function checkWin(){
-
-if(power() > 1000){
-document.getElementById("win").innerHTML =
-"<span class='good'>🏆 YOU WIN - CIVILIZATION DOMINANCE</span>";
-}
-
-if(ai > 1000){
-document.getElementById("win").innerHTML =
-"<span class='bad'>💀 YOU LOST - AI DOMINATES WORLD</span>";
-}
+});
 }
 
 function update(){
-
-document.getElementById("k").innerText=Math.floor(k);
-document.getElementById("e").innerText=Math.floor(e);
-document.getElementById("c").innerText=Math.floor(c);
-document.getElementById("s").innerText=Math.floor(s);
-
-document.getElementById("ai").innerText=Math.floor(ai);
-
-document.getElementById("pp").innerText=Math.floor(power());
-document.getElementById("ap").innerText=Math.floor(ai);
-
+document.getElementById("k").innerText=k;
+document.getElementById("e").innerText=e;
+document.getElementById("c").innerText=c;
 }
 
-update();
+setInterval(update,500);
 
 </script>
 
