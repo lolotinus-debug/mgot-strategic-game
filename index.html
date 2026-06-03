@@ -2,8 +2,7 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Build Strategy</title>
+<title>MGOT PRO CORE</title>
 
 <style>
 body{
@@ -14,26 +13,20 @@ body{
     padding:20px;
 }
 
-.container{max-width:900px;margin:auto;}
-
 h1{text-align:center;color:#22d3ee}
 
 .grid{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:15px;
+    max-width:1000px;
+    margin:auto;
 }
 
 .card{
     background:#0f172a;
     padding:15px;
     border-radius:12px;
-}
-
-.stat{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:5px;
 }
 
 button{
@@ -44,91 +37,70 @@ button{
     border:none;
     color:white;
     border-radius:8px;
+}
+
+.map{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:5px;
+    margin-top:10px;
+}
+
+.node{
+    background:#111827;
+    padding:10px;
+    text-align:center;
+    border-radius:8px;
     cursor:pointer;
 }
 
-button:disabled{
-    background:#334155;
-    cursor:not-allowed;
-}
-
-.small{
-    font-size:12px;
-    color:#94a3b8;
-}
+.active{border:2px solid #22d3ee;}
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-<h1>🧠 MGOT BUILD STRATEGY</h1>
-
-<div class="card">
-<div class="stat">🧠 Knowledge <span id="k">0</span></div>
-<div class="stat">⚡ Energy <span id="e">0</span></div>
-<div class="stat">👥 Community <span id="c">0</span></div>
-<div class="stat">⭐ Era <span id="era">Individual</span></div>
-</div>
+<h1>🧠 MGOT PRO CORE STRATEGY</h1>
 
 <div class="grid">
 
-<!-- RESOURCES -->
 <div class="card">
 
-<h3>🏗 Buildings</h3>
+<h3>📊 RESOURCES</h3>
 
-<div class="small">Každá budova generuje zdroje automaticky</div>
+🧠 Knowledge: <span id="k">0</span><br>
+⚡ Energy: <span id="e">0</span><br>
+👥 Community: <span id="c">0</span>
 
-<hr>
-
-<div>
-📚 Learning Center
-<br>+2 Knowledge/sec
-<br>Cost: 50 🧠
-<button onclick="buy('lc')">Build</button>
-</div>
+<button onclick="tick()">⚙️ SIMULATE TURN</button>
 
 <hr>
 
-<div>
-💪 Gym
-<br>+2 Energy/sec
-<br>Cost: 50 ⚡
-<button onclick="buy('gym')">Build</button>
-</div>
+<h3>🏗 BUILD</h3>
 
-<hr>
-
-<div>
-🤝 Community Hub
-<br>+2 Community/sec
-<br>Cost: 50 👥
-<button onclick="buy('hub')">Build</button>
-</div>
+<button onclick="build('lab')">📚 Research Lab (+Knowledge)</button>
+<button onclick="build('hub')">🤝 Community Hub (+Community)</button>
+<button onclick="build('plant')">⚡ Energy Plant (+Energy)</button>
 
 </div>
 
-<!-- INFO -->
 <div class="card">
 
-<h3>📊 Economy</h3>
+<h3>🌍 MAP</h3>
 
-<div class="small">
-Rozhoduješ kam investuješ.  
-Každá budova mení tvoju stratégiu.
+<div class="map">
+<div class="node" onclick="capture('EU')">EU</div>
+<div class="node" onclick="capture('GLOBAL')">GLOBAL</div>
+<div class="node" onclick="capture('ASIA')">ASIA</div>
+<div class="node" onclick="capture('US')">US</div>
+<div class="node" onclick="capture('CORE')">MGOT CORE</div>
+<div class="node" onclick="capture('AFRICA')">AFRICA</div>
 </div>
 
 <hr>
 
-<h3>🏆 Production</h3>
-
-<div class="stat">📚/sec <span id="kp">0</span></div>
-<div class="stat">⚡/sec <span id="ep">0</span></div>
-<div class="stat">👥/sec <span id="cp">0</span></div>
-
-</div>
+<h3>⭐ ERA</h3>
+<div id="era">Individual</div>
 
 </div>
 
@@ -138,34 +110,41 @@ Každá budova mení tvoju stratégiu.
 
 let k=0,e=0,c=0;
 
-let lc=0,gym=0,hub=0;
+let lab=0,hub=0,plant=0;
 
-function buy(type){
+let nodes={};
 
-if(type==="lc" && k>=50){
-k-=50;
-lc++;
+function tick(){
+
+k += lab*2;
+e += plant*2;
+c += hub*2;
+
+update();
 }
 
-if(type==="gym" && e>=50){
-e-=50;
-gym++;
+function build(type){
+
+if(type==="lab" && k>=50){
+k-=50; lab++;
 }
 
 if(type==="hub" && c>=50){
-c-=50;
-hub++;
+c-=50; hub++;
+}
+
+if(type==="plant" && e>=50){
+e-=50; plant++;
 }
 
 update();
 }
 
-function income(){
-
-k += lc*2;
-e += gym*2;
-c += hub*2;
-
+function capture(node){
+nodes[node]=true;
+document.querySelectorAll(".node").forEach(n=>{
+if(nodes[n.innerText]) n.classList.add("active");
+});
 update();
 }
 
@@ -175,22 +154,16 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
-document.getElementById("kp").innerText=lc*2;
-document.getElementById("ep").innerText=gym*2;
-document.getElementById("cp").innerText=hub*2;
-
 let total = k+e+c;
 
 let era="Individual";
 if(total>200) era="Tribe";
-if(total>600) era="Academy";
-if(total>1500) era="City";
-if(total>4000) era="Global";
+if(total>800) era="Academy";
+if(total>2000) era="City";
+if(total>5000) era="Global Network";
 
 document.getElementById("era").innerText=era;
 }
-
-setInterval(income,1000);
 
 update();
 
