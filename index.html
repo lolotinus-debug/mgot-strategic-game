@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>MGOT Clash-Style Strategy</title>
+<title>MGOT Clash Strategy v2</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -11,31 +11,39 @@ body {
     background:#020617;
     font-family:Arial;
     color:white;
-    overflow:hidden;
 }
 
 canvas {
     display:block;
-    background: radial-gradient(circle at center,#0f172a,#020617);
+    background: radial-gradient(circle,#0f172a,#020617);
 }
 
 #ui {
     position:absolute;
     top:10px;
     left:10px;
-    background:rgba(0,0,0,0.6);
+    background:rgba(0,0,0,0.7);
     padding:10px;
     border-radius:10px;
+    width:260px;
+    font-size:13px;
 }
 
 button {
     margin:3px;
     padding:5px;
+    width:100%;
     background:#0ea5e9;
     border:none;
     color:white;
     border-radius:5px;
     cursor:pointer;
+}
+
+.legend {
+    margin-top:10px;
+    font-size:12px;
+    color:#94a3b8;
 }
 </style>
 </head>
@@ -44,10 +52,19 @@ button {
 
 <div id="ui">
 <div>🧠 MGOT Gold: <span id="gold">100</span></div>
-<div>🏰 HQ Level: <span id="hq">1</span></div>
-<button onclick="trainTroop()">Train Troop</button>
-<button onclick="upgradeHQ()">Upgrade HQ</button>
-<button onclick="startRaid()">Start Raid</button>
+<div>🏛 HQ Level: <span id="hq">1</span></div>
+
+<button onclick="place('mine')">Build ⛏ Mine</button>
+<button onclick="place('barracks')">Build 🪖 Barracks</button>
+<button onclick="place('wall')">Build 🧱 Wall</button>
+<button onclick="train()">Train Troop</button>
+
+<div class="legend">
+⛏ Mine = income<br>
+🪖 Barracks = spawn troops<br>
+🧱 Wall = defense<br>
+🏛 HQ = base core
+</div>
 </div>
 
 <canvas id="game"></canvas>
@@ -63,151 +80,143 @@ const GRID=40;
 
 let gold=100;
 let hqLevel=1;
-let mode="build"; // build or raid
 
-class Building{
-    constructor(x,y,type){
-        this.x=x;
-        this.y=y;
-        this.type=type;
-        this.hp=type==="HQ"?300:100;
-    }
+let mode="place";
+let placeType=null;
 
-    draw(){
-        ctx.fillStyle=
-            this.type==="HQ"?"#00d4ff":
-            this.type==="GoldMine"?"#22c55e":
-            "#f97316";
-
-        ctx.fillRect(this.x*GRID,this.y*GRID,GRID-2,GRID-2);
-
-        // HP bar
-        ctx.fillStyle="red";
-        ctx.fillRect(this.x*GRID,this.y*GRID-5,(GRID-2)*(this.hp/300),3);
-    }
-}
-
-class Troop{
-    constructor(x,y){
-        this.x=x;
-        this.y=y;
-        this.hp=50;
-        this.target=null;
-    }
-
-    move(){
-        if(!this.target) return;
-
-        if(this.x<this.target.x) this.x++;
-        if(this.x>this.target.x) this.x--;
-        if(this.y<this.target.y) this.y++;
-        if(this.y>this.target.y) this.y--;
-    }
-
-    attack(buildings){
-        for(let b of buildings){
-            if(Math.abs(b.x-this.x)<1 && Math.abs(b.y-this.y)<1){
-                b.hp -= 5;
-                if(b.hp<=0){
-                    buildings.splice(buildings.indexOf(b),1);
-                    gold += 10;
-                }
-                return;
-            }
-        }
-    }
-
-    update(buildings){
-        this.attack(buildings);
-        this.move();
-    }
-
-    draw(){
-        ctx.fillStyle="#ff3b3b";
-        ctx.fillRect(this.x*GRID,this.y*GRID,GRID-2,GRID-2);
-    }
-}
-
-let playerBuildings=[
-    new Building(5,5,"HQ"),
-    new Building(4,6,"GoldMine"),
-    new Building(6,6,"GoldMine")
+let buildings=[
+    {x:5,y:5,type:"hq",hp:500,level:1}
 ];
 
 let enemyBuildings=[
-    new Building(15,8,"HQ"),
-    new Building(14,8,"GoldMine"),
-    new Building(16,9,"GoldMine"),
-    new Building(15,10,"GoldMine")
+    {x:15,y:8,type:"hq",hp:500},
+    {x:14,y:8,type:"mine",hp:100},
+    {x:16,y:9,type:"barracks",hp:100}
 ];
 
 let troops=[];
 
-function trainTroop(){
+// ================= UI ACTIONS =================
+function place(type){
+    mode="place";
+    placeType=type;
+}
+
+function train(){
     if(gold<10) return;
     gold-=10;
-    troops.push(new Troop(5,5));
+    troops.push({x:5,y:5,target:null,hp:50});
 }
 
 function upgradeHQ(){
     if(gold<50) return;
     gold-=50;
+    buildings[0].level++;
     hqLevel++;
 }
 
-function startRaid(){
-    mode="raid";
-
-    troops.forEach(t=>{
-        t.target={x:15,y:8};
-    });
-}
-
-// AI defense (simple)
-function enemyAI(){
-    troops.forEach(t=>{
-        if(Math.random()<0.02){
-            t.hp -= 1;
+// ================= GAME LOGIC =================
+function getIncome(){
+    buildings.forEach(b=>{
+        if(b.type==="mine"){
+            gold += 0.1 * (b.level||1);
         }
     });
 }
 
-function update(){
-    enemyAI();
-
-    troops.forEach(t=>{
-        if(mode==="raid"){
-            t.update(enemyBuildings);
-        } else {
-            t.update(playerBuildings);
-        }
-    });
-
-    document.getElementById("gold").innerText=Math.floor(gold);
-    document.getElementById("hq").innerText=hqLevel;
+function spawnAI(){
+    if(Math.random()<0.01){
+        enemyBuildings.push({x:15,y:8,type:"soldier",hp:30});
+    }
 }
 
+function updateTroops(){
+    troops.forEach(t=>{
+        let target = enemyBuildings[0];
+
+        if(!target) return;
+
+        if(t.x<target.x) t.x++;
+        if(t.x>target.x) t.x--;
+        if(t.y<target.y) t.y++;
+        if(t.y>target.y) t.y--;
+
+        // attack
+        if(Math.abs(t.x-target.x)<1 && Math.abs(t.y-target.y)<1){
+            target.hp -= 5;
+
+            if(target.hp<=0){
+                enemyBuildings.splice(enemyBuildings.indexOf(target),1);
+                gold += 20;
+            }
+        }
+    });
+}
+
+// ================= BUILDING =================
 canvas.addEventListener("click",(e)=>{
     const r=canvas.getBoundingClientRect();
     const x=Math.floor((e.clientX-r.left)/GRID);
     const y=Math.floor((e.clientY-r.top)/GRID);
+
+    if(mode==="place"){
+        let hp=100;
+
+        if(placeType==="hq") hp=500;
+
+        buildings.push({x,y,type:placeType,hp,level:1});
+    }
 
     troops.forEach(t=>{
         t.target={x,y};
     });
 });
 
+// ================= DRAW =================
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    playerBuildings.forEach(b=>b.draw());
-    enemyBuildings.forEach(b=>b.draw());
+    // grid
+    ctx.strokeStyle="#1e293b";
+    for(let x=0;x<canvas.width/GRID;x++){
+        for(let y=0;y<canvas.height/GRID;y++){
+            ctx.strokeRect(x*GRID,y*GRID,GRID,GRID);
+        }
+    }
 
-    troops.forEach(t=>t.draw());
+    // buildings
+    buildings.forEach(b=>{
+        ctx.fillStyle=
+            b.type==="hq"?"#00d4ff":
+            b.type==="mine"?"#22c55e":
+            b.type==="barracks"?"#f97316":
+            "#64748b";
+
+        ctx.fillRect(b.x*GRID,b.y*GRID,GRID-2,GRID-2);
+    });
+
+    // enemy
+    enemyBuildings.forEach(b=>{
+        ctx.fillStyle="#ff3b3b";
+        ctx.fillRect(b.x*GRID,b.y*GRID,GRID-2,GRID-2);
+    });
+
+    // troops
+    troops.forEach(t=>{
+        ctx.fillStyle="#ffffff";
+        ctx.fillRect(t.x*GRID,t.y*GRID,GRID-2,GRID-2);
+    });
 }
 
+// ================= LOOP =================
 function loop(){
-    update();
+    getIncome();
+    spawnAI();
+    updateTroops();
+
+    document.getElementById("gold").innerText=Math.floor(gold);
+    document.getElementById("hq").innerText=hqLevel;
+
     draw();
     requestAnimationFrame(loop);
 }
