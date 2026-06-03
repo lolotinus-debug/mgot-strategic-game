@@ -1,19 +1,141 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>MGOT Clash Visual</title>
-<style>
-body { margin:0; background:#0b1220; }
-canvas { display:block; }
-button { position:absolute; top:10px; left:10px; }
-</style>
-</head>
-<body>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
 
-<button onclick="spawn()">Spawn</button>
-<canvas id="c"></canvas>
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-<script src="game.js"></script>
-</body>
-</html>
+// ================= LOAD SPRITES =================
+function load(src){
+    let img = new Image();
+    img.src = src;
+    return img;
+}
+
+const img = {
+    hq: load("img/hq.png"),
+    mine: load("img/mine.png"),
+    barracks: load("img/barracks.png"),
+    wall: load("img/wall.png"),
+    soldier: load("img/soldier.png")
+};
+
+// ================= GAME STATE =================
+let buildings = [
+    {x:200,y:200,type:"hq",hp:500},
+    {x:160,y:200,type:"mine",hp:120},
+    {x:240,y:200,type:"barracks",hp:120}
+];
+
+let troops = [];
+
+// ================= SPAWN =================
+function spawn(){
+    troops.push({
+        x:200,
+        y:200,
+        tx:600,
+        ty:300,
+        hp:100,
+        speed:1.5,
+        damage:2
+    });
+}
+
+// ================= DIST =================
+function dist(a,b){
+    return Math.hypot(a.x-b.x,a.y-b.y);
+}
+
+// ================= MOVE + COMBAT =================
+function updateTroop(t){
+
+    // move smoothly
+    let dx = t.tx - t.x;
+    let dy = t.ty - t.y;
+
+    let d = Math.hypot(dx,dy);
+
+    if(d > 1){
+        t.x += (dx / d) * t.speed;
+        t.y += (dy / d) * t.speed;
+    }
+
+    // attack buildings
+    for(let b of buildings){
+        let d2 = Math.hypot(t.x-b.x,t.y-b.y);
+
+        if(d2 < 20){
+            b.hp -= t.damage;
+        }
+    }
+}
+
+// ================= CLEAN DEAD =================
+function cleanup(){
+    buildings = buildings.filter(b => b.hp > 0);
+    troops = troops.filter(t => t.hp > 0);
+}
+
+// ================= DRAW =================
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // background grid
+    ctx.strokeStyle="#111827";
+    for(let x=0;x<canvas.width;x+=40){
+        for(let y=0;y<canvas.height;y+=40){
+            ctx.strokeRect(x,y,40,40);
+        }
+    }
+
+    // buildings
+    for(let b of buildings){
+
+        let sprite = img[b.type];
+
+        if(sprite && sprite.complete){
+            ctx.drawImage(sprite,b.x,b.y,40,40);
+        } else {
+            // fallback (no kocky anymore, but simple shape)
+            ctx.fillStyle = "#22c55e";
+            ctx.fillRect(b.x,b.y,40,40);
+        }
+
+        // HP BAR
+        ctx.fillStyle="red";
+        ctx.fillRect(b.x,b.y-6,40*(b.hp/500),4);
+    }
+
+    // troops
+    for(let t of troops){
+
+        let s = img.soldier;
+
+        if(s && s.complete){
+            ctx.drawImage(s,t.x,t.y,30,30);
+        } else {
+            ctx.fillStyle="#ffffff";
+            ctx.fillRect(t.x,t.y,20,20);
+        }
+
+        // HP
+        ctx.fillStyle="green";
+        ctx.fillRect(t.x,t.y-5,30*(t.hp/100),3);
+    }
+}
+
+// ================= LOOP =================
+function loop(){
+
+    for(let t of troops){
+        updateTroop(t);
+    }
+
+    cleanup();
+    draw();
+
+    requestAnimationFrame(loop);
+}
+
+loop();
