@@ -4,70 +4,51 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>MGOT Civilization</title>
+<title>MGOT Empire War v1</title>
 
 <style>
 body{
-    margin:0;
-    font-family:Arial;
-    background: radial-gradient(circle at top, #0b1b3a, #020617 70%, #000);
-    color:#dbeafe;
+margin:0;
+font-family:Arial;
+background:radial-gradient(circle at top,#0b1b3a,#020617 70%,#000);
+color:#dbeafe;
 }
 
-/* MOBILE FIRST */
 .container{
-    max-width:100%;
-    padding:12px;
+max-width:900px;
+margin:auto;
+padding:12px;
 }
 
 h1{
-    font-size:20px;
-    text-align:center;
-    color:#38bdf8;
-    text-shadow:0 0 10px #38bdf8;
+text-align:center;
+color:#38bdf8;
+text-shadow:0 0 10px #38bdf8;
 }
 
 .card{
-    background:rgba(15,23,42,0.85);
-    border:1px solid #1e3a8a;
-    box-shadow:0 0 10px rgba(56,189,248,0.2);
-    padding:12px;
-    border-radius:12px;
-    margin-bottom:10px;
+background:rgba(15,23,42,0.9);
+border:1px solid #1e3a8a;
+padding:12px;
+border-radius:12px;
+margin-bottom:10px;
+box-shadow:0 0 10px rgba(56,189,248,0.2);
 }
 
 button{
-    width:100%;
-    padding:14px;
-    margin-top:6px;
-    border:none;
-    border-radius:10px;
-    background:#0ea5e9;
-    color:white;
-    font-size:14px;
+width:100%;
+padding:12px;
+margin-top:6px;
+border:none;
+border-radius:10px;
+background:#0ea5e9;
+color:white;
 }
 
-button:active{
-    transform:scale(0.98);
-}
-
-.node{
-    padding:10px;
-    margin-top:6px;
-    background:#0f172a;
-    border:1px solid #1e3a8a;
-    border-radius:10px;
-    text-align:center;
-}
-
-.node:active{
-    background:#1e3a8a;
-}
+button:active{transform:scale(0.98);}
 
 .good{color:#34d399;}
 .bad{color:#f87171;}
-.warn{color:#fbbf24;}
-.small{font-size:12px; opacity:0.8;}
 </style>
 </head>
 
@@ -75,174 +56,118 @@ button:active{
 
 <div class="container">
 
-<h1>🧠 MGOT CIVILIZATION</h1>
+<h1>🏰 MGOT EMPIRE WAR v1</h1>
 
 <div class="card">
-🌍 Economy: <span id="e">50</span><br>
-🧠 Tech: <span id="t">50</span><br>
-⚔ Military: <span id="m">50</span><br>
-⚖ Stability: <span id="s">100</span><br>
-🤖 AI Power: <span id="ai">80</span>
+<h3>🏗 BASE</h3>
+💰 Gold: <span id="g">100</span><br>
+🪵 Wood: <span id="w">100</span><br>
+⚔ Defense: <span id="d">50</span><br>
+🧠 Tech: <span id="t">50</span>
 </div>
 
 <div class="card">
-<h3>🎮 STRATEGY OPTIONS</h3>
+<h3>⚙ BUILD</h3>
 
-<button onclick="act('eco')">💰 Invest Economy</button>
-<button onclick="act('tech')">🧠 Research Tech</button>
-<button onclick="act('mil')">⚔ Build Military</button>
-<button onclick="act('stability')">🛡 Stabilize Nation</button>
+<button onclick="build('gold')">⛏ Gold Mine (+income)</button>
+<button onclick="build('wood')">🌲 Lumber Camp (+income)</button>
+<button onclick="build('def')">🛡 Defense Tower (+defense)</button>
+<button onclick="build('tech')">🧠 Research Lab (+tech)</button>
 </div>
 
 <div class="card">
-<h3>🌍 MAP CONTROL</h3>
+<h3>⚔ RAID EVENT</h3>
+<div id="event">Peaceful world...</div>
 
-<div class="node" onclick="capture('EU')">EUROPE</div>
-<div class="node" onclick="capture('US')">AMERICA</div>
-<div class="node" onclick="capture('ASIA')">ASIA</div>
-<div class="node" onclick="capture('AFRICA')">AFRICA</div>
-
-<div class="small">Each region gives passive bonuses</div>
-</div>
-
-<div class="card">
-<h3>⚠ WORLD EVENT</h3>
-<div id="event" class="warn">World is unstable...</div>
+<button onclick="raid()">⚔ DEFEND RAID</button>
 </div>
 
 <div class="card">
 <h3>🏆 STATUS</h3>
-<div id="status">Expand your civilization</div>
+<div id="status">Build your empire</div>
 </div>
 
 </div>
 
 <script>
 
-let e=50,t=50,m=50,s=100;
-let ai=80;
+let g=100,w=100,d=50,t=50;
 
-let regions={
-EU:false,
-US:false,
-ASIA:false,
-AFRICA:false
-};
-
-function power(){
-return e+t+m+s;
+function income(){
+g += 5;
+w += 5;
 }
 
-function act(type){
+function build(type){
 
-if(type==='eco'){
-e += 12;
-s -= 3;
+if(type==='gold' && g>=20){
+g -= 20;
+g += 5;
 }
 
-if(type==='tech'){
-t += 15;
-e -= 5;
+if(type==='wood' && w>=20){
+w -= 20;
+w += 5;
 }
 
-if(type==='mil'){
-m += 15;
-e -= 8;
+if(type==='def' && g>=30){
+g -= 30;
+d += 10;
 }
 
-if(type==='stability'){
-s += 12;
-e -= 5;
+if(type==='tech' && g>=40){
+g -= 40;
+t += 10;
 }
-
-worldEvent();
-aiTurn();
-update();
-check();
-}
-
-function capture(r){
-
-if(m < 45){
-document.getElementById("status").innerHTML =
-"<span class='bad'>⚔ Not enough military power</span>";
-return;
-}
-
-regions[r]=true;
-m -= 10;
-ai += 8;
-
-document.getElementById("status").innerHTML =
-"<span class='good'>🌍 Captured " + r + "</span>";
 
 update();
 }
 
-function aiTurn(){
+function raid(){
 
-ai += Math.random()*10;
+let enemy = Math.random()*100 + 20;
 
-// AI pressure system
-if(ai > power()){
-s -= 10;
-e -= 6;
-m -= 6;
-
+if(d + t > enemy){
 document.getElementById("status").innerHTML =
-"<span class='bad'>🤖 AI is surpassing your civilization</span>";
+"<span class='good'>🏆 RAID DEFENDED</span>";
+g += 20;
+w += 20;
+}
+else{
+document.getElementById("status").innerHTML =
+"<span class='bad'>💀 BASE LOOTED</span>";
+g -= 30;
+w -= 30;
+}
+update();
 }
 
-// AI expansion
-if(Math.random() < 0.25){
-ai += 12;
-}
-}
-
-function worldEvent(){
+function event(){
 
 let events=[
-"💥 Global economic instability",
-"⚠ AI neural expansion accelerating",
-"📈 Scientific breakthrough discovered",
-"⚔ Regional conflicts rising",
-"🌍 Climate pressure increasing"
+"⚔ Enemy scouts detected",
+"💥 Barbarian raid incoming",
+"📈 Economy stabilizing",
+"🧠 Tech breakthrough possible",
+"🌍 Peaceful expansion window"
 ];
 
 document.getElementById("event").innerText =
 events[Math.floor(Math.random()*events.length)];
 }
 
-function check(){
-
-let score = power() + (Object.values(regions).filter(Boolean).length * 30);
-
-if(score > 420){
-document.getElementById("status").innerHTML =
-"<span class='good'>🏆 GLOBAL DOMINATION ACHIEVED</span>";
-}
-
-if(ai > 240){
-document.getElementById("status").innerHTML =
-"<span class='bad'>💀 AI CONTROLLED THE WORLD</span>";
-}
-
-if(s <= 0){
-document.getElementById("status").innerHTML =
-"<span class='bad'>💀 CIVILIZATION COLLAPSED</span>";
-}
-}
-
 function update(){
-
-document.getElementById("e").innerText=Math.floor(e);
+document.getElementById("g").innerText=Math.floor(g);
+document.getElementById("w").innerText=Math.floor(w);
+document.getElementById("d").innerText=Math.floor(d);
 document.getElementById("t").innerText=Math.floor(t);
-document.getElementById("m").innerText=Math.floor(m);
-document.getElementById("s").innerText=Math.floor(s);
-document.getElementById("ai").innerText=Math.floor(ai);
 }
 
-setInterval(worldEvent,4000);
+setInterval(()=>{
+income();
+event();
+update();
+},3000);
 
 update();
 
