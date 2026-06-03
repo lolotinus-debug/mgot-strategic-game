@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sk">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>MGOT Final Strategy</title>
 
@@ -15,17 +16,12 @@ box-sizing:border-box;
 }
 
 body{
-overflow:hidden;
-font-family:Arial,sans-serif;
 background:#020617;
+font-family:Arial,sans-serif;
+overflow:hidden;
 color:white;
 }
 
-/* TOP BAR */
-<div class="resource">
-👥 Pop:
-<span id="population">3</span>/<span id="populationCap">5</span>
-</div>
 #topbar{
 position:fixed;
 top:0;
@@ -36,9 +32,9 @@ background:#0f172a;
 display:flex;
 align-items:center;
 justify-content:center;
-gap:25px;
-z-index:999;
+gap:20px;
 border-bottom:2px solid #00d4ff;
+z-index:100;
 }
 
 .resource{
@@ -46,105 +42,129 @@ font-weight:bold;
 color:#00d4ff;
 }
 
-/* UI */
-
-population.innerText = game.population;
-populationCap.innerText = game.populationCap;
-#ui{
+#leftPanel{
 position:fixed;
-right:15px;
+left:10px;
 top:80px;
-width:260px;
-background:rgba(15,23,42,.95);
-border:1px solid #00d4ff;
+width:240px;
+background:#0f172a;
 padding:15px;
 border-radius:10px;
-z-index:999;
 }
 
-#ui h2{
+#leftPanel h2{
 margin-bottom:10px;
 color:#00d4ff;
 }
 
-button{
+#leftPanel button{
 width:100%;
-padding:10px;
 margin-bottom:8px;
+padding:10px;
 border:none;
 cursor:pointer;
-font-weight:bold;
-border-radius:6px;
 background:#00d4ff;
 color:black;
+font-weight:bold;
+border-radius:6px;
 }
 
-button:hover{
-opacity:.9;
+#rightPanel{
+position:fixed;
+right:10px;
+top:80px;
+width:260px;
+background:#0f172a;
+padding:15px;
+border-radius:10px;
 }
-
-/* LOG */
 
 #log{
 position:fixed;
-left:10px;
 bottom:10px;
-width:350px;
+left:10px;
+width:400px;
 height:180px;
 overflow:auto;
-background:rgba(0,0,0,.8);
+background:#000;
 padding:10px;
-border-radius:8px;
-font-size:13px;
+border-radius:10px;
+font-size:12px;
 }
-
-#log div{
-margin-bottom:4px;
-}
-
-/* MAP */
 
 canvas{
 display:block;
 }
 
 </style>
+
 </head>
+
 <body>
 
 <div id="topbar">
 
-<div class="resource">💰 Gold: <span id="gold">500</span></div>
+<div class="resource">
+💰 Gold:
+<span id="gold">500</span>
+</div>
 
-<div class="resource">⚡ Energy: <span id="energy">100</span></div>
+<div class="resource">
+⚡ Energy:
+<span id="energy">100</span>
+</div>
 
-<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
+<div class="resource">
+🧠 Knowledge:
+<span id="knowledge">0</span>
+</div>
 
-<div class="resource">💠 MGOT: <span id="token">5</span></div>
+<div class="resource">
+💠 MGOT:
+<span id="token">5</span>
+</div>
 
-<div class="resource">👷 Workers: <span id="workers">3</span></div>
+<div class="resource">
+👷 Workers:
+<span id="workers">3</span>
+</div>
+
+<div class="resource">
+👥 Population:
+<span id="population">3</span>
+</div>
 
 </div>
 
-<div id="ui">
+<div id="leftPanel">
 
-<h2>🏙 MGOT City</h2>
+<h2>🏙 Buildings</h2>
 
-<button onclick="build('house')">
-🏠 Build House
+<button onclick="selectBuild('house')">
+🏠 House
 </button>
 
-<button onclick="build('mine')">
-⛏ Build Mine
+<button onclick="selectBuild('mine')">
+⛏ Mine
 </button>
 
-<button onclick="build('lab')">
-🧠 Build Lab
+<button onclick="selectBuild('lab')">
+🧠 Lab
 </button>
 
-<button onclick="build('plant')">
-⚡ Build Energy Plant
+<button onclick="selectBuild('plant')">
+⚡ Energy Plant
 </button>
+
+</div>
+
+<div id="rightPanel">
+
+<h2>📋 Selected</h2>
+
+<div id="selectedInfo">
+Nothing selected
+</div>
 
 </div>
 
@@ -154,194 +174,107 @@ display:block;
 
 <script>
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const canvas =
+document.getElementById("game");
 
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
+const ctx =
+canvas.getContext("2d");
 
-const TILE=64;
+canvas.width =
+window.innerWidth;
 
-let cameraX=0;
-let cameraY=0;
+canvas.height =
+window.innerHeight;
 
-let game={
-population:3,
-populationCap:5,
+const TILE = 64;
+
+let cameraX = 0;
+let cameraY = 0;
+
+let selectedBuild = null;
+
+let game = {
 
 gold:500,
 energy:100,
 knowledge:0,
 token:5,
-workers:3
+
+workers:3,
+population:3
 
 };
 
-let buildings=[];
-canvas.addEventListener("click",(e)=>{
-
-if(!selectedBuild) return;
-
-const rect = canvas.getBoundingClientRect();
-
-const mx = e.clientX - rect.left;
-const my = e.clientY - rect.top;
-
-const tileX = Math.floor((mx + cameraX)/TILE);
-const tileY = Math.floor((my + cameraY)/TILE);
-
-let cost = 0;
-
-if(selectedBuild==="house") cost=100;
-if(selectedBuild==="mine") cost=150;
-if(selectedBuild==="lab") cost=200;
-if(selectedBuild==="plant") cost=200;
-
-if(game.gold < cost){
-
-log("❌ Not enough gold");
-
-return;
-}
-
-game.gold -= cost;
-
-buildings.push({
-
-x:tileX,
-y:tileY,
-type:selectedBuild,
-level:1
-
-});
-
-selectedBuild = null;
-
-updateUI();
-
-log("✅ Building placed");
-
-});
-  
-/* MAP */
-
-const MAP_W=60;
-const MAP_H=60;
-
-/* LOG */
+let buildings = [];
 
 function log(text){
 
-let div=document.createElement("div");
+let div =
+document.createElement("div");
 
-div.innerText=text;
+div.innerText = text;
 
-document.getElementById("log").prepend(div);
+document
+.getElementById("log")
+.prepend(div);
 
 }
 
-/* BUILD */
-
-let selectedBuild = null;
-
-function build(type){
+function selectBuild(type){
 
 selectedBuild = type;
 
-log("🏗 Placement mode: " + type);
+log(
+"Build mode: " +
+type
+);
 
 }
-}
-
-game.gold-=cost;
-
-buildings.push({
-
-x:Math.floor(Math.random()*20)+5,
-y:Math.floor(Math.random()*20)+5,
-type:type,
-level:1
-
-});
-
-log("✅ "+type+" constructed");
-
-updateUI();
-
-}
-
-/* UPDATE */
 
 function updateUI(){
 
-gold.innerText=Math.floor(game.gold);
-energy.innerText=Math.floor(game.energy);
-knowledge.innerText=Math.floor(game.knowledge);
-token.innerText=Math.floor(game.token);
-workers.innerText=Math.floor(game.workers);
+gold.innerText =
+Math.floor(game.gold);
+
+energy.innerText =
+Math.floor(game.energy);
+
+knowledge.innerText =
+Math.floor(game.knowledge);
+
+token.innerText =
+Math.floor(game.token);
+
+workers.innerText =
+Math.floor(game.workers);
+
+population.innerText =
+Math.floor(game.population);
 
 }
 
-/* ECONOMY */
+function drawGrid(){
 
-setInterval(()=>{
+for(
+let x=0;
+x<100;
+x++
+){
 
-buildings.forEach(b=>{
+for(
+let y=0;
+y<100;
+y++
+){
 
-if(b.type==="mine")
-game.gold+=2*b.level;
-
-if(b.type==="lab")
-game.knowledge+=1*b.level;
-
-if(b.type==="plant")
-game.energy+=2*b.level;
-
-});
-
-updateUI();
-
-},1000);
-
-/* CAMERA */
-
-window.addEventListener("keydown",(e)=>{
-
-if(e.key==="ArrowLeft")
-cameraX-=20;
-
-if(e.key==="ArrowRight")
-cameraX+=20;
-
-if(e.key==="ArrowUp")
-cameraY-=20;
-
-if(e.key==="ArrowDown")
-cameraY+=20;
-
-});
-
-/* DRAW */
-
-function drawMap(){
-
-ctx.fillStyle="#07131f";
-
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
-for(let x=0;x<MAP_W;x++){
-
-for(let y=0;y<MAP_H;y++){
-
-ctx.strokeStyle="#10263d";
+ctx.strokeStyle =
+"#10263d";
 
 ctx.strokeRect(
-
 x*TILE-cameraX,
 y*TILE-cameraY,
 TILE,
 TILE
-
 );
 
 }
@@ -350,14 +283,15 @@ TILE
 
 }
 
-/* BUILDINGS */
-
 function drawBuildings(){
 
 buildings.forEach(b=>{
 
-let x=b.x*TILE-cameraX;
-let y=b.y*TILE-cameraY;
+let px =
+b.x*TILE-cameraX;
+
+let py =
+b.y*TILE-cameraY;
 
 if(b.type==="house")
 ctx.fillStyle="#22c55e";
@@ -372,38 +306,57 @@ if(b.type==="plant")
 ctx.fillStyle="#00d4ff";
 
 ctx.fillRect(
-x+8,
-y+8,
+px+8,
+py+8,
 48,
 48
-);
-
-ctx.fillStyle="white";
-ctx.fillText(
-"Lv"+b.level,
-x+12,
-y+22
 );
 
 });
 
 }
 
-/* LOOP */
+function render(){
 
-function loop(){
+ctx.fillStyle =
+"#07131f";
 
-drawMap();
+ctx.fillRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+drawGrid();
 
 drawBuildings();
 
-requestAnimationFrame(loop);
+requestAnimationFrame(render);
 
 }
 
+window.addEventListener(
+"keydown",
+e=>{
+
+if(e.key==="ArrowLeft")
+cameraX-=32;
+
+if(e.key==="ArrowRight")
+cameraX+=32;
+
+if(e.key==="ArrowUp")
+cameraY-=32;
+
+if(e.key==="ArrowDown")
+cameraY+=32;
+
+});
+
 updateUI();
 
-loop();
+render();
 
 </script>
 
