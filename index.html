@@ -1,141 +1,131 @@
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moja Mini Stratégia</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #222; color: #fff; padding: 20px; text-align: center; }
+        .container { max-width: 600px; margin: auto; background: #333; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .resources, .stats { display: flex; justify-content: space-around; background: #444; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .resource, .stat { font-size: 18px; font-weight: bold; }
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { padding: 12px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; background: #28a745; color: white; font-weight: bold; transition: 0.2s; }
+        button:hover { background: #218838; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .log { margin-top: 20px; background: #111; padding: 10px; border-radius: 5px; height: 100px; overflow-y: auto; text-align: left; font-size: 14px; color: #aaa; }
+    </style>
+</head>
+<body>
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+<div class="container">
+    <h1>🥷 Moja Mini Stratégia</h1>
+    
+    <!-- SUROVINY -->
+    <div class="resources">
+        <div class="resource">🪵 Drevo: <span id="wood">100</span></div>
+        <div class="resource">🍎 Jedlo: <span id="food">50</span></div>
+        <div class="resource">💰 Zlato: <span id="gold">0</span></div>
+    </div>
 
-// ================= LOAD SPRITES =================
-function load(src){
-    let img = new Image();
-    img.src = src;
-    return img;
-}
+    <!-- POPULÁCIA A BUDOVY -->
+    <div class="stats">
+        <div class="stat">🧍 Ľudia: <span id="workers">2</span> / <span id="maxWorkers">5</span></div>
+        <div class="stat">🏠 Domy: <span id="houses">1</span></div>
+        <div class="stat">⛏️ Bane: <span id="mines">0</span></div>
+    </div>
 
-const img = {
-    hq: load("img/hq.png"),
-    mine: load("img/mine.png"),
-    barracks: load("img/barracks.png"),
-    wall: load("img/wall.png"),
-    soldier: load("img/soldier.png")
-};
+    <!-- AKCIE -->
+    <div class="actions">
+        <button onclick="gather('wood')">🪵 Ťažiť drevo (+1)</button>
+        <button onclick="gather('food')">🍎 Zberať jedlo (+1)</button>
+        <button id="btn-worker" onclick="buyWorker()">🧍 Najímať robotníka (50 Jedla)</button>
+        <button id="btn-house" onclick="build('house')">🏠 Postaviť Dom (50 Dreva)</button>
+        <button id="btn-mine" onclick="build('mine')">⛏️ Postaviť Baňu (80 Dreva)</button>
+    </div>
 
-// ================= GAME STATE =================
-let buildings = [
-    {x:200,y:200,type:"hq",hp:500},
-    {x:160,y:200,type:"mine",hp:120},
-    {x:240,y:200,type:"barracks",hp:120}
-];
+    <!-- LOG UPGRADE -->
+    <div class="log" id="log">Vitajte vo vašej osade. Začnite ťažiť suroviny!</div>
+</div>
 
-let troops = [];
+<script>
+    // VNÚTORNÉ NASTAVENIA HRE (Môžete prepisovať čísla)
+    let game = {
+        wood: 100, food: 50, gold: 0,
+        workers: 2, maxWorkers: 5,
+        houses: 1, mines: 0
+    };
 
-// ================= SPAWN =================
-function spawn(){
-    troops.push({
-        x:200,
-        y:200,
-        tx:600,
-        ty:300,
-        hp:100,
-        speed:1.5,
-        damage:2
-    });
-}
-
-// ================= DIST =================
-function dist(a,b){
-    return Math.hypot(a.x-b.x,a.y-b.y);
-}
-
-// ================= MOVE + COMBAT =================
-function updateTroop(t){
-
-    // move smoothly
-    let dx = t.tx - t.x;
-    let dy = t.ty - t.y;
-
-    let d = Math.hypot(dx,dy);
-
-    if(d > 1){
-        t.x += (dx / d) * t.speed;
-        t.y += (dy / d) * t.speed;
+    // RUČNÝ ZBER klikaním
+    function gather(type) {
+        game[type] += 1;
+        updateUI();
     }
 
-    // attack buildings
-    for(let b of buildings){
-        let d2 = Math.hypot(t.x-b.x,t.y-b.y);
-
-        if(d2 < 20){
-            b.hp -= t.damage;
-        }
-    }
-}
-
-// ================= CLEAN DEAD =================
-function cleanup(){
-    buildings = buildings.filter(b => b.hp > 0);
-    troops = troops.filter(t => t.hp > 0);
-}
-
-// ================= DRAW =================
-function draw(){
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    // background grid
-    ctx.strokeStyle="#111827";
-    for(let x=0;x<canvas.width;x+=40){
-        for(let y=0;y<canvas.height;y+=40){
-            ctx.strokeRect(x,y,40,40);
+    // NAJÍMANIE ROBOTNÍKOV
+    function buyWorker() {
+        if (game.food >= 50 && game.workers < game.maxWorkers) {
+            game.food -= 50;
+            game.workers += 1;
+            logMessage("Najali ste nového robotníka. Automatická produkcia stúpla!");
+            updateUI();
         }
     }
 
-    // buildings
-    for(let b of buildings){
-
-        let sprite = img[b.type];
-
-        if(sprite && sprite.complete){
-            ctx.drawImage(sprite,b.x,b.y,40,40);
-        } else {
-            // fallback (no kocky anymore, but simple shape)
-            ctx.fillStyle = "#22c55e";
-            ctx.fillRect(b.x,b.y,40,40);
+    // STAVBA BUDOV
+    function build(type) {
+        if (type === 'house' && game.wood >= 50) {
+            game.wood -= 50;
+            game.houses += 1;
+            game.maxWorkers += 5; // Každý dom zvýši limit ľudí o 5
+            logMessage("Postavili ste dom. Môžete mať viac ľudí.");
+        } else if (type === 'mine' && game.wood >= 80) {
+            game.wood -= 80;
+            game.mines += 1;
+            logMessage("Postavili ste zlatú baňu. Robotníci teraz produkujú zlato!");
         }
-
-        // HP BAR
-        ctx.fillStyle="red";
-        ctx.fillRect(b.x,b.y-6,40*(b.hp/500),4);
+        updateUI();
     }
 
-    // troops
-    for(let t of troops){
-
-        let s = img.soldier;
-
-        if(s && s.complete){
-            ctx.drawImage(s,t.x,t.y,30,30);
-        } else {
-            ctx.fillStyle="#ffffff";
-            ctx.fillRect(t.x,t.y,20,20);
+    // AUTOMATICKÁ PRODUKCIA (Beží každú sekundu)
+    setInterval(function() {
+        if (game.workers > 0) {
+            // Každý voľný robotník produkuje jedlo a drevo, ak máte baňu tak aj zlato
+            game.wood += game.workers * 0.5;
+            game.food += game.workers * 0.3;
+            
+            if (game.mines > 0) {
+                game.gold += game.mines * game.workers * 0.2;
+            }
+            updateUI();
         }
+    }, 1000);
 
-        // HP
-        ctx.fillStyle="green";
-        ctx.fillRect(t.x,t.y-5,30*(t.hp/100),3);
+    // AKTUALIZÁCIA TEXTOV NA OBRAZOVKE
+    function updateUI() {
+        document.getElementById('wood').innerText = Math.floor(game.wood);
+        document.getElementById('food').innerText = Math.floor(game.food);
+        document.getElementById('gold').innerText = Math.floor(game.gold);
+        document.getElementById('workers').innerText = game.workers;
+        document.getElementById('maxWorkers').innerText = game.maxWorkers;
+        document.getElementById('houses').innerText = game.houses;
+        document.getElementById('mines').innerText = game.mines;
+
+        // Kontrola, či máte dosť peňazí na tlačidlá (ak nie, zošednú)
+        document.getElementById('btn-worker').disabled = (game.food < 50 || game.workers >= game.maxWorkers);
+        document.getElementById('btn-house').disabled = (game.wood < 50);
+        document.getElementById('btn-mine').disabled = (game.wood < 80);
     }
-}
 
-// ================= LOOP =================
-function loop(){
-
-    for(let t of troops){
-        updateTroop(t);
+    function logMessage(text) {
+        let logDiv = document.getElementById('log');
+        logDiv.innerHTML += "<br>> " + text;
+        logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    cleanup();
-    draw();
+    // Spustenie na začiatku
+    updateUI();
+</script>
 
-    requestAnimationFrame(loop);
-}
-
-loop();
+</body>
+</html>
