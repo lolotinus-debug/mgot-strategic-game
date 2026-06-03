@@ -171,7 +171,51 @@ workers:3
 };
 
 let buildings=[];
+canvas.addEventListener("click",(e)=>{
 
+if(!selectedBuild) return;
+
+const rect = canvas.getBoundingClientRect();
+
+const mx = e.clientX - rect.left;
+const my = e.clientY - rect.top;
+
+const tileX = Math.floor((mx + cameraX)/TILE);
+const tileY = Math.floor((my + cameraY)/TILE);
+
+let cost = 0;
+
+if(selectedBuild==="house") cost=100;
+if(selectedBuild==="mine") cost=150;
+if(selectedBuild==="lab") cost=200;
+if(selectedBuild==="plant") cost=200;
+
+if(game.gold < cost){
+
+log("❌ Not enough gold");
+
+return;
+}
+
+game.gold -= cost;
+
+buildings.push({
+
+x:tileX,
+y:tileY,
+type:selectedBuild,
+level:1
+
+});
+
+selectedBuild = null;
+
+updateUI();
+
+log("✅ Building placed");
+
+});
+  
 /* MAP */
 
 const MAP_W=60;
@@ -191,21 +235,15 @@ document.getElementById("log").prepend(div);
 
 /* BUILD */
 
+let selectedBuild = null;
+
 function build(type){
 
-let cost=0;
+selectedBuild = type;
 
-if(type==="house") cost=100;
-if(type==="mine") cost=150;
-if(type==="lab") cost=200;
-if(type==="plant") cost=200;
+log("🏗 Placement mode: " + type);
 
-if(game.gold<cost){
-
-log("❌ Not enough gold");
-
-return;
-
+}
 }
 
 game.gold-=cost;
