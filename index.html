@@ -2,7 +2,7 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT CIVILIZATION LIGHT</title>
+<title>MGOT ONLINE PLATFORM</title>
 
 <style>
 body{
@@ -12,211 +12,135 @@ body{
     color:white;
 }
 
-.header{
-    text-align:center;
-    padding:15px;
-    color:#22d3ee;
-    font-size:20px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-    max-width:1100px;
+.container{
+    max-width:900px;
     margin:auto;
-    padding:15px;
+    padding:20px;
 }
 
-.panel{
-    background:#111827;
+.card{
+    background:#0f172a;
     padding:15px;
     border-radius:12px;
+    margin-bottom:10px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
 }
 
 button{
     width:100%;
     padding:10px;
-    margin-top:6px;
     background:#0891b2;
     border:none;
     color:white;
     border-radius:8px;
     cursor:pointer;
 }
-
-.node{
-    padding:10px;
-    margin-top:6px;
-    background:#0f172a;
-    border-radius:8px;
-}
-
-.ai{
-    color:#f87171;
-}
-
-.player{
-    color:#34d399;
-}
 </style>
 </head>
 
 <body>
 
-<div class="header">🧠 MGOT CIVILIZATION LIGHT (MAX)</div>
+<div class="container">
 
-<div class="grid">
+<h1>🌍 MGOT ONLINE PLATFORM</h1>
 
-<!-- PLAYER -->
-<div class="panel">
-
-<h3 class="player">👤 PLAYER CIVILIZATION</h3>
-
-🧠 Knowledge: <span id="k">50</span><br>
-⚡ Energy: <span id="e">50</span><br>
-👥 Community: <span id="c">50</span><br>
-
-<hr>
-
-<button onclick="build('lab')">📚 Build Lab</button>
-<button onclick="build('plant')">⚡ Build Energy</button>
-<button onclick="build('hub')">🤝 Build Community</button>
-
-<hr>
-
-<h3>🌍 MAP CONTROL</h3>
-
-<div class="node" onclick="capture('EU')">EU</div>
-<div class="node" onclick="capture('US')">US</div>
-<div class="node" onclick="capture('ASIA')">ASIA</div>
-
-<hr>
-
-<button onclick="nextTurn()">▶ NEXT TURN</button>
-
+<div class="card">
+<input id="name" placeholder="Enter username">
+<button onclick="start()">Start</button>
 </div>
 
-<!-- AI -->
-<div class="panel">
+<div class="card">
+🧠 Knowledge: <span id="k">0</span><br>
+⚡ Energy: <span id="e">0</span><br>
+👥 Community: <span id="c">0</span><br>
+<button onclick="act()">🔥 ACT</button>
+</div>
 
-<h3 class="ai">🤖 AI CIVILIZATION</h3>
-
-AI Power: <span id="ai">100</span><br>
-
-<hr>
-
-<div id="event">World is stable...</div>
-
-<hr>
-
-<h3>📊 STATUS</h3>
-
-Player Power: <span id="pp">0</span><br>
-AI Power: <span id="ap">0</span><br>
-
-<hr>
-
-<h3>🏆 WIN CONDITION</h3>
-<div id="win">Reach 1000 power to win</div>
-
+<div class="card">
+<h3>🏆 GLOBAL LEADERBOARD</h3>
+<div id="board"></div>
 </div>
 
 </div>
 
-<script>
+<script type="module">
 
-let k=50,e=50,c=50;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+getFirestore,
+doc,
+setDoc,
+collection,
+onSnapshot,
+query,
+orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let lab=0,plant=0,hub=0;
+const firebaseConfig = {
+apiKey: "YOUR_KEY",
+authDomain: "YOUR_DOMAIN",
+projectId: "YOUR_PROJECT"
+};
 
-let ai=100;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-let regions={};
+let user="";
+let k=0,e=0,c=0;
 
-function build(type){
+window.start = function(){
+user = document.getElementById("name").value;
+if(!user) return alert("Enter name");
+save();
+loadBoard();
+}
 
-if(type==="lab" && k>=50){k-=50; lab++;}
-if(type==="plant" && e>=50){e-=50; plant++;}
-if(type==="hub" && c>=50){c-=50; hub++;}
-
+window.act = function(){
+k+=5;
+e+=5;
+c+=5;
+save();
 update();
 }
 
-function capture(r){
-regions[r]=true;
-update();
+async function save(){
+if(!user) return;
+
+await setDoc(doc(db,"players",user),{
+name:user,
+k,e,c,
+score:k+e+c
+});
 }
 
-function aiTurn(){
+function loadBoard(){
 
-let choice = Math.random();
+const q = query(collection(db,"players"),orderBy("score","desc"));
 
-if(choice<0.33) ai += 20;
-else if(choice<0.66) ai += 10;
-else ai -= 5;
+onSnapshot(q,(snap)=>{
+let html="";
 
-if(Math.random()<0.3){
-k -= 5;
-e -= 5;
-c -= 5;
-document.getElementById("event").innerText = "⚠ AI attacked your economy!";
-}
-}
+snap.forEach(d=>{
+let p = d.data();
+html += `<div>${p.name} — ${p.score}</div>`;
+});
 
-function calcPower(){
-return k+e+c + lab*20 + plant*20 + hub*20;
-}
-
-function nextTurn(){
-
-// player growth
-k += lab*5;
-e += plant*5;
-c += hub*5;
-
-// AI growth
-aiTurn();
-
-// map bonuses
-if(regions.EU) k += 5;
-if(regions.US) e += 5;
-if(regions.ASIA) c += 5;
-
-// stability pressure
-if(ai > calcPower()){
-k -= 5;
-e -= 5;
-c -= 5;
-document.getElementById("event").innerText = "🔥 AI is stronger than you!";
-}
-
-// win/lose
-if(calcPower() > 1000){
-document.getElementById("win").innerText = "🏆 YOU WIN (MGOT DOMINANCE)";
-}
-
-if(ai > 1200){
-document.getElementById("win").innerText = "💀 YOU LOST (AI DOMINATES)";
-}
-
-update();
+document.getElementById("board").innerHTML = html;
+});
 }
 
 function update(){
-
-document.getElementById("k").innerText=Math.floor(k);
-document.getElementById("e").innerText=Math.floor(e);
-document.getElementById("c").innerText=Math.floor(c);
-
-document.getElementById("ai").innerText=Math.floor(ai);
-
-document.getElementById("pp").innerText=Math.floor(calcPower());
-document.getElementById("ap").innerText=Math.floor(ai);
-
+document.getElementById("k").innerText=k;
+document.getElementById("e").innerText=e;
+document.getElementById("c").innerText=c;
 }
 
-update();
+setInterval(update,500);
 
 </script>
 
