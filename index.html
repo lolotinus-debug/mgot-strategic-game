@@ -2,13 +2,13 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT ONLINE PLATFORM</title>
+<title>MGOT Strategy Real</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#050b1a;
+    background:#0b1020;
     color:white;
 }
 
@@ -19,27 +19,26 @@ body{
 }
 
 .card{
-    background:#0f172a;
+    background:#111827;
     padding:15px;
     border-radius:12px;
     margin-bottom:10px;
 }
 
-input{
-    width:100%;
-    padding:10px;
-    margin-bottom:10px;
-}
-
 button{
     width:100%;
-    padding:10px;
+    padding:12px;
+    margin-top:8px;
     background:#0891b2;
     border:none;
     color:white;
     border-radius:8px;
     cursor:pointer;
 }
+
+.bad{color:#f87171;}
+.good{color:#34d399;}
+.neutral{color:#fbbf24;}
 </style>
 </head>
 
@@ -47,100 +46,113 @@ button{
 
 <div class="container">
 
-<h1>🌍 MGOT ONLINE PLATFORM</h1>
+<h1>🧠 MGOT — REAL STRATEGY SIM</h1>
 
 <div class="card">
-<input id="name" placeholder="Enter username">
-<button onclick="start()">Start</button>
-</div>
+<h3>📊 CIVILIZATION STATE</h3>
 
-<div class="card">
-🧠 Knowledge: <span id="k">0</span><br>
-⚡ Energy: <span id="e">0</span><br>
-👥 Community: <span id="c">0</span><br>
-<button onclick="act()">🔥 ACT</button>
+🧠 Knowledge: <span id="k">50</span><br>
+⚡ Economy: <span id="e">50</span><br>
+👥 Society: <span id="c">50</span><br>
+⚖ Stability: <span id="s">100</span>
 </div>
 
 <div class="card">
-<h3>🏆 GLOBAL LEADERBOARD</h3>
-<div id="board"></div>
+<h3>⚙️ STRATEGIC DECISION (TURN)</h3>
+
+<button onclick="decision('growth')">📈 Focus Growth (risk instability)</button>
+<button onclick="decision('stability')">🛡 Focus Stability (slow growth)</button>
+<button onclick="decision('research')">🧠 Focus Research (long-term boost)</button>
+</div>
+
+<div class="card">
+<h3>🌍 WORLD EVENTS</h3>
+<div id="event" class="neutral">Waiting for system evolution...</div>
+</div>
+
+<div class="card">
+<h3>📉 SYSTEM PRESSURE</h3>
+<div id="pressure">Stable</div>
 </div>
 
 </div>
 
-<script type="module">
+<script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-getFirestore,
-doc,
-setDoc,
-collection,
-onSnapshot,
-query,
-orderBy
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+let k=50,e=50,c=50;
+let s=100;
 
-const firebaseConfig = {
-apiKey: "YOUR_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT"
-};
+function randomEvent(){
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+let events=[
+"💥 Market instability rises",
+"📉 Population stress detected",
+"📈 Innovation surge appears",
+"⚠ Resource imbalance growing",
+"🌍 Global demand increases"
+];
 
-let user="";
-let k=0,e=0,c=0;
-
-window.start = function(){
-user = document.getElementById("name").value;
-if(!user) return alert("Enter name");
-save();
-loadBoard();
+return events[Math.floor(Math.random()*events.length)];
 }
 
-window.act = function(){
-k+=5;
-e+=5;
-c+=5;
-save();
+function decision(type){
+
+if(type==="growth"){
+k+=10; e+=10; c+=5;
+s-=15;
+document.getElementById("event").innerHTML =
+"<span class='bad'>📈 Aggressive growth chosen</span>";
+}
+
+if(type==="stability"){
+s+=10;
+k-=2; e-=2;
+document.getElementById("event").innerHTML =
+"<span class='good'>🛡 Stabilizing system</span>";
+}
+
+if(type==="research"){
+k+=15;
+e-=10;
+s-=5;
+document.getElementById("event").innerHTML =
+"<span class='neutral'>🧠 Long-term investment</span>";
+}
+
+systemTick();
 update();
 }
 
-async function save(){
-if(!user) return;
+function systemTick(){
 
-await setDoc(doc(db,"players",user),{
-name:user,
-k,e,c,
-score:k+e+c
-});
+let ev = randomEvent();
+document.getElementById("pressure").innerText = ev;
+
+// natural decay system (IMPORTANT)
+k -= 2;
+e -= 2;
+c -= 2;
+
+s -= 1;
+
+// consequences
+if(s < 60){
+k -= 5;
+e -= 5;
+c -= 5;
 }
-
-function loadBoard(){
-
-const q = query(collection(db,"players"),orderBy("score","desc"));
-
-onSnapshot(q,(snap)=>{
-let html="";
-
-snap.forEach(d=>{
-let p = d.data();
-html += `<div>${p.name} — ${p.score}</div>`;
-});
-
-document.getElementById("board").innerHTML = html;
-});
 }
 
 function update(){
-document.getElementById("k").innerText=k;
-document.getElementById("e").innerText=e;
-document.getElementById("c").innerText=c;
+
+document.getElementById("k").innerText=Math.floor(k);
+document.getElementById("e").innerText=Math.floor(e);
+document.getElementById("c").innerText=Math.floor(c);
+document.getElementById("s").innerText=Math.floor(s);
+
 }
 
-setInterval(update,500);
+update();
 
 </script>
 
