@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Civilization</title>
+<title>MGOT Fixed</title>
 
 <style>
 body{
@@ -14,15 +14,9 @@ body{
     padding:20px;
 }
 
-.container{
-    max-width:1000px;
-    margin:auto;
-}
+.container{max-width:900px;margin:auto;}
 
-h1{
-    text-align:center;
-    color:#22d3ee;
-}
+h1{text-align:center;color:#22d3ee}
 
 .top{
     display:grid;
@@ -34,8 +28,8 @@ h1{
 .box{
     background:#0f172a;
     padding:15px;
-    border-radius:10px;
     text-align:center;
+    border-radius:10px;
 }
 
 .era{
@@ -46,37 +40,34 @@ h1{
     margin-bottom:15px;
 }
 
-.tree{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-}
-
-.node{
-    background:#111827;
-    padding:12px;
-    border-radius:10px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
 button{
     background:#0891b2;
     border:none;
     color:white;
-    padding:8px 12px;
+    padding:10px;
     border-radius:8px;
     cursor:pointer;
+    width:100%;
+    margin-top:5px;
 }
 
-button:disabled{
-    background:#334155;
+.tree{
+    background:#0f172a;
+    padding:15px;
+    border-radius:10px;
+    margin-top:10px;
 }
 
-.locked{
-    opacity:0.4;
+.node{
+    background:#111827;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
 }
+
+.locked{opacity:0.4}
 
 .progress{
     height:10px;
@@ -97,7 +88,7 @@ button:disabled{
 
 <div class="container">
 
-<h1>🧠 MGOT Civilization FINAL</h1>
+<h1>🧠 MGOT FIXED</h1>
 
 <div class="top">
 <div class="box">🧠 <div id="k">0</div></div>
@@ -111,39 +102,29 @@ button:disabled{
 <div class="progress"><div class="fill" id="bar"></div></div>
 </div>
 
+<!-- 🔥 CORE BUTTON (FIX) -->
+<button onclick="act()">🔥 TRAIN / ACT (+resources)</button>
+
 <div class="tree">
 
-<!-- FOUNDATION -->
 <div class="node" id="n1">
-Discipline I (+Energy)
+Discipline I (+Energy/sec)
 <button onclick="buy('n1',50,'k')">50 🧠</button>
 </div>
 
 <div class="node" id="n2">
-Focus I (+Knowledge)
+Focus I (+Knowledge/sec)
 <button onclick="buy('n2',50,'k')">50 🧠</button>
 </div>
 
 <div class="node" id="n3">
-Social Awareness (+Community)
+Social Awareness (+Community/sec)
 <button onclick="buy('n3',50,'k')">50 🧠</button>
 </div>
 
-<!-- COMMUNITY -->
 <div class="node locked" id="n4">
 Communication Skills
 <button onclick="buy('n4',120,'c')">120 👥</button>
-</div>
-
-<div class="node locked" id="n5">
-Network Effect
-<button onclick="buy('n5',120,'c')">120 👥</button>
-</div>
-
-<!-- ACADEMY -->
-<div class="node locked" id="n6">
-Knowledge System (+50% income)
-<button onclick="buy('n6',300,'k')">300 🧠</button>
 </div>
 
 </div>
@@ -153,12 +134,43 @@ Knowledge System (+50% income)
 <script>
 
 let k=0,e=0,c=0;
-
 let era=0;
 
 let nodes={};
 
+function act(){
+// CORE LOOP FIX
+k+=2;
+e+=2;
+c+=2;
+update();
+}
+
+function buy(id,cost,type){
+
+if(type==="k" && k>=cost) k-=cost;
+else if(type==="c" && c>=cost) c-=cost;
+else return;
+
+nodes[id]=true;
+document.getElementById(id).classList.add("active");
+
+unlock(id);
+update();
+}
+
+function unlock(id){
+if(id==="n1") document.getElementById("n4").classList.remove("locked");
+}
+
 function total(){return k+e+c;}
+
+function checkEra(){
+if(total()>100) era=1;
+if(total()>400) era=2;
+if(total()>1200) era=3;
+if(total()>3000) era=4;
+}
 
 function update(){
 
@@ -166,105 +178,26 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
-let eras=[
-"🧍 Individual",
-"👥 Tribe",
-"🏫 Academy",
-"🏙️ City",
-"🌍 Global"
-];
-
+let eras=["🧍 Individual","👥 Tribe","🏫 Academy","🏙️ City","🌍 Global"];
 document.getElementById("era").innerText=eras[era];
 
-let progress = total()%100;
-document.getElementById("bar").style.width = progress+"%";
+document.getElementById("bar").style.width=(total()%100)+"%";
 
 checkEra();
 save();
 }
 
-function add(){
-k++;e++;c++;
-}
-
-function buy(id,cost,type){
-
-if(type==="k" && k>=cost) k-=cost;
-else if(type==="c" && c>=cost) c-=cost;
-else if(type==="e" && e>=cost) e-=cost;
-else return;
-
-nodes[id]=true;
-
-document.getElementById(id).classList.add("active");
-
-unlock(id);
-
-update();
-}
-
-function unlock(id){
-
-if(id==="n1"){
-document.getElementById("n4").classList.remove("locked");
-}
-
-if(id==="n2"){
-document.getElementById("n5").classList.remove("locked");
-}
-
-if(id==="n3"){
-document.getElementById("n6").classList.remove("locked");
-}
-
-}
-
-function checkEra(){
-
-if(total()>100) era=1;
-if(total()>400) era=2;
-if(total()>1200) era=3;
-if(total()>3000) era=4;
-
-}
-
 function save(){
-localStorage.setItem("mgot_final",JSON.stringify({
-k,e,c,era,nodes
-}));
+localStorage.setItem("mgot_fix",JSON.stringify({k,e,c,era,nodes}));
 }
 
 function load(){
-
-let d=JSON.parse(localStorage.getItem("mgot_final"));
+let d=JSON.parse(localStorage.getItem("mgot_fix"));
 if(!d)return;
-
 k=d.k;e=d.e;c=d.c;
 era=d.era;
 nodes=d.nodes||{};
-
-for(let id in nodes){
-if(nodes[id]){
-let el=document.getElementById(id);
-if(el) el.classList.add("active");
 }
-}
-
-}
-
-setInterval(()=>{
-
-// passive income (basic system)
-if(nodes.n1) e+=0.5;
-if(nodes.n2) k+=0.5;
-if(nodes.n3) c+=0.5;
-if(nodes.n6){
-k*=1.001; // small scaling effect
-}
-
-update();
-
-},1000);
 
 load();
 update();
