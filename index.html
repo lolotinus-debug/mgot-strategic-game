@@ -2,7 +2,7 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT Strategy</title>
+<title>MGOT PLAYABLE</title>
 
 <style>
 body{
@@ -15,16 +15,16 @@ body{
 .header{
     text-align:center;
     padding:15px;
-    font-size:20px;
     color:#22d3ee;
+    font-size:20px;
 }
 
-.wrap{
+.container{
+    max-width:900px;
+    margin:auto;
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:15px;
-    max-width:1100px;
-    margin:auto;
     padding:15px;
 }
 
@@ -32,13 +32,12 @@ body{
     background:#111827;
     padding:15px;
     border-radius:12px;
-    border:1px solid #1f2937;
 }
 
 .stat{
+    margin:6px 0;
     display:flex;
     justify-content:space-between;
-    margin:5px 0;
 }
 
 button{
@@ -52,19 +51,10 @@ button{
     cursor:pointer;
 }
 
-button:hover{opacity:0.9}
-
-.map{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:6px;
-    margin-top:10px;
-}
-
 .node{
+    padding:8px;
     background:#0f172a;
-    padding:10px;
-    text-align:center;
+    margin-top:6px;
     border-radius:8px;
     cursor:pointer;
     border:1px solid #1f2937;
@@ -74,20 +64,19 @@ button:hover{opacity:0.9}
     border:2px solid #22d3ee;
 }
 
-.small{
+.log{
     font-size:12px;
     color:#94a3b8;
+    margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-🧠 MGOT — STEAM STRATEGY CORE
-</div>
+<div class="header">🧠 MGOT — PLAYABLE STRATEGY FIXED</div>
 
-<div class="wrap">
+<div class="container">
 
 <!-- LEFT -->
 <div class="panel">
@@ -102,41 +91,33 @@ button:hover{opacity:0.9}
 
 <h3>🏗 Build</h3>
 
-<div class="small">Každá budova generuje pasívny rast</div>
-
-<button onclick="build('lab')">📚 Research Lab (+Knowledge)</button>
-<button onclick="build('plant')">⚡ Energy Plant (+Energy)</button>
-<button onclick="build('hub')">🤝 Community Hub (+Community)</button>
+<button onclick="build('lab')">📚 Research Lab (-50 🧠)</button>
+<button onclick="build('plant')">⚡ Energy Plant (-50 ⚡)</button>
+<button onclick="build('hub')">🤝 Community Hub (-50 👥)</button>
 
 <hr>
 
-<h3>⚙️ Economy Tick</h3>
-<button onclick="tick()">▶ Advance Turn</button>
+<button onclick="tick()">▶ NEXT TURN</button>
+
+<div class="log" id="log">Ready...</div>
 
 </div>
 
 <!-- RIGHT -->
 <div class="panel">
 
-<h3>🌍 MAP CONTROL</h3>
+<h3>🌍 MAP</h3>
 
-<div class="small">Obsadené regióny dávajú bonus</div>
-
-<div class="map">
 <div class="node" onclick="capture(this,'EU')">EU</div>
 <div class="node" onclick="capture(this,'US')">US</div>
 <div class="node" onclick="capture(this,'ASIA')">ASIA</div>
-<div class="node" onclick="capture(this,'AFRICA')">AFRICA</div>
-<div class="node" onclick="capture(this,'GLOBAL')">GLOBAL</div>
-<div class="node" onclick="capture(this,'CORE')">CORE</div>
-</div>
 
 <hr>
 
 <h3>⭐ ERA</h3>
 <div id="era">Individual</div>
 
-<h3>📈 Power</h3>
+<h3>📈 POWER</h3>
 <div id="power">0</div>
 
 </div>
@@ -145,52 +126,66 @@ button:hover{opacity:0.9}
 
 <script>
 
-let k=0,e=0,c=0;
+let k=100,e=100,c=100;
 
 let lab=0,plant=0,hub=0;
 
 let regions={};
 
+function log(msg){
+document.getElementById("log").innerText = msg;
+}
+
 function build(type){
 
-if(type==="lab" && k>=50){k-=50; lab++;}
-if(type==="plant" && e>=50){e-=50; plant++;}
-if(type==="hub" && c>=50){c-=50; hub++;}
+if(type==="lab" && k>=50){
+k-=50; lab++;
+log("Built Research Lab");
+}
+
+else if(type==="plant" && e>=50){
+e-=50; plant++;
+log("Built Energy Plant");
+}
+
+else if(type==="hub" && c>=50){
+c-=50; hub++;
+log("Built Community Hub");
+}
+
+else{
+log("Not enough resources");
+}
 
 update();
 }
 
 function tick(){
 
-// passive economy
-k += lab * 2;
-e += plant * 2;
-c += hub * 2;
+k += lab * 5;
+e += plant * 5;
+c += hub * 5;
 
-// region bonuses
-if(regions.EU) k += 2;
-if(regions.US) e += 2;
-if(regions.ASIA) c += 2;
-if(regions.GLOBAL) k += e += c += 1;
+log("Turn processed");
 
 update();
 }
 
 function capture(el,node){
-
 regions[node]=true;
 el.classList.add("active");
+log("Captured " + node);
 update();
 }
 
-function eraCalc(){
+function era(){
 
-let t = k+e+c;
+let t=k+e+c;
 
-if(t>200) return "Tribe";
-if(t>800) return "Academy";
-if(t>2000) return "City";
-if(t>5000) return "Global Network";
+if(t>500) return "Tribe";
+if(t>1200) return "Academy";
+if(t>2500) return "City";
+if(t>5000) return "Global";
 
 return "Individual";
 }
@@ -201,7 +196,7 @@ document.getElementById("k").innerText=Math.floor(k);
 document.getElementById("e").innerText=Math.floor(e);
 document.getElementById("c").innerText=Math.floor(c);
 
-document.getElementById("era").innerText=eraCalc();
+document.getElementById("era").innerText=era();
 
 document.getElementById("power").innerText=Math.floor(k+e+c);
 }
