@@ -1,233 +1,411 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Izometrické Realistické RPG</title>
-    <style>
-        body { font-family: 'Courier New', monospace; background: #0b0f19; color: #e0e6ed; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        #game-layout { display: flex; gap: 20px; background: #141b2d; padding: 20px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); border: 2px solid #233044; }
-        canvas { background: #1e293b; border: 3px solid #334155; border-radius: 6px; }
-        #panel { width: 280px; display: flex; flex-direction: column; gap: 15px; }
-        .stat-box { background: #1f2937; padding: 12px; border-radius: 6px; border-left: 5px solid #3b82f6; }
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
-        .bar { background: #374151; height: 10px; border-radius: 5px; overflow: hidden; }
-        .fill { height: 100%; transition: width 0.3s; }
-        #log { background: #020617; padding: 12px; border-radius: 6px; height: 150px; overflow-y: auto; font-size: 13px; color: #38bdf8; border: 1px solid #1e293b; }
-        .controls-info { font-size: 12px; color: #94a3b8; background: #0f172a; padding: 10px; border-radius: 6px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>MGOT Final Strategy</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+overflow:hidden;
+font-family:Arial,sans-serif;
+background:#020617;
+color:white;
+}
+
+/* TOP BAR */
+<div class="resource">
+👥 Pop:
+<span id="population">3</span>/<span id="populationCap">5</span>
+</div>
+#topbar{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:60px;
+background:#0f172a;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:25px;
+z-index:999;
+border-bottom:2px solid #00d4ff;
+}
+
+.resource{
+font-weight:bold;
+color:#00d4ff;
+}
+
+/* UI */
+
+population.innerText = game.population;
+populationCap.innerText = game.populationCap;
+#ui{
+position:fixed;
+right:15px;
+top:80px;
+width:260px;
+background:rgba(15,23,42,.95);
+border:1px solid #00d4ff;
+padding:15px;
+border-radius:10px;
+z-index:999;
+}
+
+#ui h2{
+margin-bottom:10px;
+color:#00d4ff;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-bottom:8px;
+border:none;
+cursor:pointer;
+font-weight:bold;
+border-radius:6px;
+background:#00d4ff;
+color:black;
+}
+
+button:hover{
+opacity:.9;
+}
+
+/* LOG */
+
+#log{
+position:fixed;
+left:10px;
+bottom:10px;
+width:350px;
+height:180px;
+overflow:auto;
+background:rgba(0,0,0,.8);
+padding:10px;
+border-radius:8px;
+font-size:13px;
+}
+
+#log div{
+margin-bottom:4px;
+}
+
+/* MAP */
+
+canvas{
+display:block;
+}
+
+</style>
 </head>
 <body>
 
-<h1>🌲 Izometrické Survival RPG</h1>
+<div id="topbar">
 
-<div id="game-layout">
-    <!-- CANVAS PRE HGRU -->
-    <canvas id="rtsCanvas" width="700" height="450"></canvas>
+<div class="resource">💰 Gold: <span id="gold">500</span></div>
 
-    <!-- UI VYSTUPY -->
-    <div id="panel">
-        <div class="stat-box" style="border-left-color: #ef4444;">
-            <div class="stat-row"><span>❤️ Životy:</span><span id="hp-val">100</span></div>
-            <div class="bar"><div id="hp-fill" class="fill" style="background: #ef4444; width: 100%;"></div></div>
-        </div>
-        
-        <div class="stat-box" style="border-left-color: #f59e0b;">
-            <div class="stat-row"><span>🍖 Hlad:</span><span id="food-val">100</span></div>
-            <div class="bar"><div id="food-fill" class="fill" style="background: #f59e0b; width: 100%;"></div></div>
-        </div>
+<div class="resource">⚡ Energy: <span id="energy">100</span></div>
 
-        <div class="stat-box" style="border-left-color: #10b981;">
-            <div class="stat-row"><span>🪵 Drevo: <span id="inv-wood">0</span></span><span>🪙 Zlato: <span id="inv-gold">0</span></span></div>
-            <div class="stat-row" style="margin-top: 5px; font-size: 13px; color: #a855f7;"><span>⏰ Čas: <span id="game-time">12:00</span></span></div>
-        </div>
+<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
 
-        <div class="controls-info">
-            <strong>🎮 Ovládanie:</strong><br>
-            • Pohyb: <b>W, A, S, D</b><br>
-            • Útok mečom: <b>MEDZERNÍK</b><br>
-            • Ťažba / Zber: Automaticky pri objekte
-        </div>
+<div class="resource">💠 MGOT: <span id="token">5</span></div>
 
-        <div id="log">> Prebuďte sa v lese. Nájdite obživu a prežite noc.</div>
-    </div>
+<div class="resource">👷 Workers: <span id="workers">3</span></div>
+
 </div>
 
+<div id="ui">
+
+<h2>🏙 MGOT City</h2>
+
+<button onclick="build('house')">
+🏠 Build House
+</button>
+
+<button onclick="build('mine')">
+⛏ Build Mine
+</button>
+
+<button onclick="build('lab')">
+🧠 Build Lab
+</button>
+
+<button onclick="build('plant')">
+⚡ Build Energy Plant
+</button>
+
+</div>
+
+<div id="log"></div>
+
+<canvas id="game"></canvas>
+
 <script>
-    const canvas = document.getElementById('rtsCanvas');
-    const ctx = canvas.getContext('2d');
 
-    // NASTAVENIE SVETA (Izometrická transformácia)
-    const TILE_W = 48;
-    const TILE_H = 24;
-    const MAP_SIZE = 12;
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-    // HRÁČ
-    let player = { isoX: 5, isoY: 5, hp: 100, food: 100, wood: 0, gold: 0, isAttacking: false, attackTimer: 0, dir: 'S' };
-    
-    // SVET (Objekty na mape: stromy, ložiská, kríky s jedlom)
-    let mapObjects = [];
-    function spawnObjects() {
-        for(let x=0; x<MAP_SIZE; x++){
-            for(let y=0; y<MAP_SIZE; y++){
-                if((x===5 && y===5) || (x===0 || y===0 || x===MAP_SIZE-1 || y===MAP_SIZE-1)) continue;
-                let rand = Math.random();
-                if(rand < 0.12) mapObjects.push({x, y, type: 'tree', hp: 3, color: '#15803d'});
-                else if(rand < 0.17) mapObjects.push({x, y, type: 'gold', hp: 4, color: '#b45309'});
-                else if(rand < 0.22) mapObjects.push({x, y, type: 'bush', hp: 1, color: '#ec4899'}); // Bobule
-            }
-        }
-    }
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 
-    // NEPRIESAKAVÉ MONŠTRÁ
-    let enemies = [
-        { isoX: 10, isoY: 2, hp: 30, state: 'idle', timer: 0 },
-        { isoX: 2, isoY: 10, hp: 30, state: 'idle', timer: 0 }
-    ];
+const TILE=64;
 
-    // SYSTÉM ČASU A SVETLA
-    let globalTime = 720; // Začína na poludní (12:00 = 720 minút)
-    let keys = {};
+let cameraX=0;
+let cameraY=0;
 
-    // PREPOČET SÚRADNÍC NA IZOMETRICKÉ 2.5D
-    function toScreen(isoX, isoY) {
-        let screenX = (isoX - isoY) * (TILE_W / 2) + canvas.width / 2;
-        let screenY = (isoX + isoY) * (TILE_H / 2) + 80;
-        return { x: screenX, y: screenY };
-    }
+let game={
+population:3,
+populationCap:5,
 
-    // REGISTRÁCIA KLÁVESNICE
-    window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
-    window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+gold:500,
+energy:100,
+knowledge:0,
+token:5,
+workers:3
 
-    // LOGOVACÍ SYSTÉM
-    function pushLog(msg) {
-        const log = document.getElementById('log');
-        log.innerHTML = "> " + msg + "<br>" + log.innerHTML;
-    }
+};
 
-    // LOGIKA REFRESHU A AKCIÍ
-    let actionCooldown = 0;
-    function updateMechanics() {
-        actionCooldown++;
-        
-        // Zníženie hladu časom
-        if(globalTime % 15 === 0 && player.food > 0) {
-            player.food = Math.max(0, player.food - 1);
-            if(player.food <= 0) player.hp = Math.max(0, player.hp - 2);
-            updateUI();
-        }
+let buildings=[];
+canvas.addEventListener("click",(e)=>{
 
-        // Pohyb hráča s kontrolou okrajov mapy
-        let nextX = player.isoX;
-        let nextY = player.isoY;
-        
-        if (keys['w'] && actionCooldown > 8) { nextX -= 0.15; nextY -= 0.15; player.dir = 'N'; }
-        if (keys['s'] && actionCooldown > 8) { nextX += 0.15; nextY += 0.15; player.dir = 'S'; }
-        if (keys['a'] && actionCooldown > 8) { nextX -= 0.15; nextY += 0.15; player.dir = 'W'; }
-        if (keys['d'] && actionCooldown > 8) { nextX += 0.15; nextY -= 0.15; player.dir = 'E'; }
+if(!selectedBuild) return;
 
-        // Kolízia s okrajom
-        if(nextX >= 0 && nextX < MAP_SIZE && nextY >= 0 && nextY < MAP_SIZE) {
-            player.isoX = nextX;
-            player.isoY = nextY;
-        }
+const rect = canvas.getBoundingClientRect();
 
-        // Útok (Medzerník)
-        if (keys[' '] && !player.isAttacking) {
-            player.isAttacking = true;
-            player.attackTimer = 15;
-            checkAttackCollision();
-        }
+const mx = e.clientX - rect.left;
+const my = e.clientY - rect.top;
 
-        if (player.isAttacking) {
-            player.attackTimer--;
-            if (player.attackTimer <= 0) player.isAttacking = false;
-        }
+const tileX = Math.floor((mx + cameraX)/TILE);
+const tileY = Math.floor((my + cameraY)/TILE);
 
-        // Interakcia s objektmi (stojíte tesne pri nich)
-        mapObjects.forEach((obj, idx) => {
-            let dist = Math.sqrt(Math.pow(player.isoX - obj.x, 2) + Math.pow(player.isoY - obj.y, 2));
-            if(dist < 0.6 && actionCooldown > 20) {
-                actionCooldown = 0;
-                if(obj.type === 'bush') {
-                    player.food = Math.min(100, player.food + 25);
-                    pushLog("Zjedli ste lesné bobule. (+25 Hlad)");
-                    mapObjects.splice(idx, 1);
-                } else if(obj.type === 'tree') {
-                    obj.hp--;
-                    pushLog("Sekáte do stromu...");
-                    if(obj.hp <= 0) { player.wood += 5; mapObjects.splice(idx, 1); pushLog("Získali ste 5x 🪵 Drevo."); }
-                } else if(obj.type === 'gold') {
-                    obj.hp--;
-                    pushLog("Ťažíte zlatú žilu...");
-                    if(obj.hp <= 0) { player.gold += 3; mapObjects.splice(idx, 1); pushLog("Získali ste 3x 🪙 Zlato."); }
-                }
-                updateUI();
-            });
-        });
+let cost = 0;
 
-        // Logika nepriateľov (Vlci / Monštrá)
-        enemies.forEach((en, eIdx) => {
-            let distToPlayer = Math.sqrt(Math.pow(player.isoX - en.isoX, 2) + Math.pow(player.isoY - en.isoY, 2));
-            
-            // Agresia, ak je hráč blízko
-            if(distToPlayer < 4) {
-                let dx = player.isoX - en.isoX;
-                let dy = player.isoY - en.isoY;
-                en.isoX += (dx / distToPlayer) * 0.04;
-                en.isoY += (dy / distToPlayer) * 0.04;
+if(selectedBuild==="house") cost=100;
+if(selectedBuild==="mine") cost=150;
+if(selectedBuild==="lab") cost=200;
+if(selectedBuild==="plant") cost=200;
 
-                //Útok na hráča
-                if(distToPlayer < 0.5 && Math.random() < 0.03) {
-                    player.hp = Math.max(0, player.hp - 8);
-                    pushLog("💥 Vlk vás pohrýzol! (-8 HP)");
-                    updateUI();
-                    if(player.hp <= 0) {
-                        alert("Zomreli ste v divočine!");
-                        player.hp = 100; player.food = 100; player.wood = 0; player.gold = 0;
-                        updateUI();
-                    }
-                }
-            }
-        });
+if(game.gold < cost){
 
-        // Posun času
-        globalTime = (globalTime + 0.5) % 1440;
-    }
+log("❌ Not enough gold");
 
-    // KONTROLA ZÁSAHU MEČOM
-    function checkAttackCollision() {
-        enemies.forEach((en, idx) => {
-            let dist = Math.sqrt(Math.pow(player.isoX - en.isoX, 2) + Math.pow(player.isoY - en.isoY, 2));
-            if(dist < 1.5) {
-                en.hp -= 15;
-                pushLog("⚔️ Zásah mečom! Spôsobili ste 15 poškodenie.");
-                if(en.hp <= 0) {
-                    enemies.splice(idx, 1);
-                    player.gold += 10;
-                    pushLog("💀 Porazili ste divokého vlka! (+10 Zlato)");
-                    updateUI();
-                }
-            }
-        });
-    }
+return;
+}
 
-    // AKTUALIZÁCIA TEXTOV
-    function updateUI() {
-        document.getElementById('hp-val').innerText = player.hp;
-        document.getElementById('hp-fill').style.width = player.hp + "%";
-        document.getElementById('food-val').innerText = player.food;
-        document.getElementById('food-fill').style.width = player.food + "%";
-        document.getElementById('inv-wood').innerText = player.wood;
-        document.getElementById('inv-gold').innerText = player.gold;
+game.gold -= cost;
 
-        let hours = Math.floor(globalTime / 60).toString().padStart(2, '0');
-        let mins = Math.floor(globalTime % 60).toString().padStart(2, '0');
-        document.getElementById('game-time').innerText = `${hours}:${mins}`;
-    }
+buildings.push({
 
-    // VYKRESLOVANIE IZOMETRIE GRAFIKY
-    function drawGame() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+x:tileX,
+y:tileY,
+type:selectedBuild,
+level:1
 
+});
+
+selectedBuild = null;
+
+updateUI();
+
+log("✅ Building placed");
+
+});
+  
+/* MAP */
+
+const MAP_W=60;
+const MAP_H=60;
+
+/* LOG */
+
+function log(text){
+
+let div=document.createElement("div");
+
+div.innerText=text;
+
+document.getElementById("log").prepend(div);
+
+}
+
+/* BUILD */
+
+let selectedBuild = null;
+
+function build(type){
+
+selectedBuild = type;
+
+log("🏗 Placement mode: " + type);
+
+}
+}
+
+game.gold-=cost;
+
+buildings.push({
+
+x:Math.floor(Math.random()*20)+5,
+y:Math.floor(Math.random()*20)+5,
+type:type,
+level:1
+
+});
+
+log("✅ "+type+" constructed");
+
+updateUI();
+
+}
+
+/* UPDATE */
+
+function updateUI(){
+
+gold.innerText=Math.floor(game.gold);
+energy.innerText=Math.floor(game.energy);
+knowledge.innerText=Math.floor(game.knowledge);
+token.innerText=Math.floor(game.token);
+workers.innerText=Math.floor(game.workers);
+
+}
+
+/* ECONOMY */
+
+setInterval(()=>{
+
+buildings.forEach(b=>{
+
+if(b.type==="mine")
+game.gold+=2*b.level;
+
+if(b.type==="lab")
+game.knowledge+=1*b.level;
+
+if(b.type==="plant")
+game.energy+=2*b.level;
+
+});
+
+updateUI();
+
+},1000);
+
+/* CAMERA */
+
+window.addEventListener("keydown",(e)=>{
+
+if(e.key==="ArrowLeft")
+cameraX-=20;
+
+if(e.key==="ArrowRight")
+cameraX+=20;
+
+if(e.key==="ArrowUp")
+cameraY-=20;
+
+if(e.key==="ArrowDown")
+cameraY+=20;
+
+});
+
+/* DRAW */
+
+function drawMap(){
+
+ctx.fillStyle="#07131f";
+
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+for(let x=0;x<MAP_W;x++){
+
+for(let y=0;y<MAP_H;y++){
+
+ctx.strokeStyle="#10263d";
+
+ctx.strokeRect(
+
+x*TILE-cameraX,
+y*TILE-cameraY,
+TILE,
+TILE
+
+);
+
+}
+
+}
+
+}
+
+/* BUILDINGS */
+
+function drawBuildings(){
+
+buildings.forEach(b=>{
+
+let x=b.x*TILE-cameraX;
+let y=b.y*TILE-cameraY;
+
+if(b.type==="house")
+ctx.fillStyle="#22c55e";
+
+if(b.type==="mine")
+ctx.fillStyle="#f59e0b";
+
+if(b.type==="lab")
+ctx.fillStyle="#a855f7";
+
+if(b.type==="plant")
+ctx.fillStyle="#00d4ff";
+
+ctx.fillRect(
+x+8,
+y+8,
+48,
+48
+);
+
+ctx.fillStyle="white";
+ctx.fillText(
+"Lv"+b.level,
+x+12,
+y+22
+);
+
+});
+
+}
+
+/* LOOP */
+
+function loop(){
+
+drawMap();
+
+drawBuildings();
+
+requestAnimationFrame(loop);
+
+}
+
+updateUI();
+
+loop();
+
+</script>
+
+</body>
+</html>
