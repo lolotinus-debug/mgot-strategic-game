@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT ONLINE FIX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGOT Build Strategy</title>
 
 <style>
 body{
@@ -12,13 +13,29 @@ body{
     color:white;
     padding:20px;
 }
-.container{max-width:800px;margin:auto;}
+
+.container{max-width:900px;margin:auto;}
+
+h1{text-align:center;color:#22d3ee}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
 .card{
     background:#0f172a;
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:10px;
+    padding:15px;
+    border-radius:12px;
 }
+
+.stat{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:5px;
+}
+
 button{
     width:100%;
     padding:10px;
@@ -27,6 +44,17 @@ button{
     border:none;
     color:white;
     border-radius:8px;
+    cursor:pointer;
+}
+
+button:disabled{
+    background:#334155;
+    cursor:not-allowed;
+}
+
+.small{
+    font-size:12px;
+    color:#94a3b8;
 }
 </style>
 </head>
@@ -35,111 +63,136 @@ button{
 
 <div class="container">
 
-<h1>🌍 MGOT ONLINE FIX</h1>
+<h1>🧠 MGOT BUILD STRATEGY</h1>
 
 <div class="card">
-<input id="name" placeholder="Enter name" style="width:100%;padding:10px;">
-<button onclick="start()">Start</button>
+<div class="stat">🧠 Knowledge <span id="k">0</span></div>
+<div class="stat">⚡ Energy <span id="e">0</span></div>
+<div class="stat">👥 Community <span id="c">0</span></div>
+<div class="stat">⭐ Era <span id="era">Individual</span></div>
 </div>
 
+<div class="grid">
+
+<!-- RESOURCES -->
 <div class="card">
-🧠 <span id="k">0</span> |
-⚡ <span id="e">0</span> |
-👥 <span id="c">0</span>
+
+<h3>🏗 Buildings</h3>
+
+<div class="small">Každá budova generuje zdroje automaticky</div>
+
+<hr>
+
+<div>
+📚 Learning Center
+<br>+2 Knowledge/sec
+<br>Cost: 50 🧠
+<button onclick="buy('lc')">Build</button>
 </div>
 
-<button onclick="act()">🔥 ACT</button>
+<hr>
 
+<div>
+💪 Gym
+<br>+2 Energy/sec
+<br>Cost: 50 ⚡
+<button onclick="buy('gym')">Build</button>
+</div>
+
+<hr>
+
+<div>
+🤝 Community Hub
+<br>+2 Community/sec
+<br>Cost: 50 👥
+<button onclick="buy('hub')">Build</button>
+</div>
+
+</div>
+
+<!-- INFO -->
 <div class="card">
-<h3>🏆 Leaderboard</h3>
-<div id="board"></div>
+
+<h3>📊 Economy</h3>
+
+<div class="small">
+Rozhoduješ kam investuješ.  
+Každá budova mení tvoju stratégiu.
+</div>
+
+<hr>
+
+<h3>🏆 Production</h3>
+
+<div class="stat">📚/sec <span id="kp">0</span></div>
+<div class="stat">⚡/sec <span id="ep">0</span></div>
+<div class="stat">👥/sec <span id="cp">0</span></div>
+
 </div>
 
 </div>
 
-<script type="module">
+</div>
 
-// 🔥 Firebase MODERN SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  collection,
-  onSnapshot,
-  query,
-  orderBy
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script>
 
-
-// 👉 SEM DÁŠ SVOJ CONFIG
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let user="";
 let k=0,e=0,c=0;
 
-// START
-window.start = function(){
-user = document.getElementById("name").value;
-if(!user) return alert("Enter name");
-save();
-loadBoard();
+let lc=0,gym=0,hub=0;
+
+function buy(type){
+
+if(type==="lc" && k>=50){
+k-=50;
+lc++;
 }
 
-// ACT
-window.act = function(){
-k+=5;
-e+=5;
-c+=5;
-save();
-updateUI();
+if(type==="gym" && e>=50){
+e-=50;
+gym++;
 }
 
-// SAVE PLAYER
-async function save(){
-if(!user) return;
-
-await setDoc(doc(db,"players",user),{
-name:user,
-k,
-e,
-c,
-score:k+e+c
-});
+if(type==="hub" && c>=50){
+c-=50;
+hub++;
 }
 
-// LEADERBOARD
-function loadBoard(){
-
-const q = query(collection(db,"players"),orderBy("score","desc"));
-
-onSnapshot(q,(snap)=>{
-let html="";
-
-snap.forEach(d=>{
-let data = d.data();
-html += `<div>${data.name} — ${data.score}</div>`;
-});
-
-document.getElementById("board").innerHTML = html;
-});
+update();
 }
 
-// UI
-function updateUI(){
-document.getElementById("k").innerText=k;
-document.getElementById("e").innerText=e;
-document.getElementById("c").innerText=c;
+function income(){
+
+k += lc*2;
+e += gym*2;
+c += hub*2;
+
+update();
 }
 
-setInterval(updateUI,500);
+function update(){
+
+document.getElementById("k").innerText=Math.floor(k);
+document.getElementById("e").innerText=Math.floor(e);
+document.getElementById("c").innerText=Math.floor(c);
+
+document.getElementById("kp").innerText=lc*2;
+document.getElementById("ep").innerText=gym*2;
+document.getElementById("cp").innerText=hub*2;
+
+let total = k+e+c;
+
+let era="Individual";
+if(total>200) era="Tribe";
+if(total>600) era="Academy";
+if(total>1500) era="City";
+if(total>4000) era="Global";
+
+document.getElementById("era").innerText=era;
+}
+
+setInterval(income,1000);
+
+update();
 
 </script>
 
