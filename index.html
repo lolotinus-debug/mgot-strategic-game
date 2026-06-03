@@ -3,90 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT V2 World Map</title>
+<title>MGOT Economy Shop V3</title>
 
 <style>
-body {
+body{
 margin:0;
-font-family: Arial;
-background: radial-gradient(circle,#050816,#020617);
+font-family:Arial;
+background:radial-gradient(circle,#050816,#020617);
 color:white;
 text-align:center;
-}
-
-h1 { color:#00d4ff; }
-
-.container {
-max-width:900px;
-margin:auto;
 padding:20px;
 }
 
-.panel {
-background:rgba(255,255,255,0.05);
-padding:15px;
-border-radius:12px;
-margin-bottom:15px;
+.container{
+max-width:800px;
+margin:auto;
+background:rgba(255,255,255,0.04);
+padding:20px;
+border-radius:14px;
 }
 
-.resources {
+h1{color:#00d4ff;}
+
+.panel{
+background:rgba(0,0,0,0.3);
+padding:12px;
+border-radius:10px;
+margin-bottom:12px;
+}
+
+.resources{
 display:flex;
 justify-content:space-around;
 flex-wrap:wrap;
 gap:10px;
 }
 
-button {
+.card{
+font-weight:bold;
+}
+
+.shop{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+button{
 padding:10px;
 border:none;
 border-radius:8px;
 cursor:pointer;
 font-weight:bold;
-margin:3px;
+transition:0.2s;
 }
+
+button:hover{transform:scale(1.03);}
 
 .blue{background:#00d4ff;color:black;}
 .green{background:#22c55e;}
-.red{background:#ef4444;}
+.purple{background:#a855f7;}
 .orange{background:#f97316;}
+.red{background:#ef4444;}
 
-.grid {
-display:grid;
-grid-template-columns:repeat(10,40px);
-justify-content:center;
-gap:2px;
-margin-top:15px;
-}
-
-.cell {
-width:40px;
-height:40px;
-border-radius:4px;
-background:#111827;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:10px;
-cursor:pointer;
-}
-
-.europe{background:#1f2937;}
-.africa{background:#14532d;}
-.asia{background:#7f1d1d;}
-
-.player {
-background:#00d4ff !important;
-}
-
-.log {
-margin-top:10px;
-height:120px;
+.log{
+margin-top:12px;
+height:140px;
 overflow:auto;
 background:rgba(0,0,0,0.4);
 padding:10px;
 border-radius:10px;
 text-align:left;
 font-size:13px;
+color:#aaa;
 }
 </style>
 </head>
@@ -95,31 +84,51 @@ font-size:13px;
 
 <div class="container">
 
-<h1>🌍⚔️ MGOT V2 WORLD MAP</h1>
+<h1>⚔️ MGOT ECONOMY SHOP V3</h1>
+<p>Optimize your system. Every decision has cost.</p>
 
 <div class="panel">
-
 <div class="resources">
-<div>🪙 Tokens: <span id="tokens">50</span></div>
-<div>⚡ Energy: <span id="energy">20</span></div>
-<div>🧠 Knowledge: <span id="knowledge">10</span></div>
-<div>🧍 Agents: <span id="agents">1</span></div>
-</div>
+
+<div class="card">🪙 Tokens: <span id="tokens">30</span></div>
+<div class="card">⚡ Energy: <span id="energy">20</span></div>
+<div class="card">🧠 Knowledge: <span id="knowledge">10</span></div>
+<div class="card">🎯 Focus: <span id="focus">5</span></div>
 
 </div>
+</div>
 
-<div class="panel">
+<div class="panel shop">
 
-<button class="blue" onclick="buy('energy')">Buy Energy (5 tokens → 10 energy)</button>
-<button class="blue" onclick="buy('knowledge')">Buy Knowledge (5 tokens → 5 knowledge)</button>
-<button class="green" onclick="spawnAgent()">Deploy Agent (10 tokens)</button>
-<button class="red" onclick="challenge()">Global Challenge</button>
+<button class="blue" onclick="buy('energy')">
+⚡ Energy Pack<br>5💰 → +10 Energy
+</button>
+
+<button class="blue" onclick="buy('knowledge')">
+🧠 Knowledge Pack<br>5💰 → +5 Knowledge
+</button>
+
+<button class="purple" onclick="buy('focus')">
+🎯 Focus Boost<br>10💰 → +3 Focus
+</button>
+
+<button class="green" onclick="buy('agent')">
+🧍 Deploy Agent<br>10💰 → +1 Agent
+</button>
+
+<button class="orange" onclick="buy('system')">
+🏗 System Upgrade<br>15💰 → +0.2 Efficiency
+</button>
+
+<button class="red" onclick="challenge()">
+⚔️ MGOT Challenge<br>Risk vs Reward
+</button>
 
 </div>
 
-<div class="grid" id="grid"></div>
-
-<div class="log" id="log">MGOT World initialized...</div>
+<div class="panel log" id="log">
+MGOT Shop initialized...
+</div>
 
 </div>
 
@@ -127,151 +136,97 @@ font-size:13px;
 
 // ================= MGOT STATE =================
 let game = {
-tokens:50,
+tokens:30,
 energy:20,
 knowledge:10,
+focus:5,
 agents:1,
-pos:{x:0,y:0}
+eff:1.0
 };
 
-// ================= MAP GENERATION =================
-let grid = [];
-let gridEl = document.getElementById("grid");
+// ================= SHOP SYSTEM =================
+function buy(item){
 
-function initMap(){
-
-for(let y=0;y<10;y++){
-for(let x=0;x<10;x++){
-
-let type = "europe";
-
-if(y > 3 && y < 7) type = "africa";
-if(y >= 7) type = "asia";
-
-grid.push({x,y,type});
-}
-}
-
-renderMap();
-}
-
-function renderMap(){
-
-gridEl.innerHTML="";
-
-grid.forEach(c=>{
-
-let div = document.createElement("div");
-div.className = "cell " + c.type;
-
-if(game.pos.x === c.x && game.pos.y === c.y){
-div.classList.add("player");
-div.innerText = "P";
-}
-
-div.onclick = () => move(c.x,c.y);
-
-gridEl.appendChild(div);
-});
-
-}
-
-// ================= MOVEMENT =================
-function move(x,y){
-
-game.pos.x = x;
-game.pos.y = y;
-
-let region = getRegion(x,y);
-
-if(region === "africa"){
-game.tokens += 2;
-log("Africa explored (+tokens)");
-}
-
-if(region === "asia"){
-game.tokens += 5;
-game.energy -= 2;
-log("Asia explored (high reward, energy cost)");
-}
-
-renderMap();
-update();
-}
-
-// ================= REGION =================
-function getRegion(x,y){
-let cell = grid.find(c=>c.x===x && c.y===y);
-return cell ? cell.type : "europe";
-}
-
-// ================= BUY SYSTEM (TOKENS SPEND) =================
-function buy(type){
-
-if(type === "energy" && game.tokens >= 5){
+if(item === "energy" && game.tokens >= 5){
 game.tokens -= 5;
 game.energy += 10;
-log("Bought Energy (-5 tokens)");
+log("Purchased Energy Pack (-5 tokens)");
 }
 
-if(type === "knowledge" && game.tokens >= 5){
+if(item === "knowledge" && game.tokens >= 5){
 game.tokens -= 5;
 game.knowledge += 5;
-log("Bought Knowledge (-5 tokens)");
+log("Purchased Knowledge Pack (-5 tokens)");
 }
 
-update();
+if(item === "focus" && game.tokens >= 10){
+game.tokens -= 10;
+game.focus += 3;
+log("Focus Boost applied (-10 tokens)");
 }
 
-// ================= AGENTS =================
-function spawnAgent(){
-
-if(game.tokens >= 10){
+if(item === "agent" && game.tokens >= 10){
 game.tokens -= 10;
 game.agents += 1;
-log("Agent deployed (-10 tokens)");
+game.eff += 0.1;
+log("Agent deployed (+efficiency)");
+}
+
+if(item === "system" && game.tokens >= 15){
+game.tokens -= 15;
+game.eff += 0.2;
+log("System upgraded (+efficiency)");
+}
+
 update();
 }
 
-}
-
-// ================= GLOBAL CHALLENGE =================
+// ================= CHALLENGE SYSTEM =================
 function challenge(){
 
-let power = game.agents*10 + game.energy + game.knowledge;
-let risk = 40 + Math.random()*120;
+let power = (game.agents * 10) + (game.energy * 0.5) + (game.focus * 2);
+let difficulty = 40 + Math.random() * 120;
 
-if(power > risk){
+if(power > difficulty){
 game.tokens += 20;
-log("Challenge success (+20 tokens)");
+log("Challenge SUCCESS → +20 tokens");
 } else {
-game.tokens -= 10;
-game.energy -= 5;
-log("Challenge failed (-10 tokens)");
+game.tokens -= 8;
+game.energy -= 3;
+log("Challenge FAILED → -tokens & energy");
 }
 
 update();
 }
+
+// ================= AUTO GROWTH =================
+setInterval(()=>{
+
+game.tokens += game.agents * 0.2 * game.eff;
+game.energy += game.agents * 0.3 * game.eff;
+game.knowledge += game.agents * 0.2 * game.eff;
+
+update();
+
+},1000);
 
 // ================= UI =================
 function update(){
 
-document.getElementById("tokens").innerText = game.tokens;
-document.getElementById("energy").innerText = game.energy;
-document.getElementById("knowledge").innerText = game.knowledge;
-document.getElementById("agents").innerText = game.agents;
+document.getElementById("tokens").innerText = Math.floor(game.tokens);
+document.getElementById("energy").innerText = Math.floor(game.energy);
+document.getElementById("knowledge").innerText = Math.floor(game.knowledge);
+document.getElementById("focus").innerText = game.focus;
 
 }
 
 // ================= LOG =================
-function log(t){
+function log(text){
 let d=document.getElementById("log");
-d.innerHTML+="<br>➤ "+t;
-d.scrollTop=d.scrollHeight;
+d.innerHTML += "<br>➤ " + text;
+d.scrollTop = d.scrollHeight;
 }
 
-// INIT
-initMap();
 update();
 
 </script>
