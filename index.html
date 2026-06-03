@@ -2,14 +2,20 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT Civilization Steam Core</title>
+<title>MGOT Civilization Neon</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#050814;
-    color:white;
+    background: radial-gradient(circle at top, #0b1b3a, #020617 60%, #000);
+    color:#dbeafe;
+}
+
+/* neon glow */
+h1,h3{
+    color:#38bdf8;
+    text-shadow:0 0 10px #38bdf8;
 }
 
 .container{
@@ -25,33 +31,43 @@ body{
 }
 
 .card{
-    background:#111827;
+    background:rgba(15,23,42,0.85);
+    border:1px solid #1e3a8a;
+    box-shadow:0 0 15px rgba(56,189,248,0.2);
     padding:15px;
     border-radius:12px;
-    margin-bottom:10px;
 }
 
 button{
     width:100%;
-    padding:10px;
+    padding:12px;
     margin-top:6px;
     border:none;
     border-radius:8px;
-    background:#0891b2;
+    background:#0ea5e9;
     color:white;
     cursor:pointer;
+    transition:0.2s;
+    box-shadow:0 0 10px rgba(14,165,233,0.4);
+}
+
+button:hover{
+    background:#38bdf8;
+    box-shadow:0 0 20px rgba(56,189,248,0.6);
 }
 
 .node{
     padding:8px;
     margin-top:6px;
     background:#0f172a;
+    border:1px solid #1e3a8a;
     border-radius:8px;
-    border:1px solid #1f2937;
     cursor:pointer;
 }
 
-.active{border:2px solid #22d3ee;}
+.node:hover{
+    box-shadow:0 0 10px #38bdf8;
+}
 
 .good{color:#34d399;}
 .bad{color:#f87171;}
@@ -63,7 +79,7 @@ button{
 
 <div class="container">
 
-<h1>🧠 MGOT — STEAM CIVILIZATION CORE</h1>
+<h1>🧠 MGOT CIVILIZATION — NEON CORE</h1>
 
 <div class="grid">
 
@@ -71,7 +87,7 @@ button{
 <div>
 
 <div class="card">
-<h3>🌍 CIVILIZATION STATUS</h3>
+<h3>🌍 CIVILIZATION CORE</h3>
 
 💰 Economy: <span id="e">50</span><br>
 🧠 Tech: <span id="t">50</span><br>
@@ -80,12 +96,13 @@ button{
 </div>
 
 <div class="card">
-<h3>🧬 STRATEGY (CHOICE)</h3>
+<h3>🧬 STRATEGY</h3>
 
-<button onclick="strategy('eco')">💰 Economic Expansion</button>
-<button onclick="strategy('tech')">🧠 Tech Focus</button>
-<button onclick="strategy('war')">⚔ Military Build</button>
-<button onclick="nextTurn()">▶ PROCESS TURN</button>
+<button onclick="strategy('eco')">💰 Economic Growth</button>
+<button onclick="strategy('tech')">🧠 Tech Expansion</button>
+<button onclick="strategy('war')">⚔ Military Power</button>
+
+<button onclick="nextTurn()">▶ NEXT TURN</button>
 </div>
 
 <div class="card">
@@ -109,12 +126,12 @@ AI Power: <span id="ai">80</span>
 
 <div class="card">
 <h3>⚠ WORLD EVENT</h3>
-<div id="event" class="warn">System stable...</div>
+<div id="event" class="warn">Neon world is stabilizing...</div>
 </div>
 
 <div class="card">
 <h3>🏆 STATUS</h3>
-<div id="status">Survive and expand</div>
+<div id="status">Build your empire</div>
 </div>
 
 </div>
@@ -131,14 +148,14 @@ let ai=80;
 let regions={EU:false,US:false,ASIA:false};
 
 function power(){
-return e + t + m + s;
+return e+t+m+s;
 }
 
 function strategy(type){
 
 if(type==='eco'){
 e += 12;
-s -= 5;
+s -= 4;
 }
 
 if(type==='tech'){
@@ -151,26 +168,26 @@ m += 15;
 e -= 8;
 }
 
-event();
+worldEvent();
 aiTurn();
 update();
 check();
 }
 
-function capture(region){
+function capture(r){
 
 if(m < 45){
 document.getElementById("status").innerHTML =
-"<span class='bad'>⚔ Not enough military strength</span>";
+"<span class='bad'>⚔ Insufficient military power</span>";
 return;
 }
 
-regions[region]=true;
+regions[r]=true;
 m -= 10;
 ai += 8;
 
 document.getElementById("status").innerHTML =
-"<span class='good'>🌍 Captured " + region + "</span>";
+"<span class='good'>🌍 Region captured: " + r + "</span>";
 
 update();
 }
@@ -179,29 +196,28 @@ function aiTurn(){
 
 ai += Math.random()*12;
 
-// AI pressure system
 if(ai > power()){
 s -= 10;
 e -= 6;
 m -= 6;
 
 document.getElementById("status").innerHTML =
-"<span class='bad'>🤖 AI is outpacing your civilization</span>";
+"<span class='bad'>🤖 AI is surpassing your civilization</span>";
 }
 
-if(Math.random() < 0.25){
+if(Math.random() < 0.2){
 ai += 10;
 }
 }
 
-function event(){
+function worldEvent(){
 
 let events=[
-"💥 Global recession spreading",
-"⚠ AI acceleration detected",
-"📈 Tech breakthrough available",
-"⚔ Border tensions rising",
-"🌍 Stability crisis emerging"
+"💥 Neon economic fluctuation detected",
+"⚠ AI neural expansion growing",
+"📈 Quantum research breakthrough",
+"⚔ Global tension rising",
+"🌍 System stability weakening"
 ];
 
 document.getElementById("event").innerText =
@@ -210,29 +226,28 @@ events[Math.floor(Math.random()*events.length)];
 
 function nextTurn(){
 
-// passive growth based on territory
 if(regions.EU) t += 5;
 if(regions.US) e += 5;
 if(regions.ASIA) m += 5;
 
-s -= 2; // world pressure
+s -= 2;
 
 aiTurn();
-event();
+worldEvent();
 update();
 check();
 }
 
 function check(){
 
-if(power() > 350){
+if(power() > 380){
 document.getElementById("status").innerHTML =
-"<span class='good'>🏆 GLOBAL CIVILIZATION DOMINANCE</span>";
+"<span class='good'>🏆 NEON GLOBAL DOMINATION ACHIEVED</span>";
 }
 
-if(ai > 220){
+if(ai > 230){
 document.getElementById("status").innerHTML =
-"<span class='bad'>💀 AI HAS TAKEN CONTROL</span>";
+"<span class='bad'>💀 AI CONTROLLED THE NEON WORLD</span>";
 }
 
 if(s <= 0){
@@ -250,7 +265,7 @@ document.getElementById("s").innerText=Math.floor(s);
 document.getElementById("ai").innerText=Math.floor(ai);
 }
 
-setInterval(event,5000);
+setInterval(worldEvent,4500);
 
 update();
 
