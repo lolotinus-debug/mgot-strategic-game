@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT PRO</title>
+<title>MGOT ONLINE</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
 
 <style>
 body{
@@ -11,85 +14,26 @@ body{
     font-family:Arial;
     background:#050b1a;
     color:white;
-}
-
-.container{
-    max-width:1100px;
-    margin:auto;
     padding:20px;
 }
 
-/* TOP BAR */
-.topbar{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-}
-
-.card{
-    background:#0f172a;
-    padding:15px;
-    border-radius:12px;
-    text-align:center;
-    border:1px solid #1e293b;
-}
-
-h1{
-    text-align:center;
-    color:#22d3ee;
-}
-
-/* LAYOUT */
-.grid{
-    display:grid;
-    grid-template-columns:2fr 1fr;
-    gap:15px;
-    margin-top:15px;
-}
-
-.panel{
-    background:#0f172a;
-    padding:15px;
-    border-radius:12px;
-    border:1px solid #1e293b;
-}
+.container{max-width:900px;margin:auto;}
 
 button{
     width:100%;
     padding:10px;
-    margin-top:6px;
-    border:none;
-    border-radius:8px;
+    margin-top:5px;
     background:#0891b2;
+    border:none;
     color:white;
-    cursor:pointer;
-}
-
-button:hover{
-    opacity:0.9;
-}
-
-.node{
-    background:#111827;
-    padding:10px;
     border-radius:8px;
+}
+
+.card{
+    background:#0f172a;
+    padding:10px;
     margin-bottom:10px;
-}
-
-/* LEADERBOARD */
-.lb{
-    font-size:14px;
-    color:#94a3b8;
-}
-
-/* ACHIEVEMENTS */
-.badge{
-    display:inline-block;
-    padding:5px 10px;
-    margin:3px;
-    border-radius:20px;
-    background:#1e293b;
-    font-size:12px;
+    border-radius:10px;
 }
 </style>
 </head>
@@ -98,192 +42,93 @@ button:hover{
 
 <div class="container">
 
-<h1>🧠 MGOT CIVILIZATION PRO</h1>
+<h1>🌍 MGOT ONLINE</h1>
 
-<div class="topbar">
-<div class="card">🧠<br><span id="k">0</span></div>
-<div class="card">⚡<br><span id="e">0</span></div>
-<div class="card">👥<br><span id="c">0</span></div>
-<div class="card">⭐ Era<br><span id="era">Individual</span></div>
+<div class="card">
+<input id="name" placeholder="Enter name" style="width:100%;padding:10px;">
+<button onclick="start()">Start Game</button>
 </div>
 
-<div class="grid">
-
-<!-- LEFT -->
-<div class="panel">
-
-<h2>🎮 Actions</h2>
-
-<button onclick="act()">🔥 ACT (Grow)</button>
-
-<hr>
-
-<h3>🌳 Tech</h3>
-
-<div class="node">
-📚 Discipline (+Energy/sec)
-<button onclick="buy('d',50,'k')">Buy 50 🧠</button>
+<div class="card">
+🧠 Knowledge: <span id="k">0</span><br>
+⚡ Energy: <span id="e">0</span><br>
+👥 Community: <span id="c">0</span>
 </div>
 
-<div class="node">
-🎯 Focus (+Knowledge/sec)
-<button onclick="buy('f',50,'k')">Buy 50 🧠</button>
-</div>
+<button onclick="act()">🔥 ACT</button>
 
-<div class="node">
-🤝 Social (+Community/sec)
-<button onclick="buy('s',50,'k')">Buy 50 🧠</button>
-</div>
-
-<hr>
-
-<h3>🏆 Achievements</h3>
-<div id="ach"></div>
-
-</div>
-
-<!-- RIGHT -->
-<div class="panel">
-
-<h2>📊 Leaderboard</h2>
-
-<div class="lb" id="lb"></div>
-
-<hr>
-
-<h3>⚙️ Stats</h3>
-<div>Total Power: <span id="t">0</span></div>
-
-</div>
-
+<div class="card">
+<h3>🏆 GLOBAL LEADERBOARD</h3>
+<div id="board"></div>
 </div>
 
 </div>
 
 <script>
 
-let k=0,e=0,c=0;
-let d=0,f=0,s=0;
+// 🔥 FIREBASE CONFIG (sem sem dáš svoj z console)
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT",
+};
 
-let achievements=[];
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+let user = "";
+let k=0,e=0,c=0;
+
+function start(){
+user = document.getElementById("name").value;
+if(!user) return alert("Enter name");
+
+save();
+loadBoard();
+}
 
 function act(){
-k+=3;
-e+=3;
-c+=3;
-update();
-}
-
-function buy(type,cost,resource){
-
-if(resource==="k" && k>=cost) k-=cost;
-else return;
-
-if(type==="d") d++;
-if(type==="f") f++;
-if(type==="s") s++;
-
-update();
-}
-
-function total(){return k+e+c;}
-
-function era(){
-
-let t=total();
-
-if(t>100) return "Tribe";
-if(t>500) return "Academy";
-if(t>1500) return "City";
-if(t>4000) return "Global";
-return "Individual";
-}
-
-function checkAchievements(){
-
-if(total()>50 && !achievements.includes("First Steps")){
-achievements.push("First Steps");
-}
-
-if(total()>300 && !achievements.includes("Builder")){
-achievements.push("Builder");
-}
-
-if(d+f+s>5 && !achievements.includes("Tech Starter")){
-achievements.push("Tech Starter");
-}
-
-document.getElementById("ach").innerHTML =
-achievements.map(a=>`<div class="badge">🏅 ${a}</div>`).join("");
-}
-
-function leaderboard(){
-
-let power = total() + (d+f+s)*10;
-
-let fake=[
-{name:"You",score:power},
-{name:"Alpha Player",score:power+120},
-{name:"Beta Mind",score:power+80},
-{name:"Sigma Node",score:power+40}
-];
-
-fake.sort((a,b)=>b.score-a.score);
-
-document.getElementById("lb").innerHTML =
-fake.map((p,i)=>`
-<div>${i+1}. ${p.name} — ${p.score}</div>
-`).join("");
-}
-
-function update(){
-
-document.getElementById("k").innerText=Math.floor(k);
-document.getElementById("e").innerText=Math.floor(e);
-document.getElementById("c").innerText=Math.floor(c);
-
-document.getElementById("era").innerText=era();
-
-document.getElementById("t").innerText=total();
-
-checkAchievements();
-leaderboard();
+k+=5;e+=5;c+=5;
 save();
 }
 
-setInterval(()=>{
-
-if(d) e+=d*0.5;
-if(f) k+=f*0.5;
-if(s) c+=s*0.5;
-
-update();
-
-},1000);
-
 function save(){
-localStorage.setItem("mgot_pro",JSON.stringify({
-k,e,c,d,f,s,achievements
-}));
+if(!user) return;
+
+db.collection("players").doc(user).set({
+name:user,
+knowledge:k,
+energy:e,
+community:c,
+score:k+e+c
+});
 }
 
-function load(){
-let d=JSON.parse(localStorage.getItem("mgot_pro"));
-if(!d)return;
+function loadBoard(){
 
-k=d.k||0;
-e=d.e||0;
-c=d.c||0;
+db.collection("players")
+.orderBy("score","desc")
+.onSnapshot(snapshot=>{
 
-d=d.d||0;
-f=d.f||0;
-s=d.s||0;
+let html="";
 
-achievements=d.achievements||[];
+snapshot.forEach(doc=>{
+let d = doc.data();
+html += `<div>${d.name} — ${d.score}</div>`;
+});
+
+document.getElementById("board").innerHTML = html;
+
+});
 }
 
-load();
-update();
+// UI update
+setInterval(()=>{
+document.getElementById("k").innerText=k;
+document.getElementById("e").innerText=e;
+document.getElementById("c").innerText=c;
+},500);
 
 </script>
 
