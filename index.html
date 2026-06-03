@@ -1,300 +1,364 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT V5 FIX</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>MGOT Final Strategy</title>
 
 <style>
-body{
+
+*{
 margin:0;
-font-family:Arial;
-background:radial-gradient(circle,#0b1220,#020617);
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+overflow:hidden;
+font-family:Arial,sans-serif;
+background:#020617;
 color:white;
-text-align:center;
-padding:20px;
 }
 
-.container{
-max-width:900px;
-margin:auto;
-background:rgba(255,255,255,0.04);
-padding:20px;
-border-radius:12px;
-}
+/* TOP BAR */
 
-h1{color:#00d4ff;}
-
-.resources{
+#topbar{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:60px;
+background:#0f172a;
 display:flex;
-justify-content:space-around;
-gap:10px;
-flex-wrap:wrap;
+align-items:center;
+justify-content:center;
+gap:25px;
+z-index:999;
+border-bottom:2px solid #00d4ff;
+}
+
+.resource{
+font-weight:bold;
+color:#00d4ff;
+}
+
+/* UI */
+
+#ui{
+position:fixed;
+right:15px;
+top:80px;
+width:260px;
+background:rgba(15,23,42,.95);
+border:1px solid #00d4ff;
+padding:15px;
+border-radius:10px;
+z-index:999;
+}
+
+#ui h2{
 margin-bottom:10px;
+color:#00d4ff;
 }
 
 button{
+width:100%;
 padding:10px;
+margin-bottom:8px;
 border:none;
-border-radius:8px;
 cursor:pointer;
 font-weight:bold;
-margin:5px;
-}
-
-.green{background:#22c55e;}
-.blue{background:#00d4ff;color:black;}
-.red{background:#ef4444;}
-
-.tree{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-align-items:center;
-gap:10px;
-margin-top:20px;
-}
-
-.node{
-width:150px;
-padding:12px;
-border-radius:12px;
-font-weight:bold;
-cursor:pointer;
-transition:0.2s;
-}
-
-.node:hover{transform:scale(1.05);}
-
-.locked{
-background:#1f2937;
-color:#666;
-cursor:not-allowed;
-}
-
-.available{
+border-radius:6px;
 background:#00d4ff;
 color:black;
 }
 
-.unlocked{
-background:#22c55e;
-color:black;
+button:hover{
+opacity:.9;
 }
 
-.line{
-width:30px;
-height:2px;
-background:#334155;
-}
+/* LOG */
 
-.log{
-margin-top:15px;
-height:120px;
+#log{
+position:fixed;
+left:10px;
+bottom:10px;
+width:350px;
+height:180px;
 overflow:auto;
-background:rgba(0,0,0,0.4);
+background:rgba(0,0,0,.8);
 padding:10px;
-border-radius:10px;
-text-align:left;
+border-radius:8px;
 font-size:13px;
-color:#aaa;
 }
+
+#log div{
+margin-bottom:4px;
+}
+
+/* MAP */
+
+canvas{
+display:block;
+}
+
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<div id="topbar">
 
-<h1>🌳 MGOT V5 FIXED TREE</h1>
+<div class="resource">💰 Gold: <span id="gold">500</span></div>
 
-<div class="resources">
-<div>🪙 Tokens: <span id="tokens">10</span></div>
-<div>⚡ Energy: <span id="energy">20</span></div>
-<div>🧍 Workers: <span id="workers">1</span></div>
-<div>💰 Gold: <span id="gold">0</span></div>
-</div>
+<div class="resource">⚡ Energy: <span id="energy">100</span></div>
 
-<button class="green" onclick="gather()">⚡ Gather</button>
-<button class="blue" onclick="convert()">💰 1000 Gold → 1 Token</button>
-<button class="red" onclick="attack()">⚔️ Attack</button>
+<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
 
-<h2>🌳 TECH TREE</h2>
+<div class="resource">💠 MGOT: <span id="token">5</span></div>
 
-<div class="tree">
-
-<div id="gathering" class="node locked" onclick="buy('gathering')">
-🔵 Gathering<br>Cost: 3
-</div>
-
-<div class="line"></div>
-
-<div id="workers" class="node locked" onclick="buy('workers')">
-🧍 Workers<br>Cost: 5
-</div>
-
-<div class="line"></div>
-
-<div id="housing" class="node locked" onclick="buy('housing')">
-🏠 Housing<br>Cost: 6
-</div>
-
-<div class="line"></div>
-
-<div id="goldBoost" class="node locked" onclick="buy('goldBoost')">
-🟢 Gold Boost<br>Cost: 7
-</div>
-
-<div class="line"></div>
-
-<div id="tokenMulti" class="node locked" onclick="buy('tokenMulti')">
-🔴 Token Power<br>Cost: 10
-</div>
+<div class="resource">👷 Workers: <span id="workers">3</span></div>
 
 </div>
 
-<div class="log" id="log"></div>
+<div id="ui">
+
+<h2>🏙 MGOT City</h2>
+
+<button onclick="build('house')">
+🏠 Build House
+</button>
+
+<button onclick="build('mine')">
+⛏ Build Mine
+</button>
+
+<button onclick="build('lab')">
+🧠 Build Lab
+</button>
+
+<button onclick="build('plant')">
+⚡ Build Energy Plant
+</button>
 
 </div>
+
+<div id="log"></div>
+
+<canvas id="game"></canvas>
 
 <script>
 
-// ================= STATE =================
-let game = {
-tokens:10,
-gold:0,
-energy:20,
-workers:1,
-eco:1
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+const TILE=64;
+
+let cameraX=0;
+let cameraY=0;
+
+let game={
+
+gold:500,
+energy:100,
+knowledge:0,
+token:5,
+workers:3
+
 };
 
-let unlocked = {
-gathering:false,
-workers:false,
-housing:false,
-goldBoost:false,
-tokenMulti:false
-};
+let buildings=[];
 
-// ================= LOG =================
-function log(t){
-let d=document.getElementById("log");
-d.innerHTML+="<br>➤ "+t;
-d.scrollTop=d.scrollHeight;
+/* MAP */
+
+const MAP_W=60;
+const MAP_H=60;
+
+/* LOG */
+
+function log(text){
+
+let div=document.createElement("div");
+
+div.innerText=text;
+
+document.getElementById("log").prepend(div);
+
 }
 
-// ================= GATHER =================
-function gather(){
-game.tokens += 0; // no exploit base
-game.energy += 1;
-game.gold += game.workers * 2;
-log("⚡ Gathered");
-update();
-}
+/* BUILD */
 
-// ================= CONVERT =================
-function convert(){
-if(game.gold >= 1000){
-game.gold -= 1000;
-game.tokens += 1;
-log("💰 1000 Gold → 1 Token");
-}else{
+function build(type){
+
+let cost=0;
+
+if(type==="house") cost=100;
+if(type==="mine") cost=150;
+if(type==="lab") cost=200;
+if(type==="plant") cost=200;
+
+if(game.gold<cost){
+
 log("❌ Not enough gold");
-}
-update();
-}
 
-// ================= ATTACK =================
-function attack(){
-let enemy = 80 + Math.random()*120;
-let power = game.workers*10 + game.energy;
-
-if(power > enemy){
-game.gold += 50;
-log("⚔️ Victory +50 gold");
-}else{
-game.tokens -= 1;
-log("⚔️ Defeat -1 token");
-}
-update();
-}
-
-// ================= TREE =================
-function buy(type){
-
-if(type==="gathering" && game.tokens>=3 && !unlocked.gathering){
-game.tokens-=3;
-unlocked.gathering=true;
-game.eco+=0.1;
-log("🔵 Gathering unlocked");
-}
-
-if(type==="workers" && game.tokens>=5 && unlocked.gathering){
-game.tokens-=5;
-unlocked.workers=true;
-game.workers+=1;
-log("🧍 Workers unlocked");
-}
-
-if(type==="housing" && game.tokens>=6 && unlocked.workers){
-game.tokens-=6;
-unlocked.housing=true;
-log("🏠 Housing unlocked");
-}
-
-if(type==="goldBoost" && game.tokens>=7 && unlocked.housing){
-game.tokens-=7;
-unlocked.goldBoost=true;
-log("🟢 Gold Boost unlocked");
-}
-
-if(type==="tokenMulti" && game.tokens>=10 && unlocked.goldBoost){
-game.tokens-=10;
-unlocked.tokenMulti=true;
-log("🔴 Token Power unlocked");
-}
-
-updateTree();
-update();
-}
-
-// ================= TREE UI FIX =================
-function updateTree(){
-
-function set(id,can,unlockedFlag){
-
-let el=document.getElementById(id);
-
-if(unlockedFlag){
-el.className="node unlocked";
-}
-else if(can){
-el.className="node available";
-}
-else{
-el.className="node locked";
-}
-}
-
-set("gathering",true,unlocked.gathering);
-set("workers",unlocked.gathering,unlocked.workers);
-set("housing",unlocked.workers,unlocked.housing);
-set("goldBoost",unlocked.housing,unlocked.goldBoost);
-set("tokenMulti",unlocked.goldBoost,unlocked.tokenMulti);
+return;
 
 }
 
-// ================= UPDATE =================
-function update(){
-document.getElementById("tokens").innerText=game.tokens;
-document.getElementById("energy").innerText=game.energy;
-document.getElementById("workers").innerText=game.workers;
-document.getElementById("gold").innerText=game.gold;
+game.gold-=cost;
+
+buildings.push({
+
+x:Math.floor(Math.random()*20)+5,
+y:Math.floor(Math.random()*20)+5,
+type:type,
+level:1
+
+});
+
+log("✅ "+type+" constructed");
+
+updateUI();
+
 }
 
-// INIT
-updateTree();
-update();
+/* UPDATE */
+
+function updateUI(){
+
+gold.innerText=Math.floor(game.gold);
+energy.innerText=Math.floor(game.energy);
+knowledge.innerText=Math.floor(game.knowledge);
+token.innerText=Math.floor(game.token);
+workers.innerText=Math.floor(game.workers);
+
+}
+
+/* ECONOMY */
+
+setInterval(()=>{
+
+buildings.forEach(b=>{
+
+if(b.type==="mine")
+game.gold+=2*b.level;
+
+if(b.type==="lab")
+game.knowledge+=1*b.level;
+
+if(b.type==="plant")
+game.energy+=2*b.level;
+
+});
+
+updateUI();
+
+},1000);
+
+/* CAMERA */
+
+window.addEventListener("keydown",(e)=>{
+
+if(e.key==="ArrowLeft")
+cameraX-=20;
+
+if(e.key==="ArrowRight")
+cameraX+=20;
+
+if(e.key==="ArrowUp")
+cameraY-=20;
+
+if(e.key==="ArrowDown")
+cameraY+=20;
+
+});
+
+/* DRAW */
+
+function drawMap(){
+
+ctx.fillStyle="#07131f";
+
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+for(let x=0;x<MAP_W;x++){
+
+for(let y=0;y<MAP_H;y++){
+
+ctx.strokeStyle="#10263d";
+
+ctx.strokeRect(
+
+x*TILE-cameraX,
+y*TILE-cameraY,
+TILE,
+TILE
+
+);
+
+}
+
+}
+
+}
+
+/* BUILDINGS */
+
+function drawBuildings(){
+
+buildings.forEach(b=>{
+
+let x=b.x*TILE-cameraX;
+let y=b.y*TILE-cameraY;
+
+if(b.type==="house")
+ctx.fillStyle="#22c55e";
+
+if(b.type==="mine")
+ctx.fillStyle="#f59e0b";
+
+if(b.type==="lab")
+ctx.fillStyle="#a855f7";
+
+if(b.type==="plant")
+ctx.fillStyle="#00d4ff";
+
+ctx.fillRect(
+x+8,
+y+8,
+48,
+48
+);
+
+ctx.fillStyle="white";
+ctx.fillText(
+"Lv"+b.level,
+x+12,
+y+22
+);
+
+});
+
+}
+
+/* LOOP */
+
+function loop(){
+
+drawMap();
+
+drawBuildings();
+
+requestAnimationFrame(loop);
+
+}
+
+updateUI();
+
+loop();
 
 </script>
 
