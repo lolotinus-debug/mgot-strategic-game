@@ -2,7 +2,7 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT MULTIPLAYER CORE</title>
+<title>MGOT Rogue Strategy</title>
 
 <style>
 body{
@@ -13,31 +13,32 @@ body{
 }
 
 .container{
-    max-width:900px;
+    max-width:800px;
     margin:auto;
     padding:20px;
 }
 
 .card{
-    background:#0f172a;
+    background:#111827;
     padding:15px;
     border-radius:12px;
     margin-bottom:10px;
 }
 
-input, button{
-    width:100%;
-    padding:10px;
-    margin-top:8px;
-    border-radius:8px;
-    border:none;
-}
-
 button{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border:none;
+    border-radius:8px;
     background:#0891b2;
     color:white;
     cursor:pointer;
 }
+
+.bad{color:#f87171;}
+.good{color:#34d399;}
+.warn{color:#fbbf24;}
 </style>
 </head>
 
@@ -45,108 +46,134 @@ button{
 
 <div class="container">
 
-<h1>🌍 MGOT MULTIPLAYER PLATFORM</h1>
+<h1>🧠 MGOT — ROGUE CIVILIZATION</h1>
 
 <div class="card">
-<input id="name" placeholder="Enter player name">
-<button onclick="start()">JOIN WORLD</button>
-</div>
-
-<div class="card">
-<h3>🧠 YOUR CIVILIZATION</h3>
-🧠 Knowledge: <span id="k">0</span><br>
-⚡ Economy: <span id="e">0</span><br>
-👥 Society: <span id="c">0</span><br>
-
-<button onclick="action('research')">🧠 Research</button>
-<button onclick="action('economy')">⚡ Economy</button>
-<button onclick="action('society')">👥 Society</button>
+🌍 Stability: <span id="s">100</span><br>
+🧠 Knowledge: <span id="k">50</span><br>
+⚡ Economy: <span id="e">50</span><br>
+👥 Society: <span id="c">50</span>
 </div>
 
 <div class="card">
-<h3>🏆 GLOBAL LEADERBOARD</h3>
-<div id="board"></div>
+
+<h3>⚠ CRISIS EVENT</h3>
+<div id="event" class="warn">Waiting for disaster...</div>
+
+<button onclick="choice(1)">1) Fix problem (risk economy)</button>
+<button onclick="choice(2)">2) Ignore (risk collapse)</button>
+<button onclick="choice(3)">3) Invest long-term (slow recovery)</button>
+
+</div>
+
+<div class="card">
+<h3>🤖 AI CIVILIZATION</h3>
+AI Power: <span id="ai">80</span><br>
+Player Power: <span id="p">0</span>
+</div>
+
+<div class="card">
+<h3>🏆 STATUS</h3>
+<div id="status">Survive...</div>
 </div>
 
 </div>
 
-<script type="module">
+<script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-getFirestore,
-doc,
-setDoc,
-collection,
-onSnapshot,
-query,
-orderBy
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+let s=100;
+let k=50,e=50,c=50;
+let ai=80;
 
-const firebaseConfig = {
-apiKey: "YOUR_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let user="";
-let k=0,e=0,c=0;
-
-window.start = function(){
-user = document.getElementById("name").value;
-if(!user) return alert("Enter name");
-save();
-loadBoard();
+function power(){
+return k+e+c;
 }
 
-window.action = function(type){
+function crisis(){
 
-if(type==="research") k += 10;
-if(type==="economy") e += 10;
-if(type==="society") c += 10;
+let events=[
+"⚠ Energy shortage hits system",
+"⚠ Economic instability rising",
+"⚠ Social unrest detected",
+"⚠ AI expansion accelerating",
+"⚠ Global pressure increasing"
+];
 
-save();
+document.getElementById("event").innerText =
+events[Math.floor(Math.random()*events.length)];
+}
+
+function aiTurn(){
+
+ai += Math.random()*15;
+
+if(ai > power()){
+k -= 5;
+e -= 5;
+c -= 5;
+s -= 10;
+
+document.getElementById("status").innerHTML =
+"<span class='bad'>⚠ AI is dominating your civilization!</span>";
+}
+}
+
+function choice(x){
+
+crisis();
+
+if(x===1){
+k -= 5;
+e += 5;
+s += 5;
+}
+
+if(x===2){
+s -= 15;
+}
+
+if(x===3){
+k += 10;
+e -= 5;
+s += 2;
+}
+
+aiTurn();
 update();
+check();
 }
 
-async function save(){
-if(!user) return;
+function check(){
 
-await setDoc(doc(db,"players",user),{
-name:user,
-k,e,c,
-power:k+e+c
-});
+if(s <= 0){
+document.getElementById("status").innerHTML =
+"<span class='bad'>💀 CIVILIZATION COLLAPSED</span>";
 }
 
-function loadBoard(){
+if(ai > 200){
+document.getElementById("status").innerHTML =
+"<span class='bad'>🤖 AI DOMINATED WORLD</span>";
+}
 
-const q = query(collection(db,"players"),orderBy("power","desc"));
-
-onSnapshot(q,(snap)=>{
-
-let html="";
-
-snap.forEach(d=>{
-let p = d.data();
-html += `<div>${p.name} — ${p.power}</div>`;
-});
-
-document.getElementById("board").innerHTML = html;
-
-});
+if(power() > 300){
+document.getElementById("status").innerHTML =
+"<span class='good'>🏆 YOU SURVIVED AND DOMINATED</span>";
+}
 }
 
 function update(){
-document.getElementById("k").innerText=k;
-document.getElementById("e").innerText=e;
-document.getElementById("c").innerText=c;
+
+document.getElementById("s").innerText=Math.floor(s);
+document.getElementById("k").innerText=Math.floor(k);
+document.getElementById("e").innerText=Math.floor(e);
+document.getElementById("c").innerText=Math.floor(c);
+document.getElementById("ai").innerText=Math.floor(ai);
+document.getElementById("p").innerText=Math.floor(power());
 }
 
-setInterval(update,500);
+setInterval(crisis,4000);
+
+update();
 
 </script>
 
