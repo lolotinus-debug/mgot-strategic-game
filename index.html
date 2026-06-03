@@ -2,11 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>MGOT ONLINE</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<title>MGOT ONLINE FIX</title>
 
 <style>
 body{
@@ -16,9 +12,13 @@ body{
     color:white;
     padding:20px;
 }
-
-.container{max-width:900px;margin:auto;}
-
+.container{max-width:800px;margin:auto;}
+.card{
+    background:#0f172a;
+    padding:10px;
+    margin-bottom:10px;
+    border-radius:10px;
+}
 button{
     width:100%;
     padding:10px;
@@ -28,13 +28,6 @@ button{
     color:white;
     border-radius:8px;
 }
-
-.card{
-    background:#0f172a;
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:10px;
-}
 </style>
 </head>
 
@@ -42,93 +35,111 @@ button{
 
 <div class="container">
 
-<h1>🌍 MGOT ONLINE</h1>
+<h1>🌍 MGOT ONLINE FIX</h1>
 
 <div class="card">
 <input id="name" placeholder="Enter name" style="width:100%;padding:10px;">
-<button onclick="start()">Start Game</button>
+<button onclick="start()">Start</button>
 </div>
 
 <div class="card">
-🧠 Knowledge: <span id="k">0</span><br>
-⚡ Energy: <span id="e">0</span><br>
-👥 Community: <span id="c">0</span>
+🧠 <span id="k">0</span> |
+⚡ <span id="e">0</span> |
+👥 <span id="c">0</span>
 </div>
 
 <button onclick="act()">🔥 ACT</button>
 
 <div class="card">
-<h3>🏆 GLOBAL LEADERBOARD</h3>
+<h3>🏆 Leaderboard</h3>
 <div id="board"></div>
 </div>
 
 </div>
 
-<script>
+<script type="module">
 
-// 🔥 FIREBASE CONFIG (sem sem dáš svoj z console)
+// 🔥 Firebase MODERN SDK
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  onSnapshot,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
+// 👉 SEM DÁŠ SVOJ CONFIG
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
   authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT",
+  projectId: "YOUR_PROJECT_ID",
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-const db = firebase.firestore();
-
-let user = "";
+let user="";
 let k=0,e=0,c=0;
 
-function start(){
+// START
+window.start = function(){
 user = document.getElementById("name").value;
 if(!user) return alert("Enter name");
-
 save();
 loadBoard();
 }
 
-function act(){
-k+=5;e+=5;c+=5;
+// ACT
+window.act = function(){
+k+=5;
+e+=5;
+c+=5;
 save();
+updateUI();
 }
 
-function save(){
+// SAVE PLAYER
+async function save(){
 if(!user) return;
 
-db.collection("players").doc(user).set({
+await setDoc(doc(db,"players",user),{
 name:user,
-knowledge:k,
-energy:e,
-community:c,
+k,
+e,
+c,
 score:k+e+c
 });
 }
 
+// LEADERBOARD
 function loadBoard(){
 
-db.collection("players")
-.orderBy("score","desc")
-.onSnapshot(snapshot=>{
+const q = query(collection(db,"players"),orderBy("score","desc"));
 
+onSnapshot(q,(snap)=>{
 let html="";
 
-snapshot.forEach(doc=>{
-let d = doc.data();
-html += `<div>${d.name} — ${d.score}</div>`;
+snap.forEach(d=>{
+let data = d.data();
+html += `<div>${data.name} — ${data.score}</div>`;
 });
 
 document.getElementById("board").innerHTML = html;
-
 });
 }
 
-// UI update
-setInterval(()=>{
+// UI
+function updateUI(){
 document.getElementById("k").innerText=k;
 document.getElementById("e").innerText=e;
 document.getElementById("c").innerText=c;
-},500);
+}
+
+setInterval(updateUI,500);
 
 </script>
 
