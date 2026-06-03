@@ -1,404 +1,240 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>MGOT Final Strategy</title>
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-overflow:hidden;
-font-family:Arial,sans-serif;
-background:#020617;
-color:white;
-}
-
-/* TOP BAR */
-
-#topbar{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:60px;
-background:#0f172a;
-display:flex;
-align-items:center;
-justify-content:center;
-gap:25px;
-z-index:999;
-border-bottom:2px solid #00d4ff;
-}
-
-.resource{
-font-weight:bold;
-color:#00d4ff;
-}
-
-/* UI */
-
-#ui{
-position:fixed;
-right:15px;
-top:80px;
-width:260px;
-background:rgba(15,23,42,.95);
-border:1px solid #00d4ff;
-padding:15px;
-border-radius:10px;
-z-index:999;
-}
-
-#ui h2{
-margin-bottom:10px;
-color:#00d4ff;
-}
-
-button{
-width:100%;
-padding:10px;
-margin-bottom:8px;
-border:none;
-cursor:pointer;
-font-weight:bold;
-border-radius:6px;
-background:#00d4ff;
-color:black;
-}
-
-button:hover{
-opacity:.9;
-}
-
-/* LOG */
-
-#log{
-position:fixed;
-left:10px;
-bottom:10px;
-width:350px;
-height:180px;
-overflow:auto;
-background:rgba(0,0,0,.8);
-padding:10px;
-border-radius:8px;
-font-size:13px;
-}
-
-#log div{
-margin-bottom:4px;
-}
-
-/* MAP */
-
-canvas{
-display:block;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D RTS Strategická Hra</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        #game-container { display: flex; gap: 20px; background: #2a2a2a; padding: 15px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
+        canvas { background: #34495e; border: 4px solid #2c3e50; border-radius: 5px; cursor: crosshair; }
+        #ui-panel { width: 250px; display: flex; flex-direction: column; gap: 15px; }
+        .resource-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #111; padding: 10px; border-radius: 5px; font-weight: bold; font-size: 15px; }
+        .btn { padding: 12px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; text-align: left; }
+        .btn-gold { background: #f1c40f; color: #000; } .btn-gold:hover { background: #f39c12; }
+        .btn-wood { background: #27ae60; } .btn-wood:hover { background: #219a52; }
+        .btn-barracks { background: #e74c3c; } .btn-barracks:hover { background: #c0392b; }
+        .btn:disabled { background: #555 !important; color: #aaa; cursor: not-allowed; }
+        #log { background: #000; padding: 10px; border-radius: 5px; height: 120px; overflow-y: auto; font-size: 12px; color: #00ff00; font-family: monospace; }
+        .selected-tool { border: 2px solid #fff; box-shadow: 0 0 10px #fff; }
+    </style>
 </head>
 <body>
 
-<div id="topbar">
+<h1>🏰 Moja 2D Real-Time Stratégia</h1>
 
-<div class="resource">💰 Gold: <span id="gold">500</span></div>
+<div id="game-container">
+    <!-- HERNÉ POLE -->
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
 
-<div class="resource">⚡ Energy: <span id="energy">100</span></div>
+    <!-- OVLÁDACÍ PANEL -->
+    <div id="ui-panel">
+        <div class="resource-bar">
+            <div>🪵 Drevo: <span id="res-wood">150</span></div>
+            <div>💰 Zlato: <span id="res-gold">50</span></div>
+            <div style="grid-column: span 2; color: #e74c3c;">❤️ Životy základne: <span id="base-hp">100</span></div>
+        </div>
 
-<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
+        <h3 style="margin: 0; border-bottom: 1px solid #55us; padding-bottom: 5px;">Kúpiť / Postaviť:</h3>
+        <button id="build-lumber" class="btn btn-wood" onclick="selectTool('lumberjack')">🪵 Drevorubač (50 Zlato)</button>
+        <button id="build-gold" class="btn btn-gold" onclick="selectTool('goldmine')">⛏️ Zlatá Baňa (100 Drevo)</button>
+        <button id="build-barracks" class="btn btn-barracks" onclick="selectTool('barracks')">⚔️ Kasárne (150 Drevo)</button>
 
-<div class="resource">💠 MGOT: <span id="token">5</span></div>
-
-<div class="resource">👷 Workers: <span id="workers">3</span></div>
-
+        <div id="log">> Hra spustená. Kliknite na budovu v menu a potom na zelenú plochu pre jej umiestnenie!</div>
+    </div>
 </div>
-
-<div id="ui">
-
-<h2>🏙 MGOT City</h2>
-
-<button onclick="build('house')">
-🏠 Build House
-</button>
-
-<button onclick="build('mine')">
-⛏ Build Mine
-</button>
-
-<button onclick="build('lab')">
-🧠 Build Lab
-</button>
-
-<button onclick="build('plant')">
-⚡ Build Energy Plant
-</button>
-
-</div>
-
-<div id="log"></div>
-
-<canvas id="game"></canvas>
 
 <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+    // STAV HRY
+    let resources = { wood: 150, gold: 50 };
+    let baseHp = 100;
+    let selectedTool = null;
+    
+    let buildings = [];
+    let units = [];
+    let enemies = [];
+    let spawnTimer = 0;
 
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
+    // Pridáme hlavnú základňu (Hrad) do stredu
+    buildings.push({ x: 280, y: 180, w: 40, h: 40, type: 'castle', color: '#95a5a6' });
 
-const TILE=64;
+    // VÝBER BUDOVY Z MENU
+    function selectTool(type) {
+        selectedTool = type;
+        document.querySelectorAll('.btn').forEach(b => b.classList.remove('selected-tool'));
+        if(type) document.getElementById(`build-${type === 'lumberjack' ? 'lumber' : type === 'goldmine' ? 'gold' : 'barracks'}`).classList.add('selected-tool');
+    }
 
-let cameraX=0;
-let cameraY=0;
+    // KLIKNUTIE NA MAPU (POSTAVENIE BUDOVY)
+    canvas.addEventListener('click', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
 
-let game={
+        if (!selectedTool) return;
 
-gold:500,
-energy:100,
-knowledge:0,
-token:5,
-workers:3
+        // Kontrola ceny
+        if (selectedTool === 'lumberjack' && resources.gold >= 50) {
+            resources.gold -= 50;
+            buildings.push({ x: mouseX - 15, y: mouseY - 15, w: 30, h: 30, type: 'lumberjack', color: '#27ae60' });
+            spawnUnit(mouseX, mouseY, 'worker_wood');
+            logMessage("Postavená chatka drevorubača. Robotník vyrazil!");
+        } else if (selectedTool === 'goldmine' && resources.wood >= 100) {
+            resources.wood -= 100;
+            buildings.push({ x: mouseX - 15, y: mouseY - 15, w: 30, h: 30, type: 'goldmine', color: '#f1c40f' });
+            spawnUnit(mouseX, mouseY, 'worker_gold');
+            logMessage("Postavená zlatá baňa.");
+        } else if (selectedTool === 'barracks' && resources.wood >= 150) {
+            resources.wood -= 150;
+            buildings.push({ x: mouseX - 20, y: mouseY - 20, w: 40, h: 40, type: 'barracks', color: '#e74c3c' });
+            logMessage("Postavené kasárne. Budú automaticky cvičiť vojakov!");
+        } else {
+            logMessage("Nedostatok surovín!");
+        }
+        
+        selectTool(null); // Zrušiť výber po kliknutí
+        updateUI();
+    });
 
-};
+    // VYTVORENIE PANÁČIKA
+    function spawnUnit(x, y, role) {
+        units.push({
+            x: x, y: y,
+            targetX: x + (Math.random() * 60 - 30),
+            targetY: y + (Math.random() * 60 - 30),
+            role: role,
+            speed: 1,
+            timer: 0
+        });
+    }
 
-let buildings=[];
-canvas.addEventListener("click",(e)=>{
+    // LOG SPRÁV
+    function logMessage(txt) {
+        const log = document.getElementById('log');
+        log.innerHTML = "> " + txt + "<br>" + log.innerHTML;
+    }
 
-if(!selectedBuild) return;
+    // AKTUALIZÁCIA UI TEXTOV
+    function updateUI() {
+        document.getElementById('res-wood').innerText = Math.floor(resources.wood);
+        document.getElementById('res-gold').innerText = Math.floor(resources.gold);
+        document.getElementById('base-hp').innerText = baseHp;
+        
+        document.getElementById('build-lumber').disabled = resources.gold < 50;
+        document.getElementById('build-gold').disabled = resources.wood < 100;
+        document.getElementById('build-barracks').disabled = resources.wood < 150;
+    }
 
-const rect = canvas.getBoundingClientRect();
+    // HLAVNÁ HERNÁ SLUČKA (Beží 60-krát za sekundu)
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-const mx = e.clientX - rect.left;
-const my = e.clientY - rect.top;
+        // 1. Vykreslenie budov
+        buildings.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.strokeStyle = '#fff';
+            ctx.strokeRect(b.x, b.y, b.w, b.h);
+            
+            // Logika kasární: Každých 5 sekúnd vyrobia vojaka zadarmo
+            if(b.type === 'barracks') {
+                b.cooldown = (b.cooldown || 0) + 1;
+                if(b.cooldown > 300) {
+                    spawnUnit(b.x + 20, b.y + 40, 'soldier');
+                    b.cooldown = 0;
+                }
+            }
+        });
 
-const tileX = Math.floor((mx + cameraX)/TILE);
-const tileY = Math.floor((my + cameraY)/TILE);
+        // 2. Pohyb a logika našich panáčikov
+        units.forEach(u => {
+            // Jednoduchá AI pohybu za cieľom
+            let dx = u.targetX - u.x;
+            let dy = u.targetY - u.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
 
-let cost = 0;
+            if (dist > 2) {
+                u.x += (dx / dist) * u.speed;
+                u.y += (dy / dist) * u.speed;
+            } else {
+                // Keď dorazí na miesto, chvíľu pracuje a získa suroviny
+                u.timer++;
+                if (u.timer > 60) { 
+                    u.timer = 0;
+                    if (u.role === 'worker_wood') { resources.wood += 5; updateUI(); }
+                    if (u.role === 'worker_gold') { resources.gold += 3; updateUI(); }
+                    // Nový náhodný cieľ blízko jeho budovy
+                    u.targetX = u.x + (Math.random() * 80 - 40);
+                    u.targetY = u.y + (Math.random() * 80 - 40);
+                }
+            }
 
-if(selectedBuild==="house") cost=100;
-if(selectedBuild==="mine") cost=150;
-if(selectedBuild==="lab") cost=200;
-if(selectedBuild==="plant") cost=200;
+            // Vykreslenie panáčika (Zelený = Drevorubač, Žltý = Baník, Modrý = Vojak)
+            ctx.fillStyle = u.role === 'soldier' ? '#3498db' : (u.role === 'worker_wood' ? '#2ecc71' : '#f1c40f');
+            ctx.beginPath();
+            ctx.arc(u.x, u.y, 5, 0, Math.PI * 2);
+            ctx.fill();
 
-if(game.gold < cost){
+            // Ak je to vojak, hľadá nepriateľa
+            if(u.role === 'soldier') {
+                enemies.forEach((e, eIndex) => {
+                    let edx = e.x - u.x;
+                    let edy = e.y - u.y;
+                    let eDist = Math.sqrt(edx*edx + edy*edy);
+                    if(eDist < 100) { // Ak je nepriateľ blízko, útočí naňho
+                        u.targetX = e.x;
+                        u.targetY = e.y;
+                        if(eDist < 10) { // Súboj
+                            enemies.splice(eIndex, 1); // Zničí nepriateľa
+                            logMessage("⚔️ Váš vojak porazil monštrum!");
+                        }
+                    }
+                });
+            }
+        });
 
-log("❌ Not enough gold");
+        // 3. Generovanie a útok nepriateľov (červené guličky)
+        spawnTimer++;
+        if (spawnTimer > 400) { // Každých cca 7 sekúnd vyjde nepriateľ
+            enemies.push({ x: Math.random() * canvas.width, y: 0, speed: 0.7 });
+            spawnTimer = 0;
+            logMessage("⚠️ Z lesa vybehlo divoké monštrum a mieri k hradu!");
+        }
 
-return;
-}
+        enemies.forEach((e, index) => {
+            // Nepriateľ mieri do stredu na hrad (280, 180)
+            let hx = 300 - e.x;
+            let hy = 200 - e.y;
+            let hdist = Math.sqrt(hx*hx + hy*hy);
 
-game.gold -= cost;
+            if (hdist > 15) {
+                e.x += (hx / hdist) * e.speed;
+                e.y += (hy / hdist) * e.speed;
+            } else {
+                // Zaútočil na hrad
+                baseHp -= 10;
+                enemies.splice(index, 1);
+                updateUI();
+                logMessage("💥 Hrad bol napadnutý!");
+                if(baseHp <= 0) {
+                    alert("Koniec hry! Váš hrad bol zničený.");
+                    baseHp = 100; buildings = [{ x: 280, y: 180, w: 40, h: 40, type: 'castle', color: '#95a5a6' }]; units = []; enemies = [];
+                }
+            }
 
-buildings.push({
 
-x:tileX,
-y:tileY,
-type:selectedBuild,
-level:1
-
+// Vykreslenie nepriateľa (Červený)
+ctx.fillStyle = '#e74c3c';
+ctx.beginPath();
+ctx.arc(e.x, e.y, 6, 0, Math.PI * 2);
+ctx.fill();
 });
-
-selectedBuild = null;
-
+requestAnimationFrame(gameLoop);
+}
+// Štart hry
 updateUI();
+gameLoop();
 
-log("✅ Building placed");
-
-});
-  
-/* MAP */
-
-const MAP_W=60;
-const MAP_H=60;
-
-/* LOG */
-
-function log(text){
-
-let div=document.createElement("div");
-
-div.innerText=text;
-
-document.getElementById("log").prepend(div);
-
-}
-
-/* BUILD */
-
-let selectedBuild = null;
-
-function build(type){
-
-selectedBuild = type;
-
-log("🏗 Placement mode: " + type);
-
-}
-}
-
-game.gold-=cost;
-
-buildings.push({
-
-x:Math.floor(Math.random()*20)+5,
-y:Math.floor(Math.random()*20)+5,
-type:type,
-level:1
-
-});
-
-log("✅ "+type+" constructed");
-
-updateUI();
-
-}
-
-/* UPDATE */
-
-function updateUI(){
-
-gold.innerText=Math.floor(game.gold);
-energy.innerText=Math.floor(game.energy);
-knowledge.innerText=Math.floor(game.knowledge);
-token.innerText=Math.floor(game.token);
-workers.innerText=Math.floor(game.workers);
-
-}
-
-/* ECONOMY */
-
-setInterval(()=>{
-
-buildings.forEach(b=>{
-
-if(b.type==="mine")
-game.gold+=2*b.level;
-
-if(b.type==="lab")
-game.knowledge+=1*b.level;
-
-if(b.type==="plant")
-game.energy+=2*b.level;
-
-});
-
-updateUI();
-
-},1000);
-
-/* CAMERA */
-
-window.addEventListener("keydown",(e)=>{
-
-if(e.key==="ArrowLeft")
-cameraX-=20;
-
-if(e.key==="ArrowRight")
-cameraX+=20;
-
-if(e.key==="ArrowUp")
-cameraY-=20;
-
-if(e.key==="ArrowDown")
-cameraY+=20;
-
-});
-
-/* DRAW */
-
-function drawMap(){
-
-ctx.fillStyle="#07131f";
-
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
-for(let x=0;x<MAP_W;x++){
-
-for(let y=0;y<MAP_H;y++){
-
-ctx.strokeStyle="#10263d";
-
-ctx.strokeRect(
-
-x*TILE-cameraX,
-y*TILE-cameraY,
-TILE,
-TILE
-
-);
-
-}
-
-}
-
-}
-
-/* BUILDINGS */
-
-function drawBuildings(){
-
-buildings.forEach(b=>{
-
-let x=b.x*TILE-cameraX;
-let y=b.y*TILE-cameraY;
-
-if(b.type==="house")
-ctx.fillStyle="#22c55e";
-
-if(b.type==="mine")
-ctx.fillStyle="#f59e0b";
-
-if(b.type==="lab")
-ctx.fillStyle="#a855f7";
-
-if(b.type==="plant")
-ctx.fillStyle="#00d4ff";
-
-ctx.fillRect(
-x+8,
-y+8,
-48,
-48
-);
-
-ctx.fillStyle="white";
-ctx.fillText(
-"Lv"+b.level,
-x+12,
-y+22
-);
-
-});
-
-}
-
-/* LOOP */
-
-function loop(){
-
-drawMap();
-
-drawBuildings();
-
-requestAnimationFrame(loop);
-
-}
-
-updateUI();
-
-loop();
-
-</script>
-
-</body>
-</html>
