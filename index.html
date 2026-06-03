@@ -2,13 +2,13 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<title>MGOT Civilization FULL</title>
+<title>MGOT Civilization Steam Core</title>
 
 <style>
 body{
     margin:0;
     font-family:Arial;
-    background:#060b18;
+    background:#050814;
     color:white;
 }
 
@@ -47,8 +47,8 @@ button{
     margin-top:6px;
     background:#0f172a;
     border-radius:8px;
-    cursor:pointer;
     border:1px solid #1f2937;
+    cursor:pointer;
 }
 
 .active{border:2px solid #22d3ee;}
@@ -63,7 +63,7 @@ button{
 
 <div class="container">
 
-<h1>🧠 MGOT CIVILIZATION FULL CORE</h1>
+<h1>🧠 MGOT — STEAM CIVILIZATION CORE</h1>
 
 <div class="grid">
 
@@ -71,30 +71,29 @@ button{
 <div>
 
 <div class="card">
-<h3>👤 CIVILIZATION</h3>
+<h3>🌍 CIVILIZATION STATUS</h3>
 
 💰 Economy: <span id="e">50</span><br>
-🧠 Research: <span id="r">50</span><br>
+🧠 Tech: <span id="t">50</span><br>
 ⚔ Military: <span id="m">50</span><br>
 ⚖ Stability: <span id="s">100</span>
 </div>
 
 <div class="card">
-<h3>🎮 ACTIONS</h3>
+<h3>🧬 STRATEGY (CHOICE)</h3>
 
-<button onclick="act('eco')">💰 Economy</button>
-<button onclick="act('res')">🧠 Research</button>
-<button onclick="act('mil')">⚔ Military</button>
-
-<button onclick="nextTurn()">▶ NEXT TURN</button>
+<button onclick="strategy('eco')">💰 Economic Expansion</button>
+<button onclick="strategy('tech')">🧠 Tech Focus</button>
+<button onclick="strategy('war')">⚔ Military Build</button>
+<button onclick="nextTurn()">▶ PROCESS TURN</button>
 </div>
 
 <div class="card">
-<h3>🌍 TERRITORIES</h3>
+<h3>🌍 MAP CONTROL</h3>
 
-<div class="node" onclick="take('EU')">EUROPE</div>
-<div class="node" onclick="take('US')">AMERICA</div>
-<div class="node" onclick="take('ASIA')">ASIA</div>
+<div class="node" onclick="capture('EU')">EUROPE</div>
+<div class="node" onclick="capture('US')">AMERICA</div>
+<div class="node" onclick="capture('ASIA')">ASIA</div>
 
 </div>
 
@@ -105,18 +104,17 @@ button{
 
 <div class="card">
 <h3>🤖 AI CIVILIZATION</h3>
-AI Power: <span id="ai">80</span><br>
-AI Territories: <span id="ait">0</span>
+AI Power: <span id="ai">80</span>
 </div>
 
 <div class="card">
 <h3>⚠ WORLD EVENT</h3>
-<div id="event" class="warn">World is stable...</div>
+<div id="event" class="warn">System stable...</div>
 </div>
 
 <div class="card">
 <h3>🏆 STATUS</h3>
-<div id="status">Expand and survive</div>
+<div id="status">Survive and expand</div>
 </div>
 
 </div>
@@ -127,47 +125,49 @@ AI Territories: <span id="ait">0</span>
 
 <script>
 
-let e=50,r=50,m=50,s=100;
+let e=50,t=50,m=50,s=100;
 let ai=80;
 
-let territories = {EU:false,US:false,ASIA:false};
-let aiTerritories = 0;
+let regions={EU:false,US:false,ASIA:false};
 
 function power(){
-return e+r+m;
+return e + t + m + s;
 }
 
-function act(type){
+function strategy(type){
 
 if(type==='eco'){
-e += 10; s -= 3;
+e += 12;
+s -= 5;
 }
 
-if(type==='res'){
-r += 10; e -= 5;
+if(type==='tech'){
+t += 15;
+e -= 5;
 }
 
-if(type==='mil'){
-m += 10; e -= 5;
+if(type==='war'){
+m += 15;
+e -= 8;
 }
 
-worldEvent();
+event();
 aiTurn();
 update();
 check();
 }
 
-function take(region){
+function capture(region){
 
-if(m < 40){
+if(m < 45){
 document.getElementById("status").innerHTML =
-"<span class='bad'>⚔ Not enough military power!</span>";
+"<span class='bad'>⚔ Not enough military strength</span>";
 return;
 }
 
-territories[region] = true;
+regions[region]=true;
 m -= 10;
-ai += 10;
+ai += 8;
 
 document.getElementById("status").innerHTML =
 "<span class='good'>🌍 Captured " + region + "</span>";
@@ -177,27 +177,31 @@ update();
 
 function aiTurn(){
 
-ai += Math.random()*10;
+ai += Math.random()*12;
 
+// AI pressure system
 if(ai > power()){
 s -= 10;
-e -= 5;
-m -= 5;
+e -= 6;
+m -= 6;
+
+document.getElementById("status").innerHTML =
+"<span class='bad'>🤖 AI is outpacing your civilization</span>";
 }
 
-if(Math.random() < 0.3){
-aiTerritories++;
+if(Math.random() < 0.25){
+ai += 10;
 }
 }
 
-function worldEvent(){
+function event(){
 
 let events=[
-"💥 Economic crisis in global market",
-"⚠ AI expansion accelerating",
-"📈 Scientific breakthrough discovered",
-"⚔ Border conflict rising",
-"🌍 Stability pressure increasing"
+"💥 Global recession spreading",
+"⚠ AI acceleration detected",
+"📈 Tech breakthrough available",
+"⚔ Border tensions rising",
+"🌍 Stability crisis emerging"
 ];
 
 document.getElementById("event").innerText =
@@ -206,26 +210,29 @@ events[Math.floor(Math.random()*events.length)];
 
 function nextTurn(){
 
-e += territories.EU ? 5 : 0;
-r += territories.US ? 5 : 0;
-m += territories.ASIA ? 5 : 0;
+// passive growth based on territory
+if(regions.EU) t += 5;
+if(regions.US) e += 5;
+if(regions.ASIA) m += 5;
+
+s -= 2; // world pressure
 
 aiTurn();
-worldEvent();
+event();
 update();
 check();
 }
 
 function check(){
 
-if(power() > 300){
+if(power() > 350){
 document.getElementById("status").innerHTML =
-"<span class='good'>🏆 GLOBAL DOMINANCE ACHIEVED</span>";
+"<span class='good'>🏆 GLOBAL CIVILIZATION DOMINANCE</span>";
 }
 
-if(ai > 200){
+if(ai > 220){
 document.getElementById("status").innerHTML =
-"<span class='bad'>🤖 AI DOMINATED THE WORLD</span>";
+"<span class='bad'>💀 AI HAS TAKEN CONTROL</span>";
 }
 
 if(s <= 0){
@@ -237,16 +244,13 @@ document.getElementById("status").innerHTML =
 function update(){
 
 document.getElementById("e").innerText=Math.floor(e);
-document.getElementById("r").innerText=Math.floor(r);
+document.getElementById("t").innerText=Math.floor(t);
 document.getElementById("m").innerText=Math.floor(m);
 document.getElementById("s").innerText=Math.floor(s);
-
 document.getElementById("ai").innerText=Math.floor(ai);
-document.getElementById("ait").innerText=aiTerritories;
-
 }
 
-setInterval(worldEvent,4000);
+setInterval(event,5000);
 
 update();
 
