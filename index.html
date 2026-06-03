@@ -165,6 +165,9 @@ display:block;
 <div id="selectedInfo">
 Nothing selected
 </div>
+<button onclick="upgradeBuilding()">
+⬆ Upgrade Building
+</button>
 
 </div>
 
@@ -173,6 +176,181 @@ Nothing selected
 <canvas id="game"></canvas>
 
 <script>
+
+// ================= BUILDING PLACEMENT =================
+
+canvas.addEventListener("click",(e)=>{
+
+const rect =
+canvas.getBoundingClientRect();
+
+const mouseX =
+e.clientX-rect.left;
+
+const mouseY =
+e.clientY-rect.top;
+
+const tileX =
+Math.floor((mouseX+cameraX)/TILE);
+
+const tileY =
+Math.floor((mouseY+cameraY)/TILE);
+
+// select existing building
+
+for(let b of buildings){
+
+if(
+b.x===tileX &&
+b.y===tileY
+){
+
+selectedBuilding = b;
+
+updateSelected();
+
+return;
+
+}
+
+}
+
+// place new building
+
+if(!selectedBuild) return;
+
+let cost = 0;
+
+if(selectedBuild==="house") cost=100;
+if(selectedBuild==="mine") cost=150;
+if(selectedBuild==="lab") cost=200;
+if(selectedBuild==="plant") cost=200;
+
+if(game.gold < cost){
+
+log("❌ Not enough gold");
+
+return;
+
+}
+
+game.gold -= cost;
+
+buildings.push({
+
+x:tileX,
+y:tileY,
+type:selectedBuild,
+level:1
+
+});
+
+selectedBuild = null;
+
+log("🏗 Building placed");
+
+updateUI();
+
+});
+
+// ================= BUILDING INFO =================
+
+function updateSelected(){
+
+if(!selectedBuilding){
+
+selectedInfo.innerHTML =
+"Nothing selected";
+
+return;
+
+}
+
+selectedInfo.innerHTML =
+
+`
+<b>${selectedBuilding.type}</b><br>
+Level: ${selectedBuilding.level}
+`;
+
+}
+
+// ================= UPGRADE =================
+
+function upgradeBuilding(){
+
+if(!selectedBuilding) return;
+
+let cost =
+selectedBuilding.level * 100;
+
+if(game.gold < cost){
+
+log("❌ Not enough gold");
+
+return;
+
+}
+
+game.gold -= cost;
+
+selectedBuilding.level++;
+
+log(
+"⬆ Upgraded " +
+selectedBuilding.type +
+" to Lv." +
+selectedBuilding.level
+);
+
+updateSelected();
+
+updateUI();
+
+}
+
+// ================= ECONOMY =================
+
+setInterval(()=>{
+
+for(let b of buildings){
+
+if(b.type==="mine"){
+
+game.gold +=
+2 * b.level;
+
+}
+
+if(b.type==="lab"){
+
+game.knowledge +=
+1 * b.level;
+
+}
+
+if(b.type==="plant"){
+
+game.energy +=
+2 * b.level;
+
+}
+
+if(b.type==="house"){
+
+game.population =
+3 +
+buildings.filter(
+x=>x.type==="house"
+).length * 2;
+
+}
+
+}
+
+updateUI();
+
+},1000);
 
 const canvas =
 document.getElementById("game");
@@ -206,6 +384,7 @@ population:3
 };
 
 let buildings = [];
+let selectedBuilding = null;
 
 function log(text){
 
@@ -311,6 +490,34 @@ py+8,
 48,
 48
 );
+
+ctx.fillStyle="white";
+
+ctx.font="12px Arial";
+
+ctx.fillText(
+"Lv."+b.level,
+px+10,
+py+22
+);
+
+if(
+selectedBuilding===b
+){
+
+ctx.strokeStyle=
+"#ffffff";
+
+ctx.lineWidth=3;
+
+ctx.strokeRect(
+px+4,
+py+4,
+56,
+56
+);
+
+}
 
 });
 
