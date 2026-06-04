@@ -12,7 +12,27 @@ padding:0;
 box-sizing:border-box;
 }
 
-body{
+body{function selectBuild(t){
+selectedBuild=t;
+
+// reset button highlight
+document.querySelectorAll("#leftPanel button").forEach(b=>{
+b.style.outline="none";
+});
+
+// highlight clicked button safely
+if(window.event && window.event.target){
+window.event.target.style.outline="2px solid white";
+}
+
+document.getElementById("info").innerHTML = `
+<b>Selected:</b> ${t}<br>
+💰 Cost: ${B[t].cost}<br>
+📍 Click map to place
+`;
+
+log("Build: "+t);
+}
 background:#020617;
 font-family:Arial, sans-serif;
 overflow:hidden;
@@ -330,17 +350,21 @@ const TILE = 64;
 let cameraX = 0;
 let cameraY = 0;
 
-let selectedBuild = null;
 function selectBuild(t){
 selectedBuild=t;
 
-document.querySelectorAll("#leftPanel button")
-.forEach(b=>b.style.outline="none");
+// reset button highlight
+document.querySelectorAll("#leftPanel button").forEach(b=>{
+b.style.outline="none";
+});
 
-event.target.style.outline="2px solid white";
+// highlight clicked button safely
+if(window.event && window.event.target){
+window.event.target.style.outline="2px solid white";
+}
 
 document.getElementById("info").innerHTML = `
-<b>${t.toUpperCase()}</b><br>
+<b>Selected:</b> ${t}<br>
 💰 Cost: ${B[t].cost}<br>
 📍 Click map to place
 `;
