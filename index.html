@@ -636,11 +636,16 @@ ctx.strokeRect(px+8,py+8,48,48);
 }
 
 if(b.type==="townhall"){
+
 ctx.fillStyle="#ffffff";
-ctx.fillRect(px+4,py+4,56,56);
+ctx.fillRect(px,py,64,64);
 
 ctx.fillStyle="#00d4ff";
-ctx.fillRect(px+16,py+16,32,32);
+ctx.fillRect(px+12,py+12,40,40);
+
+ctx.fillStyle="#0f172a";
+ctx.fillRect(px+22,py+22,20,20);
+
 }
 
 // level
@@ -695,6 +700,21 @@ const data = JSON.parse(save);
 if(data.game) game = data.game;
 if(data.buildings) buildings = data.buildings;
 
+let hasTownHall = buildings.some(
+b => b.type === "townhall"
+);
+
+if(!hasTownHall){
+
+buildings.push({
+x:10,
+y:10,
+type:"townhall",
+level:1
+});
+
+}
+
 }catch(err){
 
 console.log("Save corrupted");
@@ -745,7 +765,13 @@ population:10,
 technologyLevel:1
 };
 
-buildings = [];
+buildings = [{
+x:10,
+y:10,
+type:"townhall",
+level:1
+}];
+  
 particles = [];
 selected = null;
 selectedBuild = null;
