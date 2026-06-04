@@ -6,19 +6,25 @@
 <title>MGOT World Strategy</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
 
 body{
 background:#020617;
-font-family:Arial;
+font-family:Arial, sans-serif;
 overflow:hidden;
 color:white;
 }
 
-/* TOPBAR */
+/* ================= TOPBAR ================= */
+
 #topbar{
 position:fixed;
-top:0;left:0;
+top:0;
+left:0;
 width:100%;
 height:60px;
 background:#0f172a;
@@ -29,18 +35,29 @@ gap:15px;
 border-bottom:2px solid #00d4ff;
 z-index:100;
 font-size:14px;
+padding:0 10px;
 }
 
-.resource{color:#00d4ff;font-weight:bold;}
+.resource{
+color:#00d4ff;
+font-weight:bold;
+}
 
-/* PANELS */
+/* ================= LEFT PANEL ================= */
+
 #leftPanel{
 position:fixed;
-left:10px;top:80px;
+left:10px;
+top:80px;
 width:260px;
 background:#0f172a;
 padding:12px;
 border-radius:10px;
+z-index:50;
+}
+
+#leftPanel h3{
+margin-bottom:10px;
 }
 
 #leftPanel button{
@@ -54,17 +71,50 @@ border-radius:6px;
 text-align:left;
 background:#00d4ff;
 color:black;
+transition:0.2s;
 }
 
-/* RIGHT */
+#leftPanel button:hover{
+transform:scale(1.02);
+}
+
+/* ================= RIGHT PANEL ================= */
+
 #rightPanel{
 position:fixed;
-right:10px;top:80px;
+right:10px;
+top:80px;
 width:280px;
 background:#0f172a;
 padding:12px;
 border-radius:10px;
+z-index:50;
 }
+
+#rightPanel h3{
+margin-bottom:10px;
+}
+
+#rightPanel button{
+width:100%;
+margin-top:10px;
+padding:10px;
+border:none;
+cursor:pointer;
+font-weight:bold;
+border-radius:6px;
+background:#00d4ff;
+color:black;
+}
+
+/* ================= INFO ================= */
+
+#info{
+line-height:1.5;
+font-size:14px;
+}
+
+/* ================= LOG ================= */
 
 #log{
 position:fixed;
@@ -77,9 +127,143 @@ background:#000;
 padding:10px;
 font-size:12px;
 border-radius:10px;
+z-index:50;
 }
 
-canvas{display:block;}
+#log::-webkit-scrollbar{
+width:6px;
+}
+
+#log::-webkit-scrollbar-thumb{
+background:#00d4ff;
+border-radius:10px;
+}
+
+/* ================= CANVAS ================= */
+
+canvas{
+display:block;
+position:absolute;
+left:0;
+top:0;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width:768px){
+
+#topbar{
+height:auto;
+min-height:60px;
+font-size:11px;
+gap:8px;
+padding:6px;
+flex-wrap:wrap;
+}
+
+/* BUILDINGS PANEL */
+
+#leftPanel{
+left:5px;
+bottom:5px;
+top:auto;
+
+width:48%;
+max-height:220px;
+
+overflow-y:auto;
+
+padding:8px;
+}
+
+/* INFO PANEL */
+
+#rightPanel{
+right:5px;
+bottom:5px;
+top:auto;
+
+width:48%;
+padding:8px;
+}
+
+/* BUTTONS */
+
+#leftPanel button,
+#rightPanel button{
+font-size:14px;
+padding:12px;
+}
+
+/* INFO */
+
+#info{
+font-size:12px;
+}
+
+/* LOG */
+
+#log{
+width:95%;
+height:90px;
+
+left:50%;
+transform:translateX(-50%);
+
+bottom:240px;
+
+font-size:10px;
+}
+
+/* CANVAS */
+
+canvas{
+width:100vw;
+height:100vh;
+}
+
+/* SCROLL */
+
+#leftPanel::-webkit-scrollbar{
+width:4px;
+}
+
+#leftPanel::-webkit-scrollbar-thumb{
+background:#00d4ff;
+border-radius:10px;
+}
+
+}
+
+/* EXTRA SMALL PHONES */
+
+@media (max-width:480px){
+
+#topbar{
+font-size:10px;
+gap:5px;
+}
+
+#leftPanel{
+width:47%;
+}
+
+#rightPanel{
+width:47%;
+}
+
+#leftPanel button,
+#rightPanel button{
+font-size:12px;
+padding:10px;
+}
+
+#log{
+height:80px;
+font-size:9px;
+}
+
+}
 </style>
 </head>
 
