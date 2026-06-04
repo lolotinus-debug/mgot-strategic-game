@@ -467,6 +467,7 @@ updateInfo();
 
 // ================= CLICK =================
 canvas.addEventListener("click",(e)=>{
+  
 const rect = canvas.getBoundingClientRect();
 
 const scaleX = canvas.width / rect.width;
@@ -477,6 +478,7 @@ const mouseY = (e.clientY - rect.top) * scaleY;
 
 const x = Math.floor((mouseX + cameraX) / TILE);
 const y = Math.floor((mouseY + cameraY) / TILE);
+  
 // select
 for(let b of buildings){
 if(b.x===x&&b.y===y){
