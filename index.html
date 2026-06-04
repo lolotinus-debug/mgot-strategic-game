@@ -389,6 +389,13 @@ document.getElementById("population").innerText=Math.floor(game.population);
 // ================= SELECT =================
 function selectBuild(t){
 selectedBuild=t;
+
+document.getElementById("info").innerHTML = `
+<b>Selected:</b> ${t}<br>
+<b>Cost:</b> ${B[t].cost} gold<br>
+<b>Status:</b> ready to place
+`;
+
 log("Build: "+t);
 }
 
