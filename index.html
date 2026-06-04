@@ -460,6 +460,8 @@ level:1,
 cooldown:0
 });
 
+console.log("ADDED BUILDING:", buildings);
+
 explosion(x*TILE,y*TILE,B[selectedBuild].color);
 
 log("🏗 "+selectedBuild+" built");
@@ -659,6 +661,7 @@ buildings = data.buildings;
 
 // ================= RENDER =================
 function render(){
+
 ctx.fillStyle="#07131f";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 
