@@ -333,16 +333,25 @@ const TILE = 64;
 let cameraX = 0;
 let cameraY = 0;
 
-selectedBuild=t;
+function selectBuild(t){
+  selectedBuild = t;
 
-document.getElementById("info").innerHTML = `
-<b>Selected:</b> ${t}<br>
-<b>Cost:</b> ${B[t].cost} gold<br>
-<b>Status:</b> ready to place
-`;
+  document.querySelectorAll("#leftPanel button").forEach(b=>{
+    b.style.outline="none";
+  });
 
-log("Build: "+t);
-}  
+  if(window.event?.target){
+    window.event.target.style.outline="2px solid white";
+  }
+
+  document.getElementById("info").innerHTML = `
+    <b>Selected:</b> ${t}<br>
+    💰 Cost: ${B[t].cost}<br>
+    📍 Click map to place
+  `;
+
+  log("Build: " + t);
+}
   
 let selected = null;
 
