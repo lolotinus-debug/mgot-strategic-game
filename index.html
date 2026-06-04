@@ -372,9 +372,17 @@ technologyLevel:1
 };
 
 let buildings = [];
+  
+buildings.push({
+x:10,
+y:10,
+type:"townhall",
+level:1
+});
 
 // ================= BUILD COSTS =================
 const B = {
+townhall:{cost:0,color:"#ffffff"},
 house:{cost:100,color:"#22c55e"},
 mine:{cost:150,color:"#f59e0b"},
 lab:{cost:200,color:"#a855f7"},
@@ -587,6 +595,10 @@ let py=b.y*TILE-cameraY;
 
 ctx.fillStyle=B[b.type].color;
 
+if(b.type==="townhall"){
+ctx.fillRect(px+4,py+4,56,56);
+}
+
 // SHAPES
 if(b.type==="house"){
 ctx.beginPath();
@@ -621,6 +633,14 @@ ctx.arc(px+32,py+32,18,0,Math.PI*2);
 ctx.fill();
 ctx.strokeStyle="yellow";
 ctx.strokeRect(px+8,py+8,48,48);
+}
+
+if(b.type==="townhall"){
+ctx.fillStyle="#ffffff";
+ctx.fillRect(px+4,py+4,56,56);
+
+ctx.fillStyle="#00d4ff";
+ctx.fillRect(px+16,py+16,32,32);
 }
 
 // level
