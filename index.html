@@ -331,6 +331,22 @@ let cameraX = 0;
 let cameraY = 0;
 
 let selectedBuild = null;
+function selectBuild(t){
+selectedBuild=t;
+
+document.querySelectorAll("#leftPanel button")
+.forEach(b=>b.style.outline="none");
+
+event.target.style.outline="2px solid white";
+
+document.getElementById("info").innerHTML = `
+<b>${t.toUpperCase()}</b><br>
+💰 Cost: ${B[t].cost}<br>
+📍 Click map to place
+`;
+
+log("Build: "+t);
+}
 let selected = null;
 
 let particles = [];
