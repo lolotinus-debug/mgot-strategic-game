@@ -272,7 +272,9 @@ font-size:9px;
 <div id="topbar">
 <div class="resource">💰 Gold: <span id="gold">500</span></div>
 <div class="resource">⚡ Energy: <span id="energy">100</span></div>
+<div class="resource">👥 Population: <span id="population">10</span></div>
 <div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
+<div class="resource">🔬 Tech: <span id="tech">1</span></div>
 <div class="resource">🪖 Soldiers: <span id="soldiers">0</span></div>
 <div class="resource">🌍 Continent: Map</div>
 </div>
@@ -323,7 +325,9 @@ let game = {
 gold:500,
 energy:100,
 knowledge:0,
-soldiers:0
+soldiers:0,
+population:10,
+technologyLevel:1
 };
 
 let buildings = [];
@@ -360,10 +364,12 @@ color
 
 // ================= UPDATE UI =================
 function ui(){
-document.getElementById("gold").innerText=game.gold;
-document.getElementById("energy").innerText=game.energy;
-document.getElementById("knowledge").innerText=game.knowledge;
-document.getElementById("soldiers").innerText=game.soldiers;
+document.getElementById("gold").innerText=Math.floor(game.gold);
+document.getElementById("energy").innerText=Math.floor(game.energy);
+document.getElementById("knowledge").innerText=Math.floor(game.knowledge);
+document.getElementById("tech").innerText=game.technologyLevel;
+document.getElementById("soldiers").innerText=Math.floor(game.soldiers);
+document.getElementById("population").innerText=Math.floor(game.population);
 }
 
 // ================= SELECT =================
@@ -453,9 +459,36 @@ setInterval(()=>{
 
 for(let b of buildings){
 
-if(b.type==="mine") game.gold+=2*b.level;
-if(b.type==="lab") game.knowledge+=1*b.level;
-if(b.type==="plant") game.energy+=2*b.level;
+if(b.type==="house"){
+game.population += 0.05 * b.level;
+}
+
+if(b.type==="mine"){
+
+let workers = b.level*2;
+
+if(game.population >= workers){
+game.gold += b.level;
+}
+
+}
+
+if(b.type==="lab"){
+
+if(game.energy > 0){
+
+game.knowledge += b.level;
+game.energy -= 0.5*b.level;
+
+}
+
+}
+  
+if(b.type==="plant"){
+game.energy += 3*b.level;
+}
+
+
 
 if(b.type==="armory"){
 b.cooldown++;
@@ -468,6 +501,23 @@ b.cooldown=0;
 if(b.type==="forge"){
 game.soldiers+=Math.floor(b.level/2);
 }
+
+}
+
+game.gold -= game.soldiers * 0.02;
+
+if(game.gold < 0){
+game.gold = 0;
+}
+
+if(game.knowledge >= 100){
+
+game.technologyLevel++;
+
+game.knowledge = 0;
+
+log("🧠 New Technology Level: " +
+game.technologyLevel);
 
 }
 
@@ -569,6 +619,30 @@ p.life--;
 
 }
 particles=particles.filter(p=>p.life>0);
+}
+
+setInterval(()=>{
+
+localStorage.setItem(
+"mgot_save",
+JSON.stringify({
+game,
+buildings
+})
+);
+
+},5000);
+
+const save =
+localStorage.getItem("mgot_save");
+
+if(save){
+
+const data = JSON.parse(save);
+
+game = data.game;
+buildings = data.buildings;
+
 }
 
 // ================= RENDER =================
