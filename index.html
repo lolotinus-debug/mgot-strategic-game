@@ -618,7 +618,27 @@ ctx.fillRect(px+26,py+34,12,18);
 
 }
 
-if(b.type==="mine") ctx.fillRect(px+10,py+10,44,44);
+if(b.type==="mine"){
+
+ctx.fillStyle="#6b7280";
+ctx.fillRect(px+12,py+16,40,36);
+
+ctx.fillStyle="#f59e0b";
+ctx.beginPath();
+ctx.moveTo(px+20,py+16);
+ctx.lineTo(px+32,py+4);
+ctx.lineTo(px+44,py+16);
+ctx.closePath();
+ctx.fill();
+
+ctx.strokeStyle="#111";
+ctx.lineWidth=2;
+ctx.beginPath();
+ctx.moveTo(px+20,py+40);
+ctx.lineTo(px+44,py+40);
+ctx.stroke();
+
+}
 
 if(b.type==="lab"){
 ctx.beginPath();
