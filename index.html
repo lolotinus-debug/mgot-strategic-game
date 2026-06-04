@@ -449,11 +449,13 @@ canvas.addEventListener("click",(e)=>{
   
 const rect = canvas.getBoundingClientRect();
 
-const scaleX = canvas.width / rect.width;
-const scaleY = canvas.height / rect.height;
+const x = Math.floor(
+(e.clientX - rect.left + cameraX) / TILE
+);
 
-const mouseX = (e.clientX - rect.left) * scaleX;
-const mouseY = (e.clientY - rect.top) * scaleY;
+const y = Math.floor(
+(e.clientY - rect.top + cameraY) / TILE
+);
 
 const x = Math.floor((mouseX + cameraX) / TILE);
 const y = Math.floor((mouseY + cameraY) / TILE);
@@ -665,10 +667,18 @@ localStorage.getItem("mgot_save");
 
 if(save){
 
+try{
+
 const data = JSON.parse(save);
 
-game = data.game;
-buildings = data.buildings;
+if(data.game) game = data.game;
+if(data.buildings) buildings = data.buildings;
+
+}catch(err){
+
+console.log("Save corrupted");
+
+}
 
 }
 
@@ -676,7 +686,12 @@ buildings = data.buildings;
 function render(){
 
 ctx.fillStyle="#07131f";
-ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.fillRect(
+0,
+0,
+window.innerWidth,
+window.innerHeight
+);
 
 drawMap();
 drawBuildings();
