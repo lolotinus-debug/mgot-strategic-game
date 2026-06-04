@@ -601,12 +601,21 @@ ctx.fillRect(px+4,py+4,56,56);
 
 // SHAPES
 if(b.type==="house"){
+
+ctx.fillStyle="#22c55e";
+ctx.fillRect(px+12,py+24,40,28);
+
+ctx.fillStyle="#16a34a";
 ctx.beginPath();
-ctx.moveTo(px+32,py+10);
-ctx.lineTo(px+54,py+54);
-ctx.lineTo(px+10,py+54);
+ctx.moveTo(px+8,py+24);
+ctx.lineTo(px+32,py+4);
+ctx.lineTo(px+56,py+24);
 ctx.closePath();
 ctx.fill();
+
+ctx.fillStyle="#0f172a";
+ctx.fillRect(px+26,py+34,12,18);
+
 }
 
 if(b.type==="mine") ctx.fillRect(px+10,py+10,44,44);
