@@ -146,6 +146,8 @@ display:block;
 position:absolute;
 left:0;
 top:0;
+width:100vw;
+height:100vh;
 }
 
 /* ================= MOBILE ================= */
@@ -564,6 +566,8 @@ ctx.fillRect(x*TILE-cameraX,y*TILE-cameraY,TILE,TILE);
 
 // ================= BUILDINGS =================
 function drawBuildings(){
+ctx.fillStyle="red";
+ctx.fillRect(100,100,50,50);
 for(let b of buildings){
 
 let px=b.x*TILE-cameraX;
