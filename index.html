@@ -353,24 +353,15 @@ let cameraY = 0;
 function selectBuild(t){
 selectedBuild=t;
 
-// reset button highlight
-document.querySelectorAll("#leftPanel button").forEach(b=>{
-b.style.outline="none";
-});
-
-// highlight clicked button safely
-if(window.event && window.event.target){
-window.event.target.style.outline="2px solid white";
-}
-
 document.getElementById("info").innerHTML = `
 <b>Selected:</b> ${t}<br>
-💰 Cost: ${B[t].cost}<br>
-📍 Click map to place
+<b>Cost:</b> ${B[t].cost} gold<br>
+<b>Status:</b> ready to place
 `;
 
 log("Build: "+t);
-}
+}  
+  
 let selected = null;
 
 let particles = [];
