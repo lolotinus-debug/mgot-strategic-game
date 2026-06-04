@@ -706,7 +706,37 @@ if(e.key==="ArrowRight") cameraX+=32;
 if(e.key==="ArrowUp") cameraY-=32;
 if(e.key==="ArrowDown") cameraY+=32;
 });
+function newGame(){
 
+if(!confirm("Start a new game?")){
+return;
+}
+
+localStorage.removeItem("mgot_save");
+
+game = {
+gold:500,
+energy:100,
+knowledge:0,
+soldiers:0,
+population:10,
+technologyLevel:1
+};
+
+buildings = [];
+particles = [];
+selected = null;
+selectedBuild = null;
+
+cameraX = 0;
+cameraY = 0;
+
+ui();
+
+document.getElementById("info").innerHTML =
+"Nothing selected";
+
+}
 // START
 ui();
 render();
