@@ -840,23 +840,67 @@ ctx.stroke();
 
 }
   
-if(b.type==="lab"){
+if(b.type==="plant"){
 
-// základňa
-ctx.fillStyle="#4338ca";
-ctx.fillRect(px+12,py+24,40,28);
+// hlavná budova
+ctx.fillStyle="#475569";
+ctx.fillRect(px+10,py+24,44,28);
 
-// kupola
-ctx.fillStyle="#c4b5fd";
+// ľavý komín
+ctx.fillStyle="#94a3b8";
+ctx.fillRect(px+14,py+8,10,18);
+
+// pravý komín
+ctx.fillRect(px+40,py+8,10,18);
+
+// energetické jadro
+ctx.fillStyle="#22d3ee";
 
 ctx.beginPath();
 ctx.arc(
 px+32,
-py+24,
-16,
-Math.PI,
-0
+py+38,
+8,
+0,
+Math.PI*2
 );
+
+ctx.fill();
+
+// svietiaci efekt
+ctx.shadowBlur = 12;
+ctx.shadowColor = "#22d3ee";
+
+ctx.beginPath();
+ctx.arc(
+px+32,
+py+38,
+4,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+ctx.shadowBlur = 0;
+
+// dvere
+ctx.fillStyle="#111827";
+ctx.fillRect(px+28,py+42,8,10);
+
+// výboj energie
+ctx.strokeStyle="#67e8f9";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.moveTo(px+32,py+18);
+ctx.lineTo(px+26,py+28);
+ctx.lineTo(px+36,py+28);
+ctx.lineTo(px+30,py+38);
+
+ctx.stroke();
+
+}
 
 ctx.fill();
 
