@@ -842,17 +842,63 @@ ctx.stroke();
   
 if(b.type==="lab"){
 
-ctx.fillStyle="#a855f7";
-ctx.fillRect(px+12,py+16,40,36);
+// základňa
+ctx.fillStyle="#4338ca";
+ctx.fillRect(px+12,py+24,40,28);
 
-ctx.fillStyle="#ffffff";
+// kupola
+ctx.fillStyle="#c4b5fd";
 
 ctx.beginPath();
-ctx.arc(px+32,py+28,8,0,Math.PI*2);
+ctx.arc(
+px+32,
+py+24,
+16,
+Math.PI,
+0
+);
+
 ctx.fill();
 
-ctx.fillStyle="#00d4ff";
-ctx.fillRect(px+28,py+6,8,12);
+// vstup
+ctx.fillStyle="#111827";
+ctx.fillRect(px+27,py+34,10,18);
+
+// energetické jadro
+ctx.fillStyle="#22d3ee";
+
+ctx.beginPath();
+ctx.arc(
+px+32,
+py+24,
+6,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+// anténa
+ctx.strokeStyle="#ffffff";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.moveTo(px+32,py+8);
+ctx.lineTo(px+32,py-2);
+ctx.stroke();
+
+ctx.fillStyle="#22d3ee";
+
+ctx.beginPath();
+ctx.arc(
+px+32,
+py-4,
+3,
+0,
+Math.PI*2
+);
+
+ctx.fill();
 
 }
   
