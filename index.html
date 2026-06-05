@@ -1,1160 +1,1094 @@
-<!DOCTYPE html>  <html lang="sk">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>MGOT World Strategy</title>  <style>  
-*{  
-margin:0;  
-padding:0;  
-box-sizing:border-box;  
-}  
-  
-body{  
-margin:0;  
-padding:0;  
-box-sizing:border-box;  
-background:#020617;  
-font-family:Arial, sans-serif;  
-overflow:hidden;  
-color:white;  
-}  
-  
-/* ================= TOPBAR ================= */  
-  
-#topbar{  
-position:fixed;  
-top:0;  
-left:0;  
-width:100%;  
-height:60px;  
-background:#0f172a;  
-display:flex;  
-justify-content:center;  
-align-items:center;  
-gap:15px;  
-border-bottom:2px solid #00d4ff;  
-z-index:100;  
-font-size:14px;  
-padding:0 10px;  
-}  
-  
-.resource{  
-color:#00d4ff;  
-font-weight:bold;  
-}  
-  
-/* ================= LEFT PANEL ================= */  
-  
-#leftPanel{  
-position:fixed;  
-left:10px;  
-top:80px;  
-width:260px;  
-background:#0f172a;  
-padding:12px;  
-border-radius:10px;  
-z-index:50;  
-}  
-  
-#leftPanel h3{  
-margin-bottom:10px;  
-}  
-  
-#leftPanel button{  
-width:100%;  
-margin-bottom:8px;  
-padding:10px;  
-border:none;  
-cursor:pointer;  
-font-weight:bold;  
-border-radius:6px;  
-text-align:left;  
-background:#00d4ff;  
-color:black;  
-transition:0.2s;  
-}  
-  
-#leftPanel button:hover{  
-transform:scale(1.02);  
-}  
-  
-/* ================= RIGHT PANEL ================= */  
-  
-#rightPanel{  
-position:fixed;  
-right:10px;  
-top:80px;  
-width:280px;  
-background:#0f172a;  
-padding:12px;  
-border-radius:10px;  
-z-index:50;  
-}  
-  
-#rightPanel h3{  
-margin-bottom:10px;  
-}  
-  
-#rightPanel button{  
-width:100%;  
-margin-top:10px;  
-padding:10px;  
-border:none;  
-cursor:pointer;  
-font-weight:bold;  
-border-radius:6px;  
-background:#00d4ff;  
-color:black;  
-}  
-  
-/* ================= INFO ================= */  
-  
-#info{  
-line-height:1.5;  
-font-size:14px;  
-}  
-  
-/* ================= LOG ================= */  
-  
-#log{  
-position:fixed;  
-bottom:10px;  
-left:10px;  
-width:420px;  
-height:180px;  
-overflow:auto;  
-background:#000;  
-padding:10px;  
-font-size:12px;  
-border-radius:10px;  
-z-index:50;  
-}  
-  
-#log::-webkit-scrollbar{  
-width:6px;  
-}  
-  
-#log::-webkit-scrollbar-thumb{  
-background:#00d4ff;  
-border-radius:10px;  
-}  
-  
-/* ================= CANVAS ================= */  
-  
-canvas{  
-display:block;  
-position:absolute;  
-left:0;  
-top:0;  
-width:100vw;  
-height:100vh;  
-}  
-  
-/* ================= MOBILE ================= */  
-  
-@media (max-width:768px){  
-  
-#topbar{  
-height:auto;  
-min-height:60px;  
-font-size:11px;  
-gap:8px;  
-padding:6px;  
-flex-wrap:wrap;  
-}  
-  
-/* BUILDINGS PANEL */  
-  
-#leftPanel{  
-left:5px;  
-bottom:5px;  
-top:auto;  
-  
-width:48%;  
-max-height:220px;  
-  
-overflow-y:auto;  
-  
-padding:8px;  
-}  
-  
-/* INFO PANEL */  
-  
-#rightPanel{  
-right:5px;  
-bottom:5px;  
-top:auto;  
-  
-width:48%;  
-padding:8px;  
-}  
-  
-/* BUTTONS */  
-  
-#leftPanel button,  
-#rightPanel button{  
-font-size:14px;  
-padding:12px;  
-}  
-  
-/* INFO */  
-  
-#info{  
-font-size:12px;  
-}  
-  
-/* LOG */  
-  
-#log{  
-width:95%;  
-height:90px;  
-  
-left:50%;  
-transform:translateX(-50%);  
-  
-bottom:240px;  
-  
-font-size:10px;  
-}  
-  
-/* CANVAS */  
-  
-canvas{  
-width:100vw;  
-height:100vh;  
-}  
-  
-/* SCROLL */  
-  
-#leftPanel::-webkit-scrollbar{  
-width:4px;  
-}  
-  
-#leftPanel::-webkit-scrollbar-thumb{  
-background:#00d4ff;  
-border-radius:10px;  
-}  
-  
-}  
-  
-/* EXTRA SMALL PHONES */  
-  
-@media (max-width:480px){  
-  
-#topbar{  
-font-size:10px;  
-gap:5px;  
-}  
-  
-#leftPanel{  
-width:47%;  
-}  
-  
-#rightPanel{  
-width:47%;  
-}  
-  
-#leftPanel button,  
-#rightPanel button{  
-font-size:12px;  
-padding:10px;  
-}  
-  
-#log{  
-height:80px;  
-font-size:9px;  
-}  
-  
-}  
-</style>  </head>  <body>  <div id="topbar">  
-<div class="resource">💰 Gold: <span id="gold">500</span></div>  
-<div class="resource">🌾 Food: <span id="food">100</span></div>  
-<div class="resource">⚡ Energy: <span id="energy">100</span></div>  
-<div class="resource">👥 Population: <span id="population">10</span></div>  
-<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>  
-<div class="resource">🔬 Tech: <span id="tech">1</span></div>  
-<div class="resource">🪖 Soldiers: <span id="soldiers">0</span></div>  
-<div class="resource">🌍 Continent: Map</div>  </div>  <div id="leftPanel">  
-<h3>🏗 Buildings</h3>  <button onclick="selectBuild('house')">🏠 House (100)</button>
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MGOT World Strategy</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+padding:0;
+box-sizing:border-box;
+background:#020617;
+font-family:Arial, sans-serif;
+overflow:hidden;
+color:white;
+}
+
+/* ================= TOPBAR ================= */
+
+#topbar{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:60px;
+background:#0f172a;
+display:flex;
+justify-content:center;
+align-items:center;
+gap:15px;
+border-bottom:2px solid #00d4ff;
+z-index:100;
+font-size:14px;
+padding:0 10px;
+}
+
+.resource{
+color:#00d4ff;
+font-weight:bold;
+}
+
+/* ================= LEFT PANEL ================= */
+
+#leftPanel{
+position:fixed;
+left:10px;
+top:80px;
+width:260px;
+background:#0f172a;
+padding:12px;
+border-radius:10px;
+z-index:50;
+}
+
+#leftPanel h3{
+margin-bottom:10px;
+}
+
+#leftPanel button{
+width:100%;
+margin-bottom:8px;
+padding:10px;
+border:none;
+cursor:pointer;
+font-weight:bold;
+border-radius:6px;
+text-align:left;
+background:#00d4ff;
+color:black;
+transition:0.2s;
+}
+
+#leftPanel button:hover{
+transform:scale(1.02);
+}
+
+/* ================= RIGHT PANEL ================= */
+
+#rightPanel{
+position:fixed;
+right:10px;
+top:80px;
+width:280px;
+background:#0f172a;
+padding:12px;
+border-radius:10px;
+z-index:50;
+}
+
+#rightPanel h3{
+margin-bottom:10px;
+}
+
+#rightPanel button{
+width:100%;
+margin-top:10px;
+padding:10px;
+border:none;
+cursor:pointer;
+font-weight:bold;
+border-radius:6px;
+background:#00d4ff;
+color:black;
+}
+
+/* ================= INFO ================= */
+
+#info{
+line-height:1.5;
+font-size:14px;
+}
+
+/* ================= LOG ================= */
+
+#log{
+position:fixed;
+bottom:10px;
+left:10px;
+width:420px;
+height:180px;
+overflow:auto;
+background:#000;
+padding:10px;
+font-size:12px;
+border-radius:10px;
+z-index:50;
+}
+
+#log::-webkit-scrollbar{
+width:6px;
+}
+
+#log::-webkit-scrollbar-thumb{
+background:#00d4ff;
+border-radius:10px;
+}
+
+/* ================= CANVAS ================= */
+
+canvas{
+display:block;
+position:absolute;
+left:0;
+top:0;
+width:100vw;
+height:100vh;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width:768px){
+
+#topbar{
+height:auto;
+min-height:60px;
+font-size:11px;
+gap:8px;
+padding:6px;
+flex-wrap:wrap;
+}
+
+/* BUILDINGS PANEL */
+
+#leftPanel{
+left:5px;
+bottom:5px;
+top:auto;
+
+width:48%;
+max-height:220px;
+
+overflow-y:auto;
+
+padding:8px;
+}
+
+/* INFO PANEL */
+
+#rightPanel{
+right:5px;
+bottom:5px;
+top:auto;
+
+width:48%;
+padding:8px;
+}
+
+/* BUTTONS */
+
+#leftPanel button,
+#rightPanel button{
+font-size:14px;
+padding:12px;
+}
+
+/* INFO */
+
+#info{
+font-size:12px;
+}
+
+/* LOG */
+
+#log{
+width:95%;
+height:90px;
+
+left:50%;
+transform:translateX(-50%);
+
+bottom:240px;
+
+font-size:10px;
+}
+
+/* CANVAS */
+
+canvas{
+width:100vw;
+height:100vh;
+}
+
+/* SCROLL */
+
+#leftPanel::-webkit-scrollbar{
+width:4px;
+}
+
+#leftPanel::-webkit-scrollbar-thumb{
+background:#00d4ff;
+border-radius:10px;
+}
+
+}
+
+/* EXTRA SMALL PHONES */
+
+@media (max-width:480px){
+
+#topbar{
+font-size:10px;
+gap:5px;
+}
+
+#leftPanel{
+width:47%;
+}
+
+#rightPanel{
+width:47%;
+}
+
+#leftPanel button,
+#rightPanel button{
+font-size:12px;
+padding:10px;
+}
+
+#log{
+height:80px;
+font-size:9px;
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<div id="topbar">
+<div class="resource">💰 Gold: <span id="gold">500</span></div>
+<div class="resource">🌾 Food: <span id="food">100</span></div>
+<div class="resource">⚡ Energy: <span id="energy">100</span></div>
+<div class="resource">👥 Population: <span id="population">10</span></div>
+<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
+<div class="resource">🔬 Tech: <span id="tech">1</span></div>
+<div class="resource">🪖 Soldiers: <span id="soldiers">0</span></div>
+<div class="resource">🌍 Continent: Map</div>
+
+</div>
+
+<div id="leftPanel">
+<h3>🏗 Buildings</h3>
+
+<button onclick="selectBuild('house')">🏠 House (100)</button>
 <button onclick="selectBuild('farm')">🌾 Farm (120)</button>
 <button onclick="selectBuild('mine')">⛏ Mine (150)</button>
 <button onclick="selectBuild('lab')">🧠 Lab (200)</button>
 <button onclick="selectBuild('plant')">⚡ Plant (200)</button>
 
-<hr style="margin:10px 0;border:1px solid #333">  <button onclick="selectBuild('armory')">🪖 Armory (300)</button>
+<hr style="margin:10px 0;border:1px solid #333">
+
+<button onclick="selectBuild('armory')">🪖 Armory (300)</button>
 <button onclick="selectBuild('forge')">🔨 Forge (300)</button>
+</div>
 
-</div>  <div id="rightPanel">  
-<h3>📋 Info</h3>  <div id="info">Nothing selected</div>  <div id="actionButtons">  
-  <button id="upgradeBtn" onclick="upgrade()">⬆ Upgrade</button>  
-  <button id="demolishBtn" onclick="demolish()">🗑 Demolish</button>  
-</div>  <hr style="margin:10px 0;border:1px solid #333">  <button id="newGameBtn" onclick="newGame()">🆕 New Game</button>
+<div id="rightPanel">
+<h3>📋 Info</h3>
 
-</div>  <div id="log"></div>  
-<canvas id="game"></canvas>  <script>  
-  
-// ================= INIT =================  
-const canvas = document.getElementById("game");  
-const ctx = canvas.getContext("2d");  
-  
-function resizeCanvas(){  
-const dpr = window.devicePixelRatio || 1;  
-  
-canvas.width = window.innerWidth * dpr;  
-canvas.height = window.innerHeight * dpr;  
-  
-canvas.style.width = window.innerWidth + "px";  
-canvas.style.height = window.innerHeight + "px";  
-  
-ctx.setTransform(dpr,0,0,dpr,0,0);  
-}  
-  
-resizeCanvas();  
-window.addEventListener("resize", resizeCanvas);  
-  
-const TILE = 48;  
-  
-let cameraX = 0;  
-let cameraY = 0;  
-  
-function selectBuild(t){  
-  selectedBuild = t;  
-  
-  document.querySelectorAll("#leftPanel button").forEach(b=>{  
-    b.style.outline="none";  
-  });  
-  
-  if(window.event?.target){  
-    window.event.target.style.outline="2px solid white";  
-  }  
-  
-  document.getElementById("info").innerHTML = `  
-    <b>Selected:</b> ${t}<br>  
-    💰 Cost: ${B[t].cost}<br>  
-    📍 Click map to place  
-  `;  
-  
-  log("Build: " + t);  
-}  
-    
-let selected = null;  
-let selectedBuild = null;  
-  
-let particles = [];  
-  
-let game = {  
-gold:500,  
-food:100,  
-energy:100,  
-knowledge:0,  
-soldiers:0,  
-population:10,  
-technologyLevel:1  
-};  
-  
-let buildings = [];  
-    
-buildings.push({  
-x:10,  
-y:10,  
-type:"townhall",  
-level:1  
-});  
-  
-// ================= BUILD COSTS =================  
-const B = {  
-townhall:{cost:0,color:"#ffffff"},  
-house:{cost:100,color:"#22c55e"},  
-farm:{cost:120,color:"#84cc16"},  
-mine:{cost:150,color:"#f59e0b"},  
-lab:{cost:200,color:"#a855f7"},  
-plant:{cost:200,color:"#00d4ff"},  
-armory:{cost:300,color:"#ef4444"},  
-forge:{cost:300,color:"#eab308"}  
-};  
-  
-// ================= LOG =================  
-function log(t){  
-const d=document.createElement("div");  
-d.innerText=t;  
-document.getElementById("log").prepend(d);  
-}  
-  
-// ================= PARTICLES (EXPLOSION) =================  
-function explosion(x,y,color){  
-for(let i=0;i<12;i++){  
-particles.push({  
-x,y,  
-vx:(Math.random()-0.5)*6,  
-vy:(Math.random()-0.5)*6,  
-life:30,  
-color  
-});  
-}  
-}  
-  
-// ================= UPDATE UI =================  
-function ui(){  
-document.getElementById("gold").innerText=Math.floor(game.gold);  
-document.getElementById("food").innerText=Math.floor(game.food);  
-document.getElementById("energy").innerText=Math.floor(game.energy);  
-document.getElementById("knowledge").innerText=Math.floor(game.knowledge);  
-document.getElementById("tech").innerText=game.technologyLevel;  
-document.getElementById("soldiers").innerText=Math.floor(game.soldiers);  
-document.getElementById("population").innerText=Math.floor(game.population);  
-}  
-  
-// ================= INFO =================  
-function updateInfo(){  
-  
-if(!selected){  
-  
-document.getElementById("upgradeBtn").style.display = "none";  
-document.getElementById("demolishBtn").style.display = "none";  
-  
-document.getElementById("info").innerHTML =  
-"Nothing selected";  
-  
-return;  
-}  
-  
-document.getElementById("upgradeBtn").style.display = "block";  
-document.getElementById("demolishBtn").style.display = "block";  
-  
-document.getElementById("info").innerHTML = `  
-<b>${selected.type}</b><br>  
-Level: ${selected.level}<br>  
-Upgrade cost: ${selected.level * 120}<br>  
-`;  
-  
-}  
-  
-// ================= UPGRADE =================  
-function upgrade(){  
-  
-if(!selected){  
-return;  
-}  
-  
-if(selected.type === "townhall"){  
-log("❌ Town Hall cannot be upgraded");  
-return;  
-}  
-  
-let cost = selected.level * 120;  
-  
-if(game.gold < cost){  
-log("❌ Not enough gold");  
-return;  
-}  
-  
-game.gold -= cost;  
-selected.level++;  
-  
-explosion(  
-selected.x * TILE,  
-selected.y * TILE,  
-"#fff"  
-);  
-  
-log("⬆ Upgraded " + selected.type);  
-  
-ui();  
-updateInfo();  
-  
-}  
-  
-// ================= DEMOLISH =================  
-function demolish(){  
-  
-if(!selected){  
-return;  
-}  
-  
-if(selected.type === "townhall"){  
-log("❌ Town Hall cannot be demolished");  
-return;  
-}  
-  
-let index = buildings.indexOf(selected);  
-  
-if(index !== -1){  
-  
-buildings.splice(index,1);  
-  
-log("🗑 Building removed");  
-  
-selected = null;  
-  
-document.getElementById("upgradeBtn").style.display = "none";  
-document.getElementById("demolishBtn").style.display = "none";  
-  
-document.getElementById("info").innerHTML =  
-"Nothing selected";  
-  
-}  
-  
-}  
-  
-// ================= CLICK =================  
-canvas.addEventListener("click",(e)=>{  
-    
-const rect = canvas.getBoundingClientRect();  
-  
-const x = Math.floor(  
-(e.clientX - rect.left + cameraX) / TILE  
-);  
-  
-const y = Math.floor(  
-(e.clientY - rect.top + cameraY) / TILE  
-);  
-  
-console.log("CLICK WORLD:", x, y, selectedBuild);  
-console.log("CLICK DETECTED");  
-console.log("selectedBuild:", selectedBuild);  
-    
-// select  
-for(let b of buildings){  
-if(b.x===x&&b.y===y){  
-selected=b;  
-updateInfo();  
-return;  
-}  
-}  
-  
-// build  
-if(!selectedBuild) return;  
-  
-let cost=B[selectedBuild].cost;  
-  
-if(game.gold<cost){  
-log("❌ Not enough gold");  
-return;  
-}  
-  
-game.gold-=cost;  
-  
-buildings.push({  
-x,y,  
-type:selectedBuild,  
-level:1,  
-cooldown:0  
-});  
-  
-console.log("ADDED BUILDING:", buildings);  
-  
-explosion(x*TILE,y*TILE,B[selectedBuild].color);  
-  
-log("🏗 "+selectedBuild+" built");  
-ui();  
-});  
-  
-// ================= ECONOMY =================  
-setInterval(()=>{  
-  
-for(let b of buildings){  
-  
-if(b.type==="house"){  
-game.population += 0.05 * b.level;  
-}  
-  
-if(b.type==="farm"){  
-game.food += 2 * b.level;  
-}  
-    
-if(b.type==="mine"){  
-let workers = b.level*2;  
-if(game.population >= workers){  
-game.gold += b.level;  
-}  
-}  
-  
-if(b.type==="lab"){  
-if(game.energy > 0){  
-game.knowledge += b.level;  
-game.energy -= 0.5*b.level;  
-}  
-}  
-  
-if(b.type==="plant"){  
-game.energy += 3*b.level;  
-}  
-  
-if(b.type==="armory"){  
-b.cooldown++;  
-if(b.cooldown>=5){  
-game.soldiers+=b.level;  
-b.cooldown=0;  
-}  
-}  
-  
-if(b.type==="forge"){  
-game.soldiers+=Math.floor(b.level/2);  
-}  
-  
-}  
-  
-game.gold -= game.soldiers * 0.02;  
-if(game.gold < 0) game.gold = 0;  
-  
-if(game.knowledge >= 100){  
-game.technologyLevel++;  
-game.knowledge = 0;  
-log("🧠 New Technology Level: " + game.technologyLevel);  
-}  
-  
-game.food -= game.population * 0.05;  
-if(game.food < 0){  
-game.food = 0;  
-  
-if(game.population > 1){  
-game.population -= 0.1;  
-}  
-  
-}  
-    
-ui();  
-  
-},1000);  
-  
-// ================= MAP DATA =================  
-  
-const MAP_SIZE = 50;  
-  
-const mapData = [];  
-  
-for(let x=0;x<MAP_SIZE;x++){  
-  
-    mapData[x] = [];  
-  
-    for(let y=0;y<MAP_SIZE;y++){  
-  
-        let r = Math.random();  
-  
-        if(r < 0.10){  
-  
-            mapData[x][y] = "water";  
-  
-        }else if(r < 0.20){  
-  
-            mapData[x][y] = "mountain";  
-  
-        }else if(r < 0.35){  
-  
-            mapData[x][y] = "forest";  
-  
-        }else{  
-  
-            mapData[x][y] = "grass";  
-  
-        }  
-  
-    }  
-}  
-  
-function generateMap(){  
-  
-for(let x=0;x<MAP_SIZE;x++){  
-  
-mapData[x] = [];  
-  
-for(let y=0;y<MAP_SIZE;y++){  
-  
-let r = Math.random();  
-  
-if(r < 0.10){  
-mapData[x][y] = "water";  
-}  
-else if(r < 0.20){  
-mapData[x][y] = "mountain";  
-}  
-else if(r < 0.35){  
-mapData[x][y] = "forest";  
-}  
-else{  
-mapData[x][y] = "grass";  
-}  
-  
-}  
-  
-}  
-  
-}  
-    
-// ================= MAP ZONES =================  
-function drawMap(){  
-  
-for(let x=0;x<MAP_SIZE;x++){  
-  
-for(let y=0;y<MAP_SIZE;y++){  
-  
-let tile = mapData[x][y];  
-  
-if(tile==="grass"){  
-ctx.fillStyle="#22c55e";  
-}  
-  
-if(tile==="forest"){  
-ctx.fillStyle="#166534";  
-}  
-  
-if(tile==="mountain"){  
-ctx.fillStyle="#6b7280";  
-}  
-  
-if(tile==="water"){  
-ctx.fillStyle="#2563eb";  
-}  
-  
-let px = x * TILE - cameraX;  
-let py = y * TILE - cameraY;  
-  
-let baseColor = ctx.fillStyle;  
-  
-let grad = ctx.createLinearGradient(  
-px,  
-py,  
-px + TILE,  
-py + TILE  
-);  
-  
-grad.addColorStop(0, baseColor);  
-grad.addColorStop(1, "#00000022");  
-  
-ctx.fillStyle = grad;  
-  
-ctx.fillRect(  
-px,  
-py,  
-TILE,  
-TILE  
-);  
-  
-}  
-  
-}  
-  
-}  
-  
-// ================= BUILDINGS =================  
-function drawBuildings(){  
-for(let b of buildings){  
-  
-let px=b.x*TILE-cameraX;  
-let py=b.y*TILE-cameraY;  
-  
-ctx.fillStyle=B[b.type].color;  
-  
-if(b.type==="townhall"){  
-ctx.fillRect(px+4,py+4,56,56);  
-}  
-  
-// SHAPES  
-if(b.type==="house"){  
-  
-// steny  
-ctx.fillStyle="#d6b98c";  
-ctx.fillRect(px+16,py+24,32,24);  
-  
-// strecha  
-ctx.fillStyle="#7c2d12";  
-  
-ctx.beginPath();  
-ctx.moveTo(px+12,py+24);  
-ctx.lineTo(px+32,py+8);  
-ctx.lineTo(px+52,py+24);  
-ctx.closePath();  
-ctx.fill();  
-  
-// dvere  
-ctx.fillStyle="#3f3f46";  
-ctx.fillRect(px+28,py+34,8,14);  
-  
-// okná  
-ctx.fillStyle="#fef08a";  
-ctx.fillRect(px+20,py+30,6,6);  
-ctx.fillRect(px+38,py+30,6,6);  
-  
-}  
-  
-if(b.type==="mine"){  
-  
-ctx.fillStyle="#6b7280";  
-  
-ctx.beginPath();  
-ctx.moveTo(px+8,py+52);  
-ctx.lineTo(px+24,py+10);  
-ctx.lineTo(px+40,py+26);  
-ctx.lineTo(px+56,py+8);  
-ctx.lineTo(px+56,py+52);  
-ctx.closePath();  
-ctx.fill();  
-  
-// vstup  
-ctx.fillStyle="#111827";  
-ctx.fillRect(px+24,py+32,16,16);  
-  
-// trámy  
-ctx.fillStyle="#92400e";  
-ctx.fillRect(px+22,py+30,4,18);  
-ctx.fillRect(px+38,py+30,4,18);  
-  
-}  
-  
-if(b.type==="farm"){  
-  
-ctx.fillStyle="#a3e635";  
-ctx.fillRect(px+8,py+8,48,48);  
-  
-for(let i=0;i<6;i++){  
-  
-ctx.strokeStyle="#65a30d";  
-  
-ctx.beginPath();  
-ctx.moveTo(px+14+i*7,py+10);  
-ctx.lineTo(px+14+i*7,py+54);  
-ctx.stroke();  
-  
-}  
-  
-// stodola  
-ctx.fillStyle="#92400e";  
-ctx.fillRect(px+18,py+18,16,12);  
-  
-ctx.fillStyle="#7c2d12";  
-  
-ctx.beginPath();  
-ctx.moveTo(px+16,py+18);  
-ctx.lineTo(px+26,py+10);  
-ctx.lineTo(px+36,py+18);  
-ctx.closePath();  
-ctx.fill();  
-  
-}  
-  
-}  
-    
-if(b.type==="lab"){  
-  
-// základňa  
-ctx.fillStyle="#4338ca";  
-ctx.fillRect(px+12,py+24,40,28);  
-  
-// kupola  
-ctx.fillStyle="#c4b5fd";  
-  
-ctx.beginPath();  
-ctx.arc(px+32,py+24,16,Math.PI,0);  
-ctx.fill();  
-  
-// jadro  
-ctx.fillStyle="#22d3ee";  
-  
-ctx.beginPath();  
-ctx.arc(px+32,py+24,6,0,Math.PI*2);  
-ctx.fill();  
-  
-// vstup  
-ctx.fillStyle="#111827";  
-ctx.fillRect(px+27,py+34,10,18);  
-  
-// anténa  
-ctx.strokeStyle="#ffffff";  
-ctx.lineWidth=2;  
-  
-ctx.beginPath();  
-ctx.moveTo(px+32,py+8);  
-ctx.lineTo(px+32,py-2);  
-ctx.stroke();  
-  
-}  
-    
-if(b.type==="plant"){  
-  
-ctx.fillStyle="#475569";  
-ctx.fillRect(px+10,py+24,44,28);  
-  
-// komíny  
-ctx.fillStyle="#94a3b8";  
-ctx.fillRect(px+14,py+8,10,18);  
-ctx.fillRect(px+40,py+8,10,18);  
-  
-// reaktor  
-ctx.fillStyle="#22d3ee";  
-  
-ctx.beginPath();  
-ctx.arc(px+32,py+38,8,0,Math.PI*2);  
-ctx.fill();  
-  
-// dvere  
-ctx.fillStyle="#111827";  
-ctx.fillRect(px+28,py+42,8,10);  
-  
-}  
-  
-if(b.type==="armory"){  
-  
-ctx.fillStyle="#475569";  
-ctx.fillRect(px+12,py+18,40,34);  
-  
-// veže  
-ctx.fillRect(px+10,py+10,8,16);  
-ctx.fillRect(px+46,py+10,8,16);  
-  
-// brána  
-ctx.fillStyle="#111827";  
-ctx.fillRect(px+26,py+34,12,18);  
-  
-// znak  
-ctx.fillStyle="#dc2626";  
-  
-ctx.beginPath();  
-ctx.arc(px+32,py+24,5,0,Math.PI*2);  
-ctx.fill();  
-  
-}  
-  
-if(b.type==="forge"){  
-  
-ctx.fillStyle="#7c2d12";  
-ctx.fillRect(px+12,py+20,40,32);  
-  
-// pec  
-ctx.fillStyle="#ea580c";  
-ctx.fillRect(px+22,py+28,20,16);  
-  
-// žeravé jadro  
-ctx.fillStyle="#facc15";  
-  
-ctx.beginPath();  
-ctx.arc(px+32,py+36,5,0,Math.PI*2);  
-ctx.fill();  
-  
-// komín  
-ctx.fillStyle="#78716c";  
-ctx.fillRect(px+40,py+8,8,16);  
-  
-}  
-  
-if(b.type==="townhall"){  
-  
-// budova  
-ctx.fillStyle="#8b7355";  
-ctx.fillRect(px+12,py+20,40,32);  
-  
-// hlavná strecha  
-ctx.fillStyle="#7c2d12";  
-  
-ctx.beginPath();  
-ctx.moveTo(px+8,py+20);  
-ctx.lineTo(px+32,py+2);  
-ctx.lineTo(px+56,py+20);  
-ctx.closePath();  
-ctx.fill();  
-  
-// veža  
-ctx.fillStyle="#a16207";  
-ctx.fillRect(px+26,py+6,12,18);  
-  
-// strecha veže  
-ctx.fillStyle="#dc2626";  
-  
-ctx.beginPath();  
-ctx.moveTo(px+22,py+6);  
-ctx.lineTo(px+32,py-6);  
-ctx.lineTo(px+42,py+6);  
-ctx.closePath();  
-ctx.fill();  
-  
-// dvere  
-ctx.fillStyle="#111827";  
-ctx.fillRect(px+27,py+34,10,18);  
-  
-// okná  
-ctx.fillStyle="#fef08a";  
-ctx.fillRect(px+18,py+30,6,6);  
-ctx.fillRect(px+40,py+30,6,6);  
-  
-}  
-  
-// level  
-ctx.fillStyle="white";  
-ctx.font="12px Arial";  
-ctx.fillText("Lv."+b.level,px+8,py+16);  
-  
-// select highlight  
-if(selected===b){  
-ctx.strokeStyle="#fff";  
-ctx.lineWidth=3;  
-ctx.strokeRect(px+4,py+4,56,56);  
-}  
-}  
-}  
-  
-// ================= PARTICLES =================  
-function drawParticles(){  
-for(let p of particles){  
-ctx.fillStyle=p.color;  
-ctx.fillRect(p.x-cameraX,p.y-cameraY,3,3);  
-  
-p.x+=p.vx;  
-p.y+=p.vy;  
-p.life--;  
-  
-}  
-particles=particles.filter(p=>p.life>0);  
-}  
-  
-setInterval(()=>{  
-  
-localStorage.setItem(  
-"mgot_save",  
-JSON.stringify({  
-game,  
-buildings  
-})  
-);  
-  
-},5000);  
-  
-const save =  
-localStorage.getItem("mgot_save");  
-  
-if(save){  
-  
-try{  
-  
-const data = JSON.parse(save);  
-  
-if(data.game) game = data.game;  
-if(data.buildings) buildings = data.buildings;  
-  
-let hasTownHall = buildings.some(  
-b => b.type === "townhall"  
-);  
-  
-if(!hasTownHall){  
-  
-buildings.push({  
-x:10,  
-y:10,  
-type:"townhall",  
-level:1  
-});  
-  
-}  
-  
-}catch(err){  
-  
-console.log("Save corrupted");  
-  
-}  
-  
-}  
-  
-// ================= RENDER =================  
-function render(){  
-  
-ctx.fillStyle="#07131f";  
-ctx.fillRect(  
-0,  
-0,  
-window.innerWidth,  
-window.innerHeight  
-);  
-  
-drawMap();  
-drawBuildings();  
-drawParticles();  
-  
-requestAnimationFrame(render);  
-}  
-  
-// ================= CAMERA =================  
-let touchStartX = 0;  
-let touchStartY = 0;  
-  
-canvas.addEventListener("touchstart",(e)=>{  
-  
-touchStartX = e.touches[0].clientX;  
-touchStartY = e.touches[0].clientY;  
-  
-});  
-  
-canvas.addEventListener("touchmove",(e)=>{  
-  
-let dx = e.touches[0].clientX - touchStartX;  
-let dy = e.touches[0].clientY - touchStartY;  
-  
-cameraX -= dx;  
-cameraY -= dy;  
-  
-touchStartX = e.touches[0].clientX;  
-touchStartY = e.touches[0].clientY;  
-  
-});  
-window.addEventListener("keydown",(e)=>{  
-if(e.key==="ArrowLeft") cameraX-=32;  
-if(e.key==="ArrowRight") cameraX+=32;  
-if(e.key==="ArrowUp") cameraY-=32;  
-if(e.key==="ArrowDown") cameraY+=32;  
-});  
-function newGame(){  
-  
-if(!confirm("Start a new game?")){  
-return;  
-}  
-  
-localStorage.removeItem("mgot_save");  
-  
-game = {  
-gold:500,  
-food:100,  
-energy:100,  
-knowledge:0,  
-soldiers:0,  
-population:10,  
-technologyLevel:1  
-};  
-  
-buildings = [{  
-x:10,  
-y:10,  
-type:"townhall",  
-level:1  
-}];  
-    
-particles = [];  
-selected = null;  
-selectedBuild = null;  
-  
-cameraX = 0;  
-cameraY = 0;  
-  
-ui();  
-    
-if(!selected){  
-  
-document.getElementById("upgradeBtn").style.display="none";  
-document.getElementById("demolishBtn").style.display="none";  
-  
-document.getElementById("info").innerHTML="Nothing selected";  
-  
-return;  
-  }  
-  
-// START  
-ui();  
-document.getElementById("upgradeBtn").style.display="none";  
-document.getElementById("demolishBtn").style.display="none";  
-  
-document.getElementById("info").innerHTML =  
-"Nothing selected";  
-  
-}  
-document.getElementById("upgradeBtn").style.display="none";  
-document.getElementById("demolishBtn").style.display="none";  
-render();  
-  
-</script>  </body>  
+<div id="info">Nothing selected</div>
+
+<div id="actionButtons">
+  <button id="upgradeBtn" onclick="upgrade()">⬆ Upgrade</button>
+  <button id="demolishBtn" onclick="demolish()">🗑 Demolish</button>
+</div>
+
+<hr style="margin:10px 0;border:1px solid #333">
+
+<button id="newGameBtn" onclick="newGame()">🆕 New Game</button>
+
+</div>
+
+<div id="log"></div>
+<canvas id="game"></canvas>
+
+<script>
+
+// ================= INIT =================
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+const dpr = window.devicePixelRatio || 1;
+
+canvas.width = window.innerWidth * dpr;
+canvas.height = window.innerHeight * dpr;
+
+canvas.style.width = window.innerWidth + "px";
+canvas.style.height = window.innerHeight + "px";
+
+ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+const TILE = 64;
+
+let cameraX = 0;
+let cameraY = 0;
+
+function selectBuild(t){
+  selectedBuild = t;
+
+  document.querySelectorAll("#leftPanel button").forEach(b=>{
+    b.style.outline="none";
+  });
+
+  if(window.event?.target){
+    window.event.target.style.outline="2px solid white";
+  }
+
+  document.getElementById("info").innerHTML = `
+    <b>Selected:</b> ${t}<br>
+    💰 Cost: ${B[t].cost}<br>
+    📍 Click map to place
+  `;
+
+  log("Build: " + t);
+}
+  
+let selected = null;
+let selectedBuild = null;
+
+let particles = [];
+
+let game = {
+gold:500,
+food:100,
+energy:100,
+knowledge:0,
+soldiers:0,
+population:10,
+technologyLevel:1
+};
+
+let buildings = [];
+  
+buildings.push({
+x:10,
+y:10,
+type:"townhall",
+level:1
+});
+
+// ================= BUILD COSTS =================
+const B = {
+townhall:{cost:0,color:"#ffffff"},
+house:{cost:100,color:"#22c55e"},
+farm:{cost:120,color:"#84cc16"},
+mine:{cost:150,color:"#f59e0b"},
+lab:{cost:200,color:"#a855f7"},
+plant:{cost:200,color:"#00d4ff"},
+armory:{cost:300,color:"#ef4444"},
+forge:{cost:300,color:"#eab308"}
+};
+
+// ================= LOG =================
+function log(t){
+const d=document.createElement("div");
+d.innerText=t;
+document.getElementById("log").prepend(d);
+}
+
+// ================= PARTICLES (EXPLOSION) =================
+function explosion(x,y,color){
+for(let i=0;i<12;i++){
+particles.push({
+x,y,
+vx:(Math.random()-0.5)*6,
+vy:(Math.random()-0.5)*6,
+life:30,
+color
+});
+}
+}
+
+// ================= UPDATE UI =================
+function ui(){
+document.getElementById("gold").innerText=Math.floor(game.gold);
+document.getElementById("food").innerText=Math.floor(game.food);
+document.getElementById("energy").innerText=Math.floor(game.energy);
+document.getElementById("knowledge").innerText=Math.floor(game.knowledge);
+document.getElementById("tech").innerText=game.technologyLevel;
+document.getElementById("soldiers").innerText=Math.floor(game.soldiers);
+document.getElementById("population").innerText=Math.floor(game.population);
+}
+
+// ================= INFO =================
+function updateInfo(){
+
+if(!selected){
+
+document.getElementById("upgradeBtn").style.display = "none";
+document.getElementById("demolishBtn").style.display = "none";
+
+document.getElementById("info").innerHTML =
+"Nothing selected";
+
+return;
+}
+
+document.getElementById("upgradeBtn").style.display = "block";
+document.getElementById("demolishBtn").style.display = "block";
+
+document.getElementById("info").innerHTML = `
+<b>${selected.type}</b><br>
+Level: ${selected.level}<br>
+Upgrade cost: ${selected.level * 120}<br>
+`;
+
+}
+
+// ================= UPGRADE =================
+function upgrade(){
+
+if(!selected){
+return;
+}
+
+if(selected.type === "townhall"){
+log("❌ Town Hall cannot be upgraded");
+return;
+}
+
+let cost = selected.level * 120;
+
+if(game.gold < cost){
+log("❌ Not enough gold");
+return;
+}
+
+game.gold -= cost;
+selected.level++;
+
+explosion(
+selected.x * TILE,
+selected.y * TILE,
+"#fff"
+);
+
+log("⬆ Upgraded " + selected.type);
+
+ui();
+updateInfo();
+
+}
+
+// ================= DEMOLISH =================
+function demolish(){
+
+if(!selected){
+return;
+}
+
+if(selected.type === "townhall"){
+log("❌ Town Hall cannot be demolished");
+return;
+}
+
+let index = buildings.indexOf(selected);
+
+if(index !== -1){
+
+buildings.splice(index,1);
+
+log("🗑 Building removed");
+
+selected = null;
+
+document.getElementById("upgradeBtn").style.display = "none";
+document.getElementById("demolishBtn").style.display = "none";
+
+document.getElementById("info").innerHTML =
+"Nothing selected";
+
+}
+
+}
+
+// ================= CLICK =================
+canvas.addEventListener("click",(e)=>{
+  
+const rect = canvas.getBoundingClientRect();
+
+const x = Math.floor(
+(e.clientX - rect.left + cameraX) / TILE
+);
+
+const y = Math.floor(
+(e.clientY - rect.top + cameraY) / TILE
+);
+
+console.log("CLICK WORLD:", x, y, selectedBuild);
+console.log("CLICK DETECTED");
+console.log("selectedBuild:", selectedBuild);
+  
+// select
+for(let b of buildings){
+if(b.x===x&&b.y===y){
+selected=b;
+updateInfo();
+return;
+}
+}
+
+// build
+if(!selectedBuild) return;
+
+let cost=B[selectedBuild].cost;
+
+if(game.gold<cost){
+log("❌ Not enough gold");
+return;
+}
+
+game.gold-=cost;
+
+buildings.push({
+x,y,
+type:selectedBuild,
+level:1,
+cooldown:0
+});
+
+console.log("ADDED BUILDING:", buildings);
+
+explosion(x*TILE,y*TILE,B[selectedBuild].color);
+
+log("🏗 "+selectedBuild+" built");
+ui();
+});
+
+// ================= ECONOMY =================
+setInterval(()=>{
+
+for(let b of buildings){
+
+if(b.type==="house"){
+game.population += 0.05 * b.level;
+}
+
+if(b.type==="farm"){
+game.food += 2 * b.level;
+}
+  
+if(b.type==="mine"){
+let workers = b.level*2;
+if(game.population >= workers){
+game.gold += b.level;
+}
+}
+
+if(b.type==="lab"){
+if(game.energy > 0){
+game.knowledge += b.level;
+game.energy -= 0.5*b.level;
+}
+}
+
+if(b.type==="plant"){
+game.energy += 3*b.level;
+}
+
+if(b.type==="armory"){
+b.cooldown++;
+if(b.cooldown>=5){
+game.soldiers+=b.level;
+b.cooldown=0;
+}
+}
+
+if(b.type==="forge"){
+game.soldiers+=Math.floor(b.level/2);
+}
+
+}
+
+game.gold -= game.soldiers * 0.02;
+if(game.gold < 0) game.gold = 0;
+
+if(game.knowledge >= 100){
+game.technologyLevel++;
+game.knowledge = 0;
+log("🧠 New Technology Level: " + game.technologyLevel);
+}
+
+game.food -= game.population * 0.05;
+if(game.food < 0){
+game.food = 0;
+
+if(game.population > 1){
+game.population -= 0.1;
+}
+
+}
+  
+ui();
+
+},1000);
+
+// ================= MAP DATA =================
+
+const MAP_SIZE = 50;
+
+const mapData = [];
+
+for(let x=0;x<MAP_SIZE;x++){
+
+    mapData[x] = [];
+
+    for(let y=0;y<MAP_SIZE;y++){
+
+        let r = Math.random();
+
+        if(r < 0.10){
+
+            mapData[x][y] = "water";
+
+        }else if(r < 0.20){
+
+            mapData[x][y] = "mountain";
+
+        }else if(r < 0.35){
+
+            mapData[x][y] = "forest";
+
+        }else{
+
+            mapData[x][y] = "grass";
+
+        }
+
+    }
+}
+
+function generateMap(){
+
+for(let x=0;x<MAP_SIZE;x++){
+
+mapData[x] = [];
+
+for(let y=0;y<MAP_SIZE;y++){
+
+let r = Math.random();
+
+if(r < 0.10){
+mapData[x][y] = "water";
+}
+else if(r < 0.20){
+mapData[x][y] = "mountain";
+}
+else if(r < 0.35){
+mapData[x][y] = "forest";
+}
+else{
+mapData[x][y] = "grass";
+}
+
+}
+
+}
+
+}
+  
+// ================= MAP ZONES =================
+function drawMap(){
+
+for(let x=0;x<MAP_SIZE;x++){
+
+for(let y=0;y<MAP_SIZE;y++){
+
+let tile = mapData[x][y];
+
+if(tile==="grass"){
+ctx.fillStyle="#22c55e";
+}
+
+if(tile==="forest"){
+ctx.fillStyle="#166534";
+}
+
+if(tile==="mountain"){
+ctx.fillStyle="#6b7280";
+}
+
+if(tile==="water"){
+ctx.fillStyle="#2563eb";
+}
+
+let px = x * TILE - cameraX;
+let py = y * TILE - cameraY;
+
+let baseColor = ctx.fillStyle;
+
+let grad = ctx.createLinearGradient(
+px,
+py,
+px + TILE,
+py + TILE
+);
+
+grad.addColorStop(0, baseColor);
+grad.addColorStop(1, "#00000022");
+
+ctx.fillStyle = grad;
+
+ctx.fillRect(
+px,
+py,
+TILE,
+TILE
+);
+
+}
+
+}
+
+}
+
+// ================= BUILDINGS =================
+function drawBuildings(){
+for(let b of buildings){
+
+let px=b.x*TILE-cameraX;
+let py=b.y*TILE-cameraY;
+
+ctx.fillStyle=B[b.type].color;
+
+if(b.type==="townhall"){
+ctx.fillRect(px+4,py+4,56,56);
+}
+
+// SHAPES
+if(b.type==="house"){
+
+ctx.fillStyle="#22c55e";
+ctx.fillRect(px+12,py+24,40,28);
+
+ctx.fillStyle="#16a34a";
+ctx.beginPath();
+ctx.moveTo(px+8,py+24);
+ctx.lineTo(px+32,py+4);
+ctx.lineTo(px+56,py+24);
+ctx.closePath();
+ctx.fill();
+
+ctx.fillStyle="#0f172a";
+ctx.fillRect(px+26,py+34,12,18);
+
+}
+
+if(b.type==="mine"){
+
+ctx.fillStyle="#6b7280";
+ctx.fillRect(px+12,py+16,40,36);
+
+ctx.fillStyle="#f59e0b";
+ctx.beginPath();
+ctx.moveTo(px+20,py+16);
+ctx.lineTo(px+32,py+4);
+ctx.lineTo(px+44,py+16);
+ctx.closePath();
+ctx.fill();
+
+ctx.strokeStyle="#111";
+ctx.lineWidth=2;
+ctx.beginPath();
+ctx.moveTo(px+20,py+40);
+ctx.lineTo(px+44,py+40);
+ctx.stroke();
+
+}
+
+if(b.type==="farm"){
+
+ctx.fillStyle="#84cc16";
+ctx.fillRect(px+10,py+10,44,44);
+
+ctx.strokeStyle="#365314";
+
+for(let i=0;i<4;i++){
+ctx.beginPath();
+ctx.moveTo(px+18+i*8,py+14);
+ctx.lineTo(px+18+i*8,py+48);
+ctx.stroke();
+}
+
+}
+  
+if(b.type==="lab"){
+
+ctx.fillStyle="#a855f7";
+ctx.fillRect(px+12,py+12,40,40);
+
+ctx.fillStyle="#ffffff";
+ctx.beginPath();
+ctx.arc(px+32,py+32,10,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#00d4ff";
+ctx.fillRect(px+28,py+6,8,12);
+
+}
+
+if(b.type==="plant"){
+
+ctx.fillStyle="#00d4ff";
+ctx.fillRect(px+10,py+24,44,28);
+
+ctx.fillStyle="#94a3b8";
+ctx.fillRect(px+18,py+8,10,20);
+ctx.fillRect(px+36,py+8,10,20);
+
+}
+
+if(b.type==="armory"){
+
+ctx.fillStyle="#ef4444";
+ctx.fillRect(px+10,py+14,44,38);
+
+ctx.fillStyle="#111";
+ctx.fillRect(px+28,py+20,8,24);
+
+ctx.strokeStyle="#fff";
+ctx.strokeRect(px+10,py+14,44,38);
+
+}
+
+if(b.type==="forge"){
+
+ctx.fillStyle="#eab308";
+ctx.fillRect(px+12,py+16,40,36);
+
+ctx.fillStyle="#ff4500";
+ctx.fillRect(px+24,py+24,16,16);
+
+ctx.strokeStyle="#fff";
+ctx.strokeRect(px+12,py+16,40,36);
+
+}
+
+if(b.type==="townhall"){
+
+ctx.fillStyle="#475569";
+ctx.fillRect(px+8,py+20,48,36);
+
+ctx.fillStyle="#00d4ff";
+ctx.beginPath();
+ctx.moveTo(px+4,py+20);
+ctx.lineTo(px+32,py);
+ctx.lineTo(px+60,py+20);
+ctx.closePath();
+ctx.fill();
+
+ctx.fillStyle="#111";
+ctx.fillRect(px+24,py+30,16,26);
+
+ctx.fillStyle="#ffffff";
+ctx.fillRect(px+14,py+28,8,8);
+ctx.fillRect(px+42,py+28,8,8);
+
+}
+
+// level
+ctx.fillStyle="white";
+ctx.font="12px Arial";
+ctx.fillText("Lv."+b.level,px+8,py+16);
+
+// select highlight
+if(selected===b){
+ctx.strokeStyle="#fff";
+ctx.lineWidth=3;
+ctx.strokeRect(px+4,py+4,56,56);
+}
+}
+}
+
+// ================= PARTICLES =================
+function drawParticles(){
+for(let p of particles){
+ctx.fillStyle=p.color;
+ctx.fillRect(p.x-cameraX,p.y-cameraY,3,3);
+
+p.x+=p.vx;
+p.y+=p.vy;
+p.life--;
+
+}
+particles=particles.filter(p=>p.life>0);
+}
+
+setInterval(()=>{
+
+localStorage.setItem(
+"mgot_save",
+JSON.stringify({
+game,
+buildings
+})
+);
+
+},5000);
+
+const save =
+localStorage.getItem("mgot_save");
+
+if(save){
+
+try{
+
+const data = JSON.parse(save);
+
+if(data.game) game = data.game;
+if(data.buildings) buildings = data.buildings;
+
+let hasTownHall = buildings.some(
+b => b.type === "townhall"
+);
+
+if(!hasTownHall){
+
+buildings.push({
+x:10,
+y:10,
+type:"townhall",
+level:1
+});
+
+}
+
+}catch(err){
+
+console.log("Save corrupted");
+
+}
+
+}
+
+// ================= RENDER =================
+function render(){
+
+ctx.fillStyle="#07131f";
+ctx.fillRect(
+0,
+0,
+window.innerWidth,
+window.innerHeight
+);
+
+drawMap();
+drawBuildings();
+drawParticles();
+
+requestAnimationFrame(render);
+}
+
+// ================= CAMERA =================
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener("touchstart",(e)=>{
+
+touchStartX = e.touches[0].clientX;
+touchStartY = e.touches[0].clientY;
+
+});
+
+canvas.addEventListener("touchmove",(e)=>{
+
+let dx = e.touches[0].clientX - touchStartX;
+let dy = e.touches[0].clientY - touchStartY;
+
+cameraX -= dx;
+cameraY -= dy;
+
+touchStartX = e.touches[0].clientX;
+touchStartY = e.touches[0].clientY;
+
+});
+window.addEventListener("keydown",(e)=>{
+if(e.key==="ArrowLeft") cameraX-=32;
+if(e.key==="ArrowRight") cameraX+=32;
+if(e.key==="ArrowUp") cameraY-=32;
+if(e.key==="ArrowDown") cameraY+=32;
+});
+function newGame(){
+
+if(!confirm("Start a new game?")){
+return;
+}
+
+localStorage.removeItem("mgot_save");
+
+game = {
+gold:500,
+food:100,
+energy:100,
+knowledge:0,
+soldiers:0,
+population:10,
+technologyLevel:1
+};
+
+buildings = [{
+x:10,
+y:10,
+type:"townhall",
+level:1
+}];
+  
+particles = [];
+selected = null;
+selectedBuild = null;
+
+cameraX = 0;
+cameraY = 0;
+
+ui();
+  
+if(!selected){
+
+document.getElementById("upgradeBtn").style.display="none";
+document.getElementById("demolishBtn").style.display="none";
+
+document.getElementById("info").innerHTML="Nothing selected";
+
+return;
+  }
+
+// START
+ui();
+document.getElementById("upgradeBtn").style.display="none";
+document.getElementById("demolishBtn").style.display="none";
+
+document.getElementById("info").innerHTML =
+"Nothing selected";
+
+}
+document.getElementById("upgradeBtn").style.display="none";
+document.getElementById("demolishBtn").style.display="none";
+render();
+
+</script>
+
+</body>
 </html>
