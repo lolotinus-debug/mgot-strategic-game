@@ -276,6 +276,7 @@ font-size:9px;
 
 <div id="topbar">
 <div class="resource">💰 Gold: <span id="gold">500</span></div>
+<div class="resource">🌾 Food: <span id="food">100</span></div>
 <div class="resource">⚡ Energy: <span id="energy">100</span></div>
 <div class="resource">👥 Population: <span id="population">10</span></div>
 <div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
@@ -289,6 +290,7 @@ font-size:9px;
 <h3>🏗 Buildings</h3>
 
 <button onclick="selectBuild('house')">🏠 House (100)</button>
+<button onclick="selectBuild('farm')">🌾 Farm (120)</button>
 <button onclick="selectBuild('mine')">⛏ Mine (150)</button>
 <button onclick="selectBuild('lab')">🧠 Lab (200)</button>
 <button onclick="selectBuild('plant')">⚡ Plant (200)</button>
@@ -364,6 +366,7 @@ let particles = [];
 
 let game = {
 gold:500,
+food:100,
 energy:100,
 knowledge:0,
 soldiers:0,
@@ -384,6 +387,7 @@ level:1
 const B = {
 townhall:{cost:0,color:"#ffffff"},
 house:{cost:100,color:"#22c55e"},
+farm:{cost:120,color:"#84cc16"},
 mine:{cost:150,color:"#f59e0b"},
 lab:{cost:200,color:"#a855f7"},
 plant:{cost:200,color:"#00d4ff"},
@@ -414,6 +418,7 @@ color
 // ================= UPDATE UI =================
 function ui(){
 document.getElementById("gold").innerText=Math.floor(game.gold);
+document.getElementById("food").innerText=Math.floor(game.food);
 document.getElementById("energy").innerText=Math.floor(game.energy);
 document.getElementById("knowledge").innerText=Math.floor(game.knowledge);
 document.getElementById("tech").innerText=game.technologyLevel;
@@ -518,6 +523,10 @@ if(b.type==="house"){
 game.population += 0.05 * b.level;
 }
 
+if(b.type==="farm"){
+game.food += 2 * b.level;
+}
+  
 if(b.type==="mine"){
 let workers = b.level*2;
 if(game.population >= workers){
@@ -559,6 +568,18 @@ game.knowledge = 0;
 log("🧠 New Technology Level: " + game.technologyLevel);
 }
 
+game.food -= game.population * 0.05;
+
+if(game.food < 0){
+
+game.food = 0;
+
+if(game.population > 1){
+game.population -= 0.1;
+}
+
+}
+  
 ui();
 
 },1000);
@@ -640,6 +661,22 @@ ctx.stroke();
 
 }
 
+if(b.type==="farm"){
+
+ctx.fillStyle="#84cc16";
+ctx.fillRect(px+10,py+10,44,44);
+
+ctx.strokeStyle="#365314";
+
+for(let i=0;i<4;i++){
+ctx.beginPath();
+ctx.moveTo(px+18+i*8,py+14);
+ctx.lineTo(px+18+i*8,py+48);
+ctx.stroke();
+}
+
+}
+  
 if(b.type==="lab"){
 
 ctx.fillStyle="#a855f7";
@@ -824,6 +861,7 @@ localStorage.removeItem("mgot_save");
 
 game = {
 gold:500,
+food:100,
 energy:100,
 knowledge:0,
 soldiers:0,
