@@ -1,209 +1,133 @@
-:root{
-    --bg:#020617;
-    --panel:#0f172a;
-    --panel-light:#1e293b;
-    --border:#334155;
-    --text:#f8fafc;
-    --muted:#94a3b8;
-    --gold:#fbbf24;
-    --green:#22c55e;
-    --red:#ef4444;
-    --blue:#3b82f6;
-}
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGOT Strategy</title>
+<link rel="stylesheet" href="style.css">
+</head>
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+<body>
 
-body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:Segoe UI, Arial, sans-serif;
-    overflow:hidden;
-}
+<!-- ================= TOP BAR ================= -->
+<div class="topbar">
+    <div class="logo">MGOT STRATEGY</div>
 
-/* TOP BAR */
+    <div class="resources">
+        <div class="resource">💰 Money: <span id="money">1000</span></div>
+        <div class="resource">👥 Pop: <span id="pop">120</span></div>
+        <div class="resource">🌾 Food: <span id="food">80</span></div>
+        <div class="resource">⚡ Energy: <span id="energy">50</span></div>
+        <div class="resource">🧠 MGOT: <span id="mgot">10</span></div>
+    </div>
+</div>
 
-.topbar{
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    height:70px;
-    background:rgba(15,23,42,.95);
-    border-bottom:1px solid var(--border);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 20px;
-    z-index:1000;
-}
+<!-- ================= GAME AREA ================= -->
+<div class="game-container">
 
-.logo{
-    font-size:24px;
-    font-weight:700;
-    color:var(--gold);
-}
+    <!-- ================= MAP ================= -->
+    <div class="map">
 
-.resources{
-    display:flex;
-    gap:15px;
-}
+        <!-- Mestá (klikateľné body) -->
+        <div class="city" style="top:40%; left:50%;" title="Capital"></div>
+        <div class="city" style="top:30%; left:30%;" title="City 1"></div>
+        <div class="city" style="top:60%; left:70%;" title="City 2"></div>
 
-.resource{
-    background:var(--panel-light);
-    padding:10px 15px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    font-weight:600;
-}
+    </div>
 
-/* MAPA */
+    <!-- ================= SIDE PANEL ================= -->
+    <div class="panel">
 
-.map-container{
-    position:absolute;
-    top:70px;
-    left:0;
-    right:300px;
-    bottom:0;
-    background:url("worldmap.jpg") center center;
-    background-size:cover;
-}
+        <div class="panel-header">
+            Province Control
+        </div>
 
-/* PANEL */
+        <!-- STATS -->
+        <div class="section">
+            <div class="section-title">Statistics</div>
 
-.side-panel{
-    position:fixed;
-    top:70px;
-    right:0;
-    width:300px;
-    bottom:0;
-    background:var(--panel);
-    border-left:1px solid var(--border);
-    overflow-y:auto;
-}
+            <div class="stat-list">
 
-.panel-header{
-    padding:20px;
-    font-size:22px;
-    font-weight:bold;
-    border-bottom:1px solid var(--border);
-}
+                <div class="stat">
+                    <span>Economy</span>
+                    <span class="stat-value">Stable</span>
+                </div>
 
-.section{
-    padding:15px;
-    border-bottom:1px solid rgba(255,255,255,.05);
-}
+                <div class="stat">
+                    <span>Stability</span>
+                    <span class="stat-value">72%</span>
+                </div>
 
-.section-title{
-    color:var(--gold);
-    margin-bottom:10px;
-    font-size:14px;
-    text-transform:uppercase;
-}
+                <div class="stat">
+                    <span>Education</span>
+                    <span class="stat-value">Low</span>
+                </div>
 
-.stat{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:8px;
-}
+            </div>
+        </div>
 
-/* BUDOVY */
+        <!-- BUDOVY -->
+        <div class="section">
+            <div class="section-title">Buildings</div>
 
-.building-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-}
+            <div class="buildings">
 
-.building{
-    background:var(--panel-light);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:12px;
-    cursor:pointer;
-    transition:.2s;
-}
+                <div class="building">
+                    <div class="building-name">Farm</div>
+                    <div class="building-level">Level 1</div>
+                    <button class="btn btn-build">Build</button>
+                </div>
 
-.building:hover{
-    transform:translateY(-2px);
-    border-color:var(--gold);
-}
+                <div class="building">
+                    <div class="building-name">Factory</div>
+                    <div class="building-level">Level 1</div>
+                    <button class="btn btn-build">Build</button>
+                </div>
 
-.building-name{
-    font-weight:bold;
-    margin-bottom:5px;
-}
+                <div class="building">
+                    <div class="building-name">School</div>
+                    <div class="building-level">Level 1</div>
+                    <button class="btn btn-upgrade">Upgrade</button>
+                </div>
 
-.building-level{
-    color:var(--muted);
-    font-size:12px;
-}
+                <div class="building">
+                    <div class="building-name">Hospital</div>
+                    <div class="building-level">Level 1</div>
+                    <button class="btn btn-upgrade">Upgrade</button>
+                </div>
 
-/* BUTTONS */
+            </div>
+        </div>
 
-.btn{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    font-weight:700;
-    cursor:pointer;
-    transition:.2s;
-}
+        <!-- EVENTY -->
+        <div class="section">
+            <div class="section-title">Events</div>
 
-.btn-build{
-    background:var(--green);
-    color:white;
-}
+            <div class="event">
+                <div class="event-title">Economic Growth</div>
+                <div class="event-text">Your industry is expanding slowly.</div>
+            </div>
 
-.btn-build:hover{
-    opacity:.9;
-}
+            <div class="event">
+                <div class="event-title">Food Shortage</div>
+                <div class="event-text">Consider building more farms.</div>
+            </div>
 
-.btn-upgrade{
-    background:var(--blue);
-    color:white;
-}
+        </div>
 
-.btn-danger{
-    background:var(--red);
-    color:white;
-}
+        <!-- LOG -->
+        <div class="section">
+            <div class="section-title">System Log</div>
+            <div class="log">
+                Game initialized...<br>
+                Province loaded...<br>
+                Systems online...
+            </div>
+        </div>
 
-/* EVENTY */
+    </div>
 
-.event{
-    background:#172554;
-    border-left:4px solid var(--blue);
-    padding:12px;
-    margin-bottom:10px;
-    border-radius:8px;
-}
+</div>
 
-.event-title{
-    font-weight:bold;
-    margin-bottom:5px;
-}
-
-.event-text{
-    color:var(--muted);
-    font-size:14px;
-}
-
-/* SCROLLBAR */
-
-::-webkit-scrollbar{
-    width:8px;
-}
-
-::-webkit-scrollbar-track{
-    background:var(--panel);
-}
-
-::-webkit-scrollbar-thumb{
-    background:var(--border);
-    border-radius:10px;
-}
+</body>
+</html>
