@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT B - Game Layer</title>
+<title>MGOT Mobile</title>
 
 <style>
 body{
@@ -11,154 +11,103 @@ body{
     font-family:Arial;
     background:#050b1a;
     color:white;
-    overflow:hidden;
 }
 
-/* TOP */
-#top{
-    height:60px;
+.top{
+    padding:10px;
     background:#0b1224;
     display:flex;
     justify-content:space-between;
-    align-items:center;
-    padding:0 15px;
-    border-bottom:1px solid #24314f;
+    font-size:14px;
 }
 
-/* MAP */
-#map{
-    position:absolute;
-    top:60px;
-    left:0;
-    right:320px;
-    bottom:0;
+.map{
+    height:55vh;
     background:radial-gradient(circle,#1a2a55,#050b1a);
+    position:relative;
 }
 
-/* CITY */
 .city{
-    position:absolute;
-    width:18px;
-    height:18px;
+    width:22px;
+    height:22px;
     border-radius:50%;
     background:#fbbf24;
-    cursor:pointer;
-    box-shadow:0 0 10px #fbbf24;
-    transition:0.2s;
-}
-
-.city:hover{
-    transform:scale(1.4);
-}
-
-/* PANEL */
-#panel{
     position:absolute;
-    top:60px;
-    right:0;
-    width:320px;
-    bottom:0;
-    background:#0b1224;
-    border-left:1px solid #24314f;
-    padding:10px;
-    overflow:auto;
+    box-shadow:0 0 10px #fbbf24;
 }
 
-.statBox{
+.panel{
+    padding:10px;
+}
+
+.card{
     background:#111a33;
     padding:10px;
     margin:5px 0;
-    border-radius:8px;
-    font-size:13px;
+    border-radius:10px;
 }
 
 button{
     width:100%;
-    padding:10px;
+    padding:12px;
     margin-top:5px;
     border:none;
-    border-radius:6px;
-    cursor:pointer;
+    border-radius:8px;
     font-weight:bold;
-    transition:0.2s;
 }
 
-button:hover{
-    transform:scale(1.02);
-}
-
-.green{background:#22c55e;}
-.blue{background:#3b82f6;}
-.gold{background:#fbbf24;color:black;}
-
-#log{
-    font-size:12px;
-    color:#94a3b8;
-    margin-top:10px;
-    max-height:150px;
-    overflow:auto;
-}
+.green{background:#22c55e;color:white;}
+.blue{background:#3b82f6;color:white;}
 </style>
 </head>
 
 <body>
 
-<div id="top">
-    <b>MGOT GAME B</b>
-    <div>
-        💰 <span id="money">0</span>
-        👥 <span id="pop">0</span>
-        🧠 <span id="mgot">0</span>
-    </div>
+<div class="top">
+    💰 <span id="money">500</span>
+    👥 <span id="pop">100</span>
+    🧠 MGOT <span id="mgot">0</span>
 </div>
 
-<div id="map">
+<div class="map">
 
-    <div class="city" id="c0" style="top:45%;left:50%" onclick="select(0)"></div>
-    <div class="city" id="c1" style="top:30%;left:30%" onclick="select(1)"></div>
-    <div class="city" id="c2" style="top:60%;left:70%" onclick="select(2)"></div>
+    <div class="city" style="top:40%;left:50%" onclick="select(0)"></div>
+    <div class="city" style="top:30%;left:25%" onclick="select(1)"></div>
+    <div class="city" style="top:65%;left:70%" onclick="select(2)"></div>
 
 </div>
 
-<div id="panel">
+<div class="panel">
 
-    <h3 id="name">City</h3>
+    <div class="card" id="info">Select city</div>
 
-    <div id="stats"></div>
-
-    <button class="green" onclick="farm()">🌾 Build Farm</button>
-    <button class="blue" onclick="factory()">🏭 Build Factory</button>
-    <button class="gold" onclick="boost()">⚡ MGOT Boost</button>
-
-    <div id="log"></div>
+    <button class="green" onclick="farm()">Build Farm -100</button>
+    <button class="blue" onclick="factory()">Build Factory -150</button>
 
 </div>
 
 <script>
 
 let cities=[
-{name:"Capital",money:500,pop:100,mgot:0,farm:1,factory:0},
-{name:"North",money:300,pop:60,mgot:0,farm:1,factory:0},
-{name:"East",money:400,pop:80,mgot:0,farm:1,factory:0}
+{name:"Capital",money:500,pop:100,farm:1,factory:0,mgot:0},
+{name:"North",money:300,pop:80,farm:1,factory:0,mgot:0},
+{name:"East",money:400,pop:90,farm:1,factory:0,mgot:0}
 ];
 
 let selected=0;
 
-/* SELECT */
 function select(i){
     selected=i;
-    log("Selected "+cities[i].name);
     render();
 }
 
-/* BUILD */
 function farm(){
     let c=cities[selected];
     if(c.money>=100){
         c.money-=100;
         c.farm++;
-        log("Farm built");
     }
+    render();
 }
 
 function factory(){
@@ -166,71 +115,41 @@ function factory(){
     if(c.money>=150){
         c.money-=150;
         c.factory++;
-        log("Factory built");
     }
+    render();
 }
 
-function boost(){
-    let c=cities[selected];
-    c.mgot+=10;
-    c.money+=50;
-    log("MGOT Boost activated!");
-}
-
-/* SIM */
-function sim(){
+function loop(){
 
     cities.forEach(c=>{
-
-        c.money += c.factory*8;
-        c.money += c.pop*0.05;
-
+        c.money += c.factory*5;
         c.pop += c.farm*0.1;
-        c.pop -= c.pop*0.01;
 
-        c.mgot += (c.pop/1000);
+        c.money += c.pop*0.01;
 
-        if(c.money<0){
-            c.pop -= 1;
-        }
+        c.mgot += c.pop/2000;
     });
 
     render();
 }
 
-/* RENDER */
 function render(){
 
     let c=cities[selected];
-
-    document.getElementById("name").innerText=c.name;
 
     document.getElementById("money").innerText=Math.floor(c.money);
     document.getElementById("pop").innerText=Math.floor(c.pop);
     document.getElementById("mgot").innerText=Math.floor(c.mgot);
 
-    document.getElementById("stats").innerHTML=
-        "<div class='statBox'>💰 Money: "+Math.floor(c.money)+"</div>"+
-        "<div class='statBox'>👥 Pop: "+Math.floor(c.pop)+"</div>"+
-        "<div class='statBox'>🌾 Farms: "+c.farm+"</div>"+
-        "<div class='statBox'>🏭 Factories: "+c.factory+"</div>"+
-        "<div class='statBox'>🧠 MGOT: "+Math.floor(c.mgot)+"</div>";
-
-    // highlight selected city
-    cities.forEach((_,i)=>{
-        document.getElementById("c"+i).style.background =
-            i===selected ? "#22c55e" : "#fbbf24";
-    });
+    document.getElementById("info").innerHTML=
+        "<b>"+c.name+"</b><br>"+
+        "Money: "+Math.floor(c.money)+"<br>"+
+        "Pop: "+Math.floor(c.pop)+"<br>"+
+        "Farms: "+c.farm+"<br>"+
+        "Factories: "+c.factory;
 }
 
-/* LOG */
-function log(t){
-    let l=document.getElementById("log");
-    l.innerHTML="• "+t+"<br>"+l.innerHTML;
-}
-
-/* LOOP */
-setInterval(sim,1200);
+setInterval(loop,1500);
 render();
 
 </script>
