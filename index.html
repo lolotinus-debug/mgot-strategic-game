@@ -436,11 +436,18 @@ document.getElementById("population").innerText=Math.floor(game.population);
 // ================= INFO =================
 function updateInfo(){
 if(!selected){
+
+document.getElementById("upgradeBtn").style.display="none";
+document.getElementById("demolishBtn").style.display="none";
+
 document.getElementById("info").innerHTML="Nothing selected";
+
 return;
 }
 
 document.getElementById("info").innerHTML=`
+document.getElementById("upgradeBtn").style.display="block";
+document.getElementById("demolishBtn").style.display="block";
 <b>${selected.type}</b><br>
 Level: ${selected.level}<br>
 Upgrade cost: ${selected.level*120}<br>
@@ -985,6 +992,8 @@ document.getElementById("info").innerHTML =
 "Nothing selected";
 
 }
+document.getElementById("upgradeBtn").style.display="none";
+document.getElementById("demolishBtn").style.display="none";
 render();
 
 </script>
