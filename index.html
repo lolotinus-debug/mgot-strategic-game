@@ -781,171 +781,75 @@ ctx.fillRect(px+4,py+4,56,56);
 // SHAPES
 if(b.type==="house"){
 
-ctx.fillStyle="#d6b98c";
-ctx.fillRect(px+16,py+24,32,24);
+ctx.fillStyle="#22c55e";
+ctx.fillRect(px+12,py+24,40,28);
 
-ctx.fillStyle="#991b1b";
-
+ctx.fillStyle="#16a34a";
 ctx.beginPath();
-ctx.moveTo(px+12,py+24);
-ctx.lineTo(px+32,py+8);
-ctx.lineTo(px+52,py+24);
+ctx.moveTo(px+8,py+24);
+ctx.lineTo(px+32,py+4);
+ctx.lineTo(px+56,py+24);
 ctx.closePath();
 ctx.fill();
 
-ctx.fillStyle="#3f3f46";
-ctx.fillRect(px+28,py+34,8,14);
-
-ctx.fillStyle="#fef08a";
-ctx.fillRect(px+20,py+30,6,6);
-ctx.fillRect(px+38,py+30,6,6);
+ctx.fillStyle="#0f172a";
+ctx.fillRect(px+26,py+34,12,18);
 
 }
 
 if(b.type==="mine"){
 
 ctx.fillStyle="#6b7280";
+ctx.fillRect(px+12,py+16,40,36);
 
+ctx.fillStyle="#f59e0b";
 ctx.beginPath();
-ctx.moveTo(px+8,py+52);
-ctx.lineTo(px+24,py+10);
-ctx.lineTo(px+40,py+26);
-ctx.lineTo(px+56,py+8);
-ctx.lineTo(px+56,py+52);
+ctx.moveTo(px+20,py+16);
+ctx.lineTo(px+32,py+4);
+ctx.lineTo(px+44,py+16);
 ctx.closePath();
 ctx.fill();
 
-ctx.fillStyle="#111827";
-ctx.fillRect(px+24,py+32,16,16);
+ctx.strokeStyle="#111";
+ctx.lineWidth=2;
+ctx.beginPath();
+ctx.moveTo(px+20,py+40);
+ctx.lineTo(px+44,py+40);
+ctx.stroke();
 
 }
 
 if(b.type==="farm"){
 
-ctx.fillStyle="#a3e635";
-ctx.fillRect(px+8,py+8,48,48);
+ctx.fillStyle="#84cc16";
+ctx.fillRect(px+10,py+10,44,44);
 
-for(let i=0;i<6;i++){
+ctx.strokeStyle="#365314";
 
-ctx.strokeStyle="#65a30d";
-
+for(let i=0;i<4;i++){
 ctx.beginPath();
-
-ctx.moveTo(px+14+i*7,py+10);
-ctx.lineTo(px+14+i*7,py+54);
-
+ctx.moveTo(px+18+i*8,py+14);
+ctx.lineTo(px+18+i*8,py+48);
 ctx.stroke();
-
 }
 
 }
   
-if(b.type==="plant"){
+if(b.type==="lab"){
 
-// hlavná budova
-ctx.fillStyle="#475569";
-ctx.fillRect(px+10,py+24,44,28);
+ctx.fillStyle="#a855f7";
+ctx.fillRect(px+12,py+12,40,40);
 
-// ľavý komín
-ctx.fillStyle="#94a3b8";
-ctx.fillRect(px+14,py+8,10,18);
-
-// pravý komín
-ctx.fillRect(px+40,py+8,10,18);
-
-// energetické jadro
-ctx.fillStyle="#22d3ee";
-
+ctx.fillStyle="#ffffff";
 ctx.beginPath();
-ctx.arc(
-px+32,
-py+38,
-8,
-0,
-Math.PI*2
-);
-
+ctx.arc(px+32,py+32,10,0,Math.PI*2);
 ctx.fill();
 
-// svietiaci efekt
-ctx.shadowBlur = 12;
-ctx.shadowColor = "#22d3ee";
-
-ctx.beginPath();
-ctx.arc(
-px+32,
-py+38,
-4,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-ctx.shadowBlur = 0;
-
-// dvere
-ctx.fillStyle="#111827";
-ctx.fillRect(px+28,py+42,8,10);
-
-// výboj energie
-ctx.strokeStyle="#67e8f9";
-ctx.lineWidth=2;
-
-ctx.beginPath();
-ctx.moveTo(px+32,py+18);
-ctx.lineTo(px+26,py+28);
-ctx.lineTo(px+36,py+28);
-ctx.lineTo(px+30,py+38);
-
-ctx.stroke();
+ctx.fillStyle="#00d4ff";
+ctx.fillRect(px+28,py+6,8,12);
 
 }
 
-ctx.fill();
-
-// vstup
-ctx.fillStyle="#111827";
-ctx.fillRect(px+27,py+34,10,18);
-
-// energetické jadro
-ctx.fillStyle="#22d3ee";
-
-ctx.beginPath();
-ctx.arc(
-px+32,
-py+24,
-6,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-// anténa
-ctx.strokeStyle="#ffffff";
-ctx.lineWidth=2;
-
-ctx.beginPath();
-ctx.moveTo(px+32,py+8);
-ctx.lineTo(px+32,py-2);
-ctx.stroke();
-
-ctx.fillStyle="#22d3ee";
-
-ctx.beginPath();
-ctx.arc(
-px+32,
-py-4,
-3,
-0,
-Math.PI*2
-);
-
-ctx.fill();
-
-}
-  
 if(b.type==="plant"){
 
 ctx.fillStyle="#00d4ff";
@@ -985,44 +889,26 @@ ctx.strokeRect(px+12,py+16,40,36);
 
 if(b.type==="townhall"){
 
-// hlavná budova
-ctx.fillStyle="#8b7355";
-ctx.fillRect(px+12,py+20,40,32);
+ctx.fillStyle="#475569";
+ctx.fillRect(px+8,py+20,48,36);
 
-// strecha
-ctx.fillStyle="#7c2d12";
-
+ctx.fillStyle="#00d4ff";
 ctx.beginPath();
-ctx.moveTo(px+8,py+20);
-ctx.lineTo(px+32,py+2);
-ctx.lineTo(px+56,py+20);
+ctx.moveTo(px+4,py+20);
+ctx.lineTo(px+32,py);
+ctx.lineTo(px+60,py+20);
 ctx.closePath();
 ctx.fill();
 
-// veža
-ctx.fillStyle="#a16207";
-ctx.fillRect(px+26,py+6,12,18);
+ctx.fillStyle="#111";
+ctx.fillRect(px+24,py+30,16,26);
 
-// strecha veže
-ctx.fillStyle="#dc2626";
-
-ctx.beginPath();
-ctx.moveTo(px+22,py+6);
-ctx.lineTo(px+32,py-6);
-ctx.lineTo(px+42,py+6);
-ctx.closePath();
-ctx.fill();
-
-// dvere
-ctx.fillStyle="#3f3f46";
-ctx.fillRect(px+27,py+34,10,18);
-
-// okná
-ctx.fillStyle="#fef08a";
-ctx.fillRect(px+18,py+30,6,6);
-ctx.fillRect(px+40,py+30,6,6);
+ctx.fillStyle="#ffffff";
+ctx.fillRect(px+14,py+28,8,8);
+ctx.fillRect(px+42,py+28,8,8);
 
 }
+
 // level
 ctx.fillStyle="white";
 ctx.font="12px Arial";
