@@ -736,11 +736,27 @@ for(let x=0;x<MAP_SIZE;x++){
         }
 
         ctx.fillRect(
-            x*TILE-cameraX,
-            y*TILE-cameraY,
-            TILE,
-            TILE
-        );
+           let px = x*TILE-cameraX;
+let py = y*TILE-cameraY;
+
+let grad = ctx.createLinearGradient(
+px,
+py,
+px+TILE,
+py+TILE
+);
+
+grad.addColorStop(0, ctx.fillStyle);
+grad.addColorStop(1, "#00000022");
+
+ctx.fillStyle = grad;
+
+ctx.fillRect(
+px,
+py,
+TILE,
+TILE
+);
 
     }
 
