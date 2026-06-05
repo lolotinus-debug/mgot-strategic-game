@@ -889,23 +889,42 @@ ctx.strokeRect(px+12,py+16,40,36);
 
 if(b.type==="townhall"){
 
-ctx.fillStyle="#475569";
-ctx.fillRect(px+8,py+20,48,36);
+// hlavná budova
+ctx.fillStyle="#8b7355";
+ctx.fillRect(px+12,py+20,40,32);
 
-ctx.fillStyle="#00d4ff";
+// strecha
+ctx.fillStyle="#7c2d12";
+
 ctx.beginPath();
-ctx.moveTo(px+4,py+20);
-ctx.lineTo(px+32,py);
-ctx.lineTo(px+60,py+20);
+ctx.moveTo(px+8,py+20);
+ctx.lineTo(px+32,py+2);
+ctx.lineTo(px+56,py+20);
 ctx.closePath();
 ctx.fill();
 
-ctx.fillStyle="#111";
-ctx.fillRect(px+24,py+30,16,26);
+// veža
+ctx.fillStyle="#a16207";
+ctx.fillRect(px+26,py+6,12,18);
 
-ctx.fillStyle="#ffffff";
-ctx.fillRect(px+14,py+28,8,8);
-ctx.fillRect(px+42,py+28,8,8);
+// strecha veže
+ctx.fillStyle="#dc2626";
+
+ctx.beginPath();
+ctx.moveTo(px+22,py+6);
+ctx.lineTo(px+32,py-6);
+ctx.lineTo(px+42,py+6);
+ctx.closePath();
+ctx.fill();
+
+// dvere
+ctx.fillStyle="#3f3f46";
+ctx.fillRect(px+27,py+34,10,18);
+
+// okná
+ctx.fillStyle="#fef08a";
+ctx.fillRect(px+18,py+30,6,6);
+ctx.fillRect(px+40,py+30,6,6);
 
 }
 // level
