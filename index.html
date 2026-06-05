@@ -3,178 +3,215 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT AoE Style</title>
+<title>MGOT RTS Map</title>
 
 <style>
 body{
     margin:0;
-    font-family:Arial;
+    overflow:hidden;
     background:#050b1a;
-    color:white;
+    font-family:Arial;
 }
 
-.top{
-    background:#0b1224;
+#ui{
+    position:absolute;
+    top:10px;
+    left:10px;
+    z-index:10;
+    background:rgba(0,0,0,0.5);
     padding:10px;
-    display:flex;
-    justify-content:space-between;
+    border-radius:10px;
+    color:white;
     font-size:13px;
 }
 
-.map{
-    height:55vh;
-    background:radial-gradient(circle,#1a2a55,#050b1a);
-    position:relative;
-}
-
-.city{
-    width:24px;
-    height:24px;
-    border-radius:50%;
-    position:absolute;
-    background:#22c55e;
-    box-shadow:0 0 10px #22c55e;
-    text-align:center;
-    line-height:24px;
-    font-size:10px;
-    cursor:pointer;
-}
-
-.panel{
-    padding:10px;
-}
-
-.card{
-    background:#111a33;
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:10px;
-}
-
 button{
-    width:100%;
-    padding:10px;
+    width:120px;
     margin-top:5px;
+    padding:8px;
     border:none;
-    border-radius:8px;
+    border-radius:6px;
     font-weight:bold;
 }
 
-.green{background:#22c55e;color:white;}
-.blue{background:#3b82f6;color:white;}
-.red{background:#ef4444;color:white;}
+.green{background:#22c55e;}
+.blue{background:#3b82f6;}
+
+canvas{
+    display:block;
+}
 </style>
 </head>
 
 <body>
 
-<div class="top">
-💰 <span id="gold">500</span>
-🪵 <span id="wood">500</span>
-⚔️ MGOT AoE
-</div>
+<div id="ui">
+<b>MGOT RTS MAP</b><br>
 
-<div class="map">
+💰 <span id="money">500</span><br>
+🌾 <span id="food">0</span><br>
 
-    <div class="city" id="c0" style="top:40%;left:50%" onclick="select(0)">A</div>
-    <div class="city" id="c1" style="top:30%;left:25%" onclick="select(1)">B</div>
-    <div class="city" id="c2" style="top:65%;left:70%" onclick="select(2)">C</div>
+<button class="green" onclick="mode='farm'">Farm</button>
+<button class="blue" onclick="mode='factory'">Factory</button>
 
 </div>
 
-<div class="panel">
-
-    <div class="card" id="info"></div>
-
-    <button class="green" onclick="build()">🏗 Build (+wood)</button>
-    <button class="blue" onclick="upgrade()">⬆ Upgrade city</button>
-    <button class="red" onclick="attack()">⚔ Attack random city</button>
-
-</div>
+<canvas id="c"></canvas>
 
 <script>
 
-let cities=[
-{name:"Alpha",gold:200,wood:200,power:1},
-{name:"Beta",gold:200,wood:200,power:1},
-{name:"Gamma",gold:200,wood:200,power:1}
-];
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
 
-let selected=0;
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 
-function select(i){
-    selected=i;
-    render();
-}
+// CAMERA
+let cam={x:0,y:0,zoom:1};
 
-function build(){
-    let c=cities[selected];
-    if(c.gold>=50){
-        c.gold-=50;
-        c.wood+=80;
+let dragging=false;
+let last={x:0,y:0};
+
+// BUILD MODE
+let mode="farm";
+
+// RESOURCES
+let money=500;
+let food=0;
+
+// BUILDINGS
+let buildings=[];
+
+// INPUT (drag map)
+canvas.addEventListener("mousedown",(e)=>{
+    dragging=true;
+    last.x=e.clientX;
+    last.y=e.clientY;
+});
+
+canvas.addEventListener("mouseup",()=>dragging=false);
+
+canvas.addEventListener("mousemove",(e)=>{
+    if(dragging){
+        cam.x+=(e.clientX-last.x)/cam.zoom;
+        cam.y+=(e.clientY-last.y)/cam.zoom;
+        last.x=e.clientX;
+        last.y=e.clientY;
     }
-    render();
-}
+});
 
-function upgrade(){
-    let c=cities[selected];
-    if(c.wood>=100){
-        c.wood-=100;
-        c.power++;
+// TOUCH SUPPORT
+canvas.addEventListener("touchstart",(e)=>{
+    dragging=true;
+    last.x=e.touches[0].clientX;
+    last.y=e.touches[0].clientY;
+});
+
+canvas.addEventListener("touchmove",(e)=>{
+    if(dragging){
+        cam.x+=(e.touches[0].clientX-last.x)/cam.zoom;
+        cam.y+=(e.touches[0].clientY-last.y)/cam.zoom;
+        last.x=e.touches[0].clientX;
+        last.y=e.touches[0].clientY;
     }
-    render();
-}
+});
 
-function attack(){
-    let from=cities[selected];
-    let target=Math.floor(Math.random()*3);
+canvas.addEventListener("touchend",()=>dragging=false);
 
-    if(target===selected) return;
+// CLICK TO BUILD
+canvas.addEventListener("click",(e)=>{
 
-    let enemy=cities[target];
+    let x=(e.clientX - canvas.width/2)/cam.zoom - cam.x;
+    let y=(e.clientY - canvas.height/2)/cam.zoom - cam.y;
 
-    let damage=from.power*20;
-
-    enemy.wood-=damage;
-
-    if(enemy.wood<=0){
-        enemy.gold=0;
-        enemy.power=0;
-        enemy.wood=50;
+    if(mode==="farm"){
+        buildings.push({type:"farm",x,y,t:0});
+        money-=50;
     }
 
-    render();
-}
+    if(mode==="factory"){
+        buildings.push({type:"factory",x,y,t:0});
+        money-=100;
+    }
+});
 
-function loop(){
+// ZOOM
+canvas.addEventListener("wheel",(e)=>{
+    cam.zoom*=e.deltaY<0?1.1:0.9;
+});
 
-    cities.forEach(c=>{
-        c.gold += c.power*10;
-        c.wood += c.power*5;
+// LOOP
+function update(){
+
+    buildings.forEach(b=>{
+
+        b.t++;
+
+        if(b.type==="farm"){
+            food+=0.2;
+        }
+
+        if(b.type==="factory"){
+            money+=0.5;
+        }
     });
 
-    render();
+    document.getElementById("money").innerText=Math.floor(money);
+    document.getElementById("food").innerText=Math.floor(food);
 }
 
-function render(){
+function draw(){
 
-    document.getElementById("gold").innerText=Math.floor(cities[selected].gold);
-    document.getElementById("wood").innerText=Math.floor(cities[selected].wood);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    document.getElementById("info").innerHTML=
-        "<b>"+cities[selected].name+"</b><br>"+
-        "Power: "+cities[selected].power+"<br>"+
-        "Gold: "+Math.floor(cities[selected].gold)+"<br>"+
-        "Wood: "+Math.floor(cities[selected].wood);
+    ctx.save();
+    ctx.translate(canvas.width/2,canvas.height/2);
+    ctx.scale(cam.zoom,cam.zoom);
+    ctx.translate(-cam.x,-cam.y);
 
-    cities.forEach((c,i)=>{
-        document.getElementById("c"+i).style.background =
-            i===selected ? "#fbbf24" : "#22c55e";
+    // GRID MAP (world)
+    drawGrid();
+
+    // BUILDINGS
+    buildings.forEach(b=>{
+
+        ctx.fillStyle = b.type==="farm" ? "#22c55e" : "#3b82f6";
+
+        ctx.fillRect(b.x-10,b.y-10,20,20);
+
+        ctx.fillStyle="white";
+        ctx.font="10px Arial";
+        ctx.fillText(b.type,b.x-15,b.y-15);
     });
+
+    ctx.restore();
+
+    requestAnimationFrame(draw);
 }
 
-setInterval(loop,1500);
-render();
+function drawGrid(){
+
+    ctx.strokeStyle="rgba(255,255,255,0.05)";
+
+    let s=100;
+
+    for(let x=-2000;x<2000;x+=s){
+        ctx.beginPath();
+        ctx.moveTo(x,-2000);
+        ctx.lineTo(x,2000);
+        ctx.stroke();
+    }
+
+    for(let y=-2000;y<2000;y+=s){
+        ctx.beginPath();
+        ctx.moveTo(-2000,y);
+        ctx.lineTo(2000,y);
+        ctx.stroke();
+    }
+}
+
+setInterval(update,1000);
+draw();
 
 </script>
 
