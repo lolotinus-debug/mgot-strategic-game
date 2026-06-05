@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Real Strategy</title>
+<title>MGOT AoE Style</title>
 
 <style>
 body{
@@ -21,20 +21,39 @@ body{
     font-size:13px;
 }
 
-.wrap{
+.map{
+    height:55vh;
+    background:radial-gradient(circle,#1a2a55,#050b1a);
+    position:relative;
+}
+
+.city{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    position:absolute;
+    background:#22c55e;
+    box-shadow:0 0 10px #22c55e;
+    text-align:center;
+    line-height:24px;
+    font-size:10px;
+    cursor:pointer;
+}
+
+.panel{
     padding:10px;
 }
 
 .card{
     background:#111a33;
     padding:10px;
-    border-radius:10px;
     margin-bottom:10px;
+    border-radius:10px;
 }
 
 button{
     width:100%;
-    padding:12px;
+    padding:10px;
     margin-top:5px;
     border:none;
     border-radius:8px;
@@ -44,194 +63,117 @@ button{
 .green{background:#22c55e;color:white;}
 .blue{background:#3b82f6;color:white;}
 .red{background:#ef4444;color:white;}
-
-.small{
-    font-size:12px;
-    color:#94a3b8;
-}
 </style>
 </head>
 
 <body>
 
 <div class="top">
-    💰 <span id="money">1000</span>
-    👥 <span id="pop">100</span>
-    🌾 <span id="food">100</span>
-    ⚡ <span id="energy">100</span>
-    🧠 MGOT <span id="mgot">0</span>
+💰 <span id="gold">500</span>
+🪵 <span id="wood">500</span>
+⚔️ MGOT AoE
 </div>
 
-<div class="wrap">
+<div class="map">
 
-<div class="card">
-    <b>STATE OVERVIEW</b>
-    <div class="small" id="stats"></div>
+    <div class="city" id="c0" style="top:40%;left:50%" onclick="select(0)">A</div>
+    <div class="city" id="c1" style="top:30%;left:25%" onclick="select(1)">B</div>
+    <div class="city" id="c2" style="top:65%;left:70%" onclick="select(2)">C</div>
+
 </div>
 
-<div class="card">
-    <b>POLICY</b>
+<div class="panel">
 
-    <button class="green" onclick="policy('tax_low')">Low Tax (stable)</button>
-    <button class="blue" onclick="policy('tax_high')">High Tax (money + instability)</button>
-    <button class="red" onclick="policy('austerity')">Austerity (risk + collapse)</button>
-</div>
+    <div class="card" id="info"></div>
 
-<div class="card">
-    <b>DEVELOPMENT</b>
-
-    <button onclick="build('farm')">Build Farms</button>
-    <button onclick="build('factory')">Build Industry</button>
-    <button onclick="build('power')">Build Energy</button>
-</div>
-
-<div class="card">
-    <b>EVENT LOG</b>
-    <div id="log" class="small"></div>
-</div>
+    <button class="green" onclick="build()">🏗 Build (+wood)</button>
+    <button class="blue" onclick="upgrade()">⬆ Upgrade city</button>
+    <button class="red" onclick="attack()">⚔ Attack random city</button>
 
 </div>
 
 <script>
 
-let state={
-    money:1000,
-    pop:100,
-    food:100,
-    energy:100,
-    mgot:0,
-    tax:1,
-    stability:100,
+let cities=[
+{name:"Alpha",gold:200,wood:200,power:1},
+{name:"Beta",gold:200,wood:200,power:1},
+{name:"Gamma",gold:200,wood:200,power:1}
+];
 
-    farms:1,
-    factories:0,
-    power:0
-};
+let selected=0;
 
-function policy(type){
-
-    if(type==="tax_low"){
-        state.tax=0.8;
-        log("Low tax applied");
-    }
-
-    if(type==="tax_high"){
-        state.tax=1.4;
-        state.stability-=5;
-        log("High tax -> instability grows");
-    }
-
-    if(type==="austerity"){
-        state.tax=1.2;
-        state.pop-=2;
-        state.stability-=10;
-        log("Austerity -> risk increased");
-    }
-}
-
-function build(type){
-
-    if(type==="farm" && state.money>=100){
-        state.money-=100;
-        state.farms++;
-        log("Farm built");
-    }
-
-    if(type==="factory" && state.money>=150){
-        state.money-=150;
-        state.factories++;
-        log("Factory built");
-    }
-
-    if(type==="power" && state.money>=200){
-        state.money-=200;
-        state.power++;
-        log("Power plant built");
-    }
-}
-
-function sim(){
-
-    // FOOD
-    state.food += state.farms*4;
-    state.food -= state.pop*0.3;
-
-    // ECONOMY
-    let income = state.factories*8 + state.pop*0.5;
-    state.money += income * state.tax;
-
-    // ENERGY LIMIT
-    if(state.energy < state.pop*0.5){
-        state.stability -= 1;
-    }
-
-    // POPULATION
-    if(state.food < 0){
-        state.pop -= 1;
-        state.stability -= 2;
-    } else {
-        state.pop += 0.2;
-    }
-
-    // ENERGY
-    state.energy += state.power*5;
-
-    // MGOT (QUALITY SCORE)
-    state.mgot += (state.stability/100) * 0.3;
-
-    // COLLAPSE SYSTEM
-    if(state.stability <= 0){
-        state.pop *= 0.5;
-        state.stability = 50;
-        log("⚠ Collapse avoided but damage done");
-    }
-
-    randomEvents();
+function select(i){
+    selected=i;
     render();
 }
 
-function randomEvents(){
-
-    if(Math.random()<0.05){
-
-        let e=[
-            "Economic crisis - money drop",
-            "Food shortage - population loss",
-            "Tech breakthrough + MGOT",
-            "Energy crisis - stability"
-        ][Math.floor(Math.random()*4)];
-
-        if(e.includes("money")) state.money-=100;
-        if(e.includes("Food")) state.food-=50;
-        if(e.includes("Tech")) state.mgot+=10;
-        if(e.includes("Energy")) state.energy-=20;
-
-        log("EVENT: "+e);
+function build(){
+    let c=cities[selected];
+    if(c.gold>=50){
+        c.gold-=50;
+        c.wood+=80;
     }
+    render();
+}
+
+function upgrade(){
+    let c=cities[selected];
+    if(c.wood>=100){
+        c.wood-=100;
+        c.power++;
+    }
+    render();
+}
+
+function attack(){
+    let from=cities[selected];
+    let target=Math.floor(Math.random()*3);
+
+    if(target===selected) return;
+
+    let enemy=cities[target];
+
+    let damage=from.power*20;
+
+    enemy.wood-=damage;
+
+    if(enemy.wood<=0){
+        enemy.gold=0;
+        enemy.power=0;
+        enemy.wood=50;
+    }
+
+    render();
+}
+
+function loop(){
+
+    cities.forEach(c=>{
+        c.gold += c.power*10;
+        c.wood += c.power*5;
+    });
+
+    render();
 }
 
 function render(){
 
-    document.getElementById("money").innerText=Math.floor(state.money);
-    document.getElementById("pop").innerText=Math.floor(state.pop);
-    document.getElementById("food").innerText=Math.floor(state.food);
-    document.getElementById("energy").innerText=Math.floor(state.energy);
-    document.getElementById("mgot").innerText=Math.floor(state.mgot);
+    document.getElementById("gold").innerText=Math.floor(cities[selected].gold);
+    document.getElementById("wood").innerText=Math.floor(cities[selected].wood);
 
-    document.getElementById("stats").innerHTML=
-        "Stability: "+Math.floor(state.stability)+"<br>"+
-        "Tax: "+state.tax+"<br>"+
-        "Farms: "+state.farms+"<br>"+
-        "Factories: "+state.factories+"<br>"+
-        "Power: "+state.power;
+    document.getElementById("info").innerHTML=
+        "<b>"+cities[selected].name+"</b><br>"+
+        "Power: "+cities[selected].power+"<br>"+
+        "Gold: "+Math.floor(cities[selected].gold)+"<br>"+
+        "Wood: "+Math.floor(cities[selected].wood);
+
+    cities.forEach((c,i)=>{
+        document.getElementById("c"+i).style.background =
+            i===selected ? "#fbbf24" : "#22c55e";
+    });
 }
 
-function log(t){
-    let l=document.getElementById("log");
-    l.innerHTML="• "+t+"<br>"+l.innerHTML;
-}
-
-setInterval(sim,1500);
+setInterval(loop,1500);
 render();
 
 </script>
