@@ -303,11 +303,18 @@ font-size:9px;
 
 <div id="rightPanel">
 <h3>📋 Info</h3>
+
 <div id="info">Nothing selected</div>
-<button onclick="upgrade()">⬆ Upgrade</button>
-  
-<button onclick="newGame()">🆕 New Game</button>
-  
+
+<div id="actionButtons">
+  <button id="upgradeBtn" onclick="upgrade()">⬆ Upgrade</button>
+  <button id="demolishBtn" onclick="demolish()">🗑 Demolish</button>
+</div>
+
+<hr style="margin:10px 0;border:1px solid #333">
+
+<button id="newGameBtn" onclick="newGame()">🆕 New Game</button>
+
 </div>
 
 <div id="log"></div>
@@ -931,11 +938,17 @@ cameraX = 0;
 cameraY = 0;
 
 ui();
+  
+if(!selected){
 
-document.getElementById("info").innerHTML =
-"Nothing selected";
+document.getElementById("upgradeBtn").style.display="none";
+document.getElementById("demolishBtn").style.display="none";
 
-}
+document.getElementById("info").innerHTML="Nothing selected";
+
+return;
+  }
+
 // START
 ui();
 render();
