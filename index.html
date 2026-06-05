@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Mobile</title>
+<title>MGOT Real Strategy</title>
 
 <style>
 body{
@@ -14,37 +14,22 @@ body{
 }
 
 .top{
-    padding:10px;
     background:#0b1224;
+    padding:10px;
     display:flex;
     justify-content:space-between;
-    font-size:14px;
+    font-size:13px;
 }
 
-.map{
-    height:55vh;
-    background:radial-gradient(circle,#1a2a55,#050b1a);
-    position:relative;
-}
-
-.city{
-    width:22px;
-    height:22px;
-    border-radius:50%;
-    background:#fbbf24;
-    position:absolute;
-    box-shadow:0 0 10px #fbbf24;
-}
-
-.panel{
+.wrap{
     padding:10px;
 }
 
 .card{
     background:#111a33;
     padding:10px;
-    margin:5px 0;
     border-radius:10px;
+    margin-bottom:10px;
 }
 
 button{
@@ -58,98 +43,195 @@ button{
 
 .green{background:#22c55e;color:white;}
 .blue{background:#3b82f6;color:white;}
+.red{background:#ef4444;color:white;}
+
+.small{
+    font-size:12px;
+    color:#94a3b8;
+}
 </style>
 </head>
 
 <body>
 
 <div class="top">
-    💰 <span id="money">500</span>
+    💰 <span id="money">1000</span>
     👥 <span id="pop">100</span>
+    🌾 <span id="food">100</span>
+    ⚡ <span id="energy">100</span>
     🧠 MGOT <span id="mgot">0</span>
 </div>
 
-<div class="map">
+<div class="wrap">
 
-    <div class="city" style="top:40%;left:50%" onclick="select(0)"></div>
-    <div class="city" style="top:30%;left:25%" onclick="select(1)"></div>
-    <div class="city" style="top:65%;left:70%" onclick="select(2)"></div>
-
+<div class="card">
+    <b>STATE OVERVIEW</b>
+    <div class="small" id="stats"></div>
 </div>
 
-<div class="panel">
+<div class="card">
+    <b>POLICY</b>
 
-    <div class="card" id="info">Select city</div>
+    <button class="green" onclick="policy('tax_low')">Low Tax (stable)</button>
+    <button class="blue" onclick="policy('tax_high')">High Tax (money + instability)</button>
+    <button class="red" onclick="policy('austerity')">Austerity (risk + collapse)</button>
+</div>
 
-    <button class="green" onclick="farm()">Build Farm -100</button>
-    <button class="blue" onclick="factory()">Build Factory -150</button>
+<div class="card">
+    <b>DEVELOPMENT</b>
+
+    <button onclick="build('farm')">Build Farms</button>
+    <button onclick="build('factory')">Build Industry</button>
+    <button onclick="build('power')">Build Energy</button>
+</div>
+
+<div class="card">
+    <b>EVENT LOG</b>
+    <div id="log" class="small"></div>
+</div>
 
 </div>
 
 <script>
 
-let cities=[
-{name:"Capital",money:500,pop:100,farm:1,factory:0,mgot:0},
-{name:"North",money:300,pop:80,farm:1,factory:0,mgot:0},
-{name:"East",money:400,pop:90,farm:1,factory:0,mgot:0}
-];
+let state={
+    money:1000,
+    pop:100,
+    food:100,
+    energy:100,
+    mgot:0,
+    tax:1,
+    stability:100,
 
-let selected=0;
+    farms:1,
+    factories:0,
+    power:0
+};
 
-function select(i){
-    selected=i;
-    render();
-}
+function policy(type){
 
-function farm(){
-    let c=cities[selected];
-    if(c.money>=100){
-        c.money-=100;
-        c.farm++;
+    if(type==="tax_low"){
+        state.tax=0.8;
+        log("Low tax applied");
     }
-    render();
-}
 
-function factory(){
-    let c=cities[selected];
-    if(c.money>=150){
-        c.money-=150;
-        c.factory++;
+    if(type==="tax_high"){
+        state.tax=1.4;
+        state.stability-=5;
+        log("High tax -> instability grows");
     }
+
+    if(type==="austerity"){
+        state.tax=1.2;
+        state.pop-=2;
+        state.stability-=10;
+        log("Austerity -> risk increased");
+    }
+}
+
+function build(type){
+
+    if(type==="farm" && state.money>=100){
+        state.money-=100;
+        state.farms++;
+        log("Farm built");
+    }
+
+    if(type==="factory" && state.money>=150){
+        state.money-=150;
+        state.factories++;
+        log("Factory built");
+    }
+
+    if(type==="power" && state.money>=200){
+        state.money-=200;
+        state.power++;
+        log("Power plant built");
+    }
+}
+
+function sim(){
+
+    // FOOD
+    state.food += state.farms*4;
+    state.food -= state.pop*0.3;
+
+    // ECONOMY
+    let income = state.factories*8 + state.pop*0.5;
+    state.money += income * state.tax;
+
+    // ENERGY LIMIT
+    if(state.energy < state.pop*0.5){
+        state.stability -= 1;
+    }
+
+    // POPULATION
+    if(state.food < 0){
+        state.pop -= 1;
+        state.stability -= 2;
+    } else {
+        state.pop += 0.2;
+    }
+
+    // ENERGY
+    state.energy += state.power*5;
+
+    // MGOT (QUALITY SCORE)
+    state.mgot += (state.stability/100) * 0.3;
+
+    // COLLAPSE SYSTEM
+    if(state.stability <= 0){
+        state.pop *= 0.5;
+        state.stability = 50;
+        log("⚠ Collapse avoided but damage done");
+    }
+
+    randomEvents();
     render();
 }
 
-function loop(){
+function randomEvents(){
 
-    cities.forEach(c=>{
-        c.money += c.factory*5;
-        c.pop += c.farm*0.1;
+    if(Math.random()<0.05){
 
-        c.money += c.pop*0.01;
+        let e=[
+            "Economic crisis - money drop",
+            "Food shortage - population loss",
+            "Tech breakthrough + MGOT",
+            "Energy crisis - stability"
+        ][Math.floor(Math.random()*4)];
 
-        c.mgot += c.pop/2000;
-    });
+        if(e.includes("money")) state.money-=100;
+        if(e.includes("Food")) state.food-=50;
+        if(e.includes("Tech")) state.mgot+=10;
+        if(e.includes("Energy")) state.energy-=20;
 
-    render();
+        log("EVENT: "+e);
+    }
 }
 
 function render(){
 
-    let c=cities[selected];
+    document.getElementById("money").innerText=Math.floor(state.money);
+    document.getElementById("pop").innerText=Math.floor(state.pop);
+    document.getElementById("food").innerText=Math.floor(state.food);
+    document.getElementById("energy").innerText=Math.floor(state.energy);
+    document.getElementById("mgot").innerText=Math.floor(state.mgot);
 
-    document.getElementById("money").innerText=Math.floor(c.money);
-    document.getElementById("pop").innerText=Math.floor(c.pop);
-    document.getElementById("mgot").innerText=Math.floor(c.mgot);
-
-    document.getElementById("info").innerHTML=
-        "<b>"+c.name+"</b><br>"+
-        "Money: "+Math.floor(c.money)+"<br>"+
-        "Pop: "+Math.floor(c.pop)+"<br>"+
-        "Farms: "+c.farm+"<br>"+
-        "Factories: "+c.factory;
+    document.getElementById("stats").innerHTML=
+        "Stability: "+Math.floor(state.stability)+"<br>"+
+        "Tax: "+state.tax+"<br>"+
+        "Farms: "+state.farms+"<br>"+
+        "Factories: "+state.factories+"<br>"+
+        "Power: "+state.power;
 }
 
-setInterval(loop,1500);
+function log(t){
+    let l=document.getElementById("log");
+    l.innerHTML="• "+t+"<br>"+l.innerHTML;
+}
+
+setInterval(sim,1500);
 render();
 
 </script>
