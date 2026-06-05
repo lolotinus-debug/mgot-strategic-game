@@ -715,38 +715,39 @@ function drawMap(){
 
 for(let x=0;x<MAP_SIZE;x++){
 
-    for(let y=0;y<MAP_SIZE;y++){
+for(let y=0;y<MAP_SIZE;y++){
 
-        let tile = mapData[x][y];
+let tile = mapData[x][y];
 
-        if(tile==="grass"){
-            ctx.fillStyle="#166534";
-        }
+if(tile==="grass"){
+ctx.fillStyle="#22c55e";
+}
 
-        if(tile==="forest"){
-            ctx.fillStyle="#14532d";
-        }
+if(tile==="forest"){
+ctx.fillStyle="#166534";
+}
 
-        if(tile==="mountain"){
-            ctx.fillStyle="#6b7280";
-        }
+if(tile==="mountain"){
+ctx.fillStyle="#6b7280";
+}
 
-        if(tile==="water"){
-            ctx.fillStyle="#2563eb";
-        }
+if(tile==="water"){
+ctx.fillStyle="#2563eb";
+}
 
-        ctx.fillRect(
-let px = x*TILE-cameraX;
-let py = y*TILE-cameraY;
+let px = x * TILE - cameraX;
+let py = y * TILE - cameraY;
+
+let baseColor = ctx.fillStyle;
 
 let grad = ctx.createLinearGradient(
 px,
 py,
-px+TILE,
-py+TILE
+px + TILE,
+py + TILE
 );
 
-grad.addColorStop(0, ctx.fillStyle);
+grad.addColorStop(0, baseColor);
 grad.addColorStop(1, "#00000022");
 
 ctx.fillStyle = grad;
@@ -758,9 +759,10 @@ TILE,
 TILE
 );
 
-    }
+}
 
 }
+
 }
 
 // ================= BUILDINGS =================
