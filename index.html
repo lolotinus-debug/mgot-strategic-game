@@ -3,53 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGOT Core A - Simulation</title>
+<title>MGOT B - Game Layer</title>
 
 <style>
 body{
     margin:0;
+    font-family:Arial;
     background:#050b1a;
     color:white;
-    font-family:Arial;
     overflow:hidden;
 }
 
+/* TOP */
 #top{
     height:60px;
     background:#0b1224;
     display:flex;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
     padding:0 15px;
     border-bottom:1px solid #24314f;
 }
 
+/* MAP */
 #map{
-    position:relative;
-    height:calc(100vh - 60px);
+    position:absolute;
+    top:60px;
+    left:0;
+    right:320px;
+    bottom:0;
     background:radial-gradient(circle,#1a2a55,#050b1a);
 }
 
+/* CITY */
 .city{
     position:absolute;
-    width:14px;
-    height:14px;
-    background:#fbbf24;
+    width:18px;
+    height:18px;
     border-radius:50%;
+    background:#fbbf24;
     cursor:pointer;
     box-shadow:0 0 10px #fbbf24;
+    transition:0.2s;
 }
 
+.city:hover{
+    transform:scale(1.4);
+}
+
+/* PANEL */
 #panel{
     position:absolute;
     top:60px;
     right:0;
     width:320px;
-    height:calc(100vh - 60px);
+    bottom:0;
     background:#0b1224;
     border-left:1px solid #24314f;
     padding:10px;
     overflow:auto;
+}
+
+.statBox{
+    background:#111a33;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    font-size:13px;
 }
 
 button{
@@ -60,15 +80,23 @@ button{
     border-radius:6px;
     cursor:pointer;
     font-weight:bold;
+    transition:0.2s;
 }
 
-.build{background:#22c55e;}
-.upg{background:#3b82f6;}
+button:hover{
+    transform:scale(1.02);
+}
 
-.stat{
-    font-size:13px;
-    margin:4px 0;
+.green{background:#22c55e;}
+.blue{background:#3b82f6;}
+.gold{background:#fbbf24;color:black;}
+
+#log{
+    font-size:12px;
     color:#94a3b8;
+    margin-top:10px;
+    max-height:150px;
+    overflow:auto;
 }
 </style>
 </head>
@@ -76,158 +104,133 @@ button{
 <body>
 
 <div id="top">
-    <b>MGOT CORE SIM A</b>
+    <b>MGOT GAME B</b>
     <div>
-        💰 <span id="money">1000</span>
-        👥 <span id="pop">100</span>
+        💰 <span id="money">0</span>
+        👥 <span id="pop">0</span>
         🧠 <span id="mgot">0</span>
     </div>
 </div>
 
 <div id="map">
 
-    <div class="city" style="top:40%;left:50%" onclick="selectCity(0)"></div>
-    <div class="city" style="top:30%;left:30%" onclick="selectCity(1)"></div>
-    <div class="city" style="top:60%;left:70%" onclick="selectCity(2)"></div>
+    <div class="city" id="c0" style="top:45%;left:50%" onclick="select(0)"></div>
+    <div class="city" id="c1" style="top:30%;left:30%" onclick="select(1)"></div>
+    <div class="city" id="c2" style="top:60%;left:70%" onclick="select(2)"></div>
 
 </div>
 
 <div id="panel">
 
-    <h3 id="cityName">City</h3>
+    <h3 id="name">City</h3>
 
-    <div class="stat" id="stats"></div>
+    <div id="stats"></div>
 
-    <button class="build" onclick="buildFarm()">Farm (+food)</button>
-    <button class="build" onclick="buildFactory()">Factory (+money)</button>
-    <button class="upg" onclick="upgradeCity()">Upgrade (+MGOT)</button>
+    <button class="green" onclick="farm()">🌾 Build Farm</button>
+    <button class="blue" onclick="factory()">🏭 Build Factory</button>
+    <button class="gold" onclick="boost()">⚡ MGOT Boost</button>
+
+    <div id="log"></div>
 
 </div>
 
 <script>
 
-let cities = [
-{
-    name:"Capital",
-    pop:100,
-    money:500,
-    food:100,
-    stability:100,
-    mgot:0,
-    farms:1,
-    factories:0
-},
-{
-    name:"North",
-    pop:60,
-    money:300,
-    food:80,
-    stability:90,
-    mgot:0,
-    farms:1,
-    factories:0
-},
-{
-    name:"East",
-    pop:80,
-    money:400,
-    food:90,
-    stability:95,
-    mgot:0,
-    farms:1,
-    factories:0
-}
+let cities=[
+{name:"Capital",money:500,pop:100,mgot:0,farm:1,factory:0},
+{name:"North",money:300,pop:60,mgot:0,farm:1,factory:0},
+{name:"East",money:400,pop:80,mgot:0,farm:1,factory:0}
 ];
 
-let selected = 0;
+let selected=0;
 
-function selectCity(i){
-    selected = i;
+/* SELECT */
+function select(i){
+    selected=i;
+    log("Selected "+cities[i].name);
     render();
 }
 
-function buildFarm(){
-    let c = cities[selected];
+/* BUILD */
+function farm(){
+    let c=cities[selected];
     if(c.money>=100){
         c.money-=100;
-        c.farms++;
+        c.farm++;
+        log("Farm built");
     }
-    render();
 }
 
-function buildFactory(){
-    let c = cities[selected];
+function factory(){
+    let c=cities[selected];
     if(c.money>=150){
         c.money-=150;
-        c.factories++;
+        c.factory++;
+        log("Factory built");
     }
-    render();
 }
 
-function upgradeCity(){
-    let c = cities[selected];
-    if(c.money>=200){
-        c.money-=200;
-        c.stability+=5;
-        c.mgot+=5;
-    }
-    render();
+function boost(){
+    let c=cities[selected];
+    c.mgot+=10;
+    c.money+=50;
+    log("MGOT Boost activated!");
 }
 
+/* SIM */
 function sim(){
 
-    for(let c of cities){
+    cities.forEach(c=>{
 
-        // food production
-        c.food += c.farms * 5;
+        c.money += c.factory*8;
+        c.money += c.pop*0.05;
 
-        // money production
-        c.money += c.factories * 10;
+        c.pop += c.farm*0.1;
+        c.pop -= c.pop*0.01;
 
-        // population consumption
-        c.food -= c.pop * 0.2;
+        c.mgot += (c.pop/1000);
 
-        // starvation / growth
-        if(c.food < 0){
+        if(c.money<0){
             c.pop -= 1;
-            c.stability -= 2;
-        } else {
-            c.pop += 0.2;
         }
-
-        // MGOT generation = good management
-        c.mgot += (c.stability / 100) * 0.5;
-
-        // collapse check
-        if(c.stability <= 0){
-            c.pop = Math.max(10, c.pop * 0.5);
-            c.stability = 50;
-        }
-    }
+    });
 
     render();
 }
 
+/* RENDER */
 function render(){
 
-    let c = cities[selected];
+    let c=cities[selected];
 
-    document.getElementById("cityName").innerText = c.name;
+    document.getElementById("name").innerText=c.name;
 
-    document.getElementById("money").innerText = Math.floor(c.money);
-    document.getElementById("pop").innerText = Math.floor(c.pop);
-    document.getElementById("mgot").innerText = Math.floor(c.mgot);
+    document.getElementById("money").innerText=Math.floor(c.money);
+    document.getElementById("pop").innerText=Math.floor(c.pop);
+    document.getElementById("mgot").innerText=Math.floor(c.mgot);
 
-    document.getElementById("stats").innerHTML =
-        "Money: "+Math.floor(c.money)+"<br>"+
-        "Population: "+Math.floor(c.pop)+"<br>"+
-        "Food: "+Math.floor(c.food)+"<br>"+
-        "Stability: "+Math.floor(c.stability)+"<br>"+
-        "Farms: "+c.farms+"<br>"+
-        "Factories: "+c.factories;
+    document.getElementById("stats").innerHTML=
+        "<div class='statBox'>💰 Money: "+Math.floor(c.money)+"</div>"+
+        "<div class='statBox'>👥 Pop: "+Math.floor(c.pop)+"</div>"+
+        "<div class='statBox'>🌾 Farms: "+c.farm+"</div>"+
+        "<div class='statBox'>🏭 Factories: "+c.factory+"</div>"+
+        "<div class='statBox'>🧠 MGOT: "+Math.floor(c.mgot)+"</div>";
+
+    // highlight selected city
+    cities.forEach((_,i)=>{
+        document.getElementById("c"+i).style.background =
+            i===selected ? "#22c55e" : "#fbbf24";
+    });
 }
 
-setInterval(sim, 1500);
+/* LOG */
+function log(t){
+    let l=document.getElementById("log");
+    l.innerHTML="• "+t+"<br>"+l.innerHTML;
+}
+
+/* LOOP */
+setInterval(sim,1200);
 render();
 
 </script>
