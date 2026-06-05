@@ -466,75 +466,30 @@ return;
 }
 
 if(selected.type === "townhall"){
-log("❌ Town Hall cannot be demolished");
+log("❌ Town Hall cannot be upgraded");
 return;
 }
 
-let index = buildings.indexOf(selected);
+let cost = selected.level * 120;
 
-if(index !== -1){
-
-buildings.splice(index,1);
-
-log("🗑 Building removed");
-
-selected = null;
-
-document.getElementById("info").innerHTML =
-"Nothing selected";
-
-}
-
-}
-if(!selected) return;
-
-let cost = selected.level*120;
-
-if(game.gold<cost){
+if(game.gold < cost){
 log("❌ Not enough gold");
 return;
 }
 
-game.gold-=cost;
+game.gold -= cost;
 selected.level++;
 
-explosion(selected.x*TILE,selected.y*TILE,"#fff");
+explosion(
+selected.x * TILE,
+selected.y * TILE,
+"#fff"
+);
 
-log("⬆ Upgraded "+selected.type);
+log("⬆ Upgraded " + selected.type);
+
 ui();
 updateInfo();
-}
-
-// ================= DEMOLISH =================
-function demolish(){
-
-if(!selected){
-return;
-}
-
-if(selected.type === "townhall"){
-log("❌ Town Hall cannot be demolished");
-return;
-}
-}
-
-let index = buildings.indexOf(selected);
-
-if(index !== -1){
-
-buildings.splice(index,1);
-
-log("🗑 Building removed");
-
-selected = null;
-
-document.getElementById("upgradeBtn").style.display = "none";
-document.getElementById("demolishBtn").style.display = "none";
-
-document.getElementById("info").innerHTML =
-"Nothing selected";
-
-}
 
 }
 
