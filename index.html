@@ -449,6 +449,33 @@ Upgrade cost: ${selected.level*120}<br>
 
 // ================= UPGRADE =================
 function upgrade(){
+function demolish(){
+
+if(!selected){
+return;
+}
+
+if(selected.type === "townhall"){
+log("❌ Town Hall cannot be demolished");
+return;
+}
+
+let index = buildings.indexOf(selected);
+
+if(index !== -1){
+
+buildings.splice(index,1);
+
+log("🗑 Building removed");
+
+selected = null;
+
+document.getElementById("info").innerHTML =
+"Nothing selected";
+
+}
+
+}
 if(!selected) return;
 
 let cost = selected.level*120;
