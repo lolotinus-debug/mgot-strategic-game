@@ -493,6 +493,38 @@ updateInfo();
 
 }
 
+// ================= DEMOLISH =================
+function demolish(){
+
+if(!selected){
+return;
+}
+
+if(selected.type === "townhall"){
+log("❌ Town Hall cannot be demolished");
+return;
+}
+
+let index = buildings.indexOf(selected);
+
+if(index !== -1){
+
+buildings.splice(index,1);
+
+log("🗑 Building removed");
+
+selected = null;
+
+document.getElementById("upgradeBtn").style.display = "none";
+document.getElementById("demolishBtn").style.display = "none";
+
+document.getElementById("info").innerHTML =
+"Nothing selected";
+
+}
+
+}
+
 // ================= CLICK =================
 canvas.addEventListener("click",(e)=>{
   
