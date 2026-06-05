@@ -680,6 +680,35 @@ for(let x=0;x<MAP_SIZE;x++){
 
     }
 }
+
+function generateMap(){
+
+for(let x=0;x<MAP_SIZE;x++){
+
+mapData[x] = [];
+
+for(let y=0;y<MAP_SIZE;y++){
+
+let r = Math.random();
+
+if(r < 0.10){
+mapData[x][y] = "water";
+}
+else if(r < 0.20){
+mapData[x][y] = "mountain";
+}
+else if(r < 0.35){
+mapData[x][y] = "forest";
+}
+else{
+mapData[x][y] = "grass";
+}
+
+}
+
+}
+
+}
   
 // ================= MAP ZONES =================
 function drawMap(){
@@ -956,6 +985,28 @@ requestAnimationFrame(render);
 }
 
 // ================= CAMERA =================
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener("touchstart",(e)=>{
+
+touchStartX = e.touches[0].clientX;
+touchStartY = e.touches[0].clientY;
+
+});
+
+canvas.addEventListener("touchmove",(e)=>{
+
+let dx = e.touches[0].clientX - touchStartX;
+let dy = e.touches[0].clientY - touchStartY;
+
+cameraX -= dx;
+cameraY -= dy;
+
+touchStartX = e.touches[0].clientX;
+touchStartY = e.touches[0].clientY;
+
+});
 window.addEventListener("keydown",(e)=>{
 if(e.key==="ArrowLeft") cameraX-=32;
 if(e.key==="ArrowRight") cameraX+=32;
