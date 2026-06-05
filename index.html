@@ -581,27 +581,76 @@ game.population -= 0.1;
 ui();
 
 },1000);
+
+// ================= MAP DATA =================
+
+const MAP_SIZE = 50;
+
+const mapData = [];
+
+for(let x=0;x<MAP_SIZE;x++){
+
+    mapData[x] = [];
+
+    for(let y=0;y<MAP_SIZE;y++){
+
+        let r = Math.random();
+
+        if(r < 0.10){
+
+            mapData[x][y] = "water";
+
+        }else if(r < 0.20){
+
+            mapData[x][y] = "mountain";
+
+        }else if(r < 0.35){
+
+            mapData[x][y] = "forest";
+
+        }else{
+
+            mapData[x][y] = "grass";
+
+        }
+
+    }
+}
   
 // ================= MAP ZONES =================
 function drawMap(){
-for(let x=0;x<50;x++){
-for(let y=0;y<50;y++){
 
-let color="#0b1b2b";
+for(let x=0;x<MAP_SIZE;x++){
 
-// Europe zone
-if(x<15) color="#0f172a";
+    for(let y=0;y<MAP_SIZE;y++){
 
-// Africa zone
-else if(x<30) color="#0a2a1a";
+        let tile = mapData[x][y];
 
-// Asia zone
-else color="#2a1a0a";
+        if(tile==="grass"){
+            ctx.fillStyle="#166534";
+        }
 
-ctx.fillStyle=color;
-ctx.fillRect(x*TILE-cameraX,y*TILE-cameraY,TILE,TILE);
+        if(tile==="forest"){
+            ctx.fillStyle="#14532d";
+        }
 
-}
+        if(tile==="mountain"){
+            ctx.fillStyle="#6b7280";
+        }
+
+        if(tile==="water"){
+            ctx.fillStyle="#2563eb";
+        }
+
+        ctx.fillRect(
+            x*TILE-cameraX,
+            y*TILE-cameraY,
+            TILE,
+            TILE
+        );
+
+    }
+
 }
 }
 
