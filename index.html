@@ -382,10 +382,29 @@ technologyLevel:1
 };
 
 let buildings = [];
-  
+
+function randomLandPosition(){
+
+let x,y;
+
+do{
+
+x = Math.floor(Math.random() * MAP_SIZE);
+y = Math.floor(Math.random() * MAP_SIZE);
+
+}while(
+!mapData[x] ||
+mapData[x][y] === "water"
+);
+
+return {x,y};
+}
+
+const startPos = randomLandPosition();
+
 buildings.push({
-x:10,
-y:10,
+x:startPos.x,
+y:startPos.y,
 type:"townhall",
 level:1
 });
