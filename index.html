@@ -358,7 +358,11 @@ function selectBuild(t){
 });
 
 const buttons = document.querySelectorAll("#leftPanel button");
+  
+selectedBuild = t; // OK
 
+console.log("Selected build:", selectedBuild);
+  
 buttons.forEach(b=>{
   if(b.innerText.includes(t)){
     b.style.outline="2px solid white";
@@ -538,12 +542,10 @@ canvas.addEventListener("click",(e)=>{
   
 const rect = canvas.getBoundingClientRect();
 
-const x = Math.floor(
-(e.clientX - rect.left + cameraX) / TILE
-);
-
-const y = Math.floor(
-(e.clientY - rect.top + cameraY) / TILE
+const x = Math.floor((e.clientX - rect.left + cameraX) / TILE);
+const y = Math.floor((e.clientY - rect.top + cameraY) / TILE);
+console.log("BUILD TRY:", selectedBuild, x, y);
+  
 );
 
 console.log("CLICK WORLD:", x, y, selectedBuild);
@@ -560,8 +562,10 @@ return;
 }
 
 // build
-if(!selectedBuild) return;
-
+if(!selectedBuild){
+  log("⚠ Vyber budovu najprv");
+  return;
+}
 let cost=B[selectedBuild].cost;
 
 if(game.gold<cost){
@@ -660,31 +664,21 @@ const MAP_SIZE = 50;
 
 const mapData = [];
 
-for(let x=0;x<MAP_SIZE;x++){
-
+function generateMap(){
+  for(let x=0;x<MAP_SIZE;x++){
     mapData[x] = [];
-
     for(let y=0;y<MAP_SIZE;y++){
+      let r = Math.random();
 
-        let r = Math.random();
+      if(r < 0.10) mapData[x][y] = "water";
+      else if(r < 0.20) mapData[x][y] = "mountain";
+      else if(r < 0.35) mapData[x][y] = "forest";
+      else mapData[x][y] = "grass";
+    }
+  }
+}
 
-        if(r < 0.10){
-
-            mapData[x][y] = "water";
-
-        }else if(r < 0.20){
-
-            mapData[x][y] = "mountain";
-
-        }else if(r < 0.35){
-
-            mapData[x][y] = "forest";
-
-        }else{
-
-            mapData[x][y] = "grass";
-
-        }
+generateMap(); // 🔥 DÔLEŽITÉ
 
     }
 }
