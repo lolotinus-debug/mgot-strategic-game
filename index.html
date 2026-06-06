@@ -297,6 +297,12 @@ font-size:9px;
 <div class="resource">🏦 LP:
 <span id="lp">100</span></div>
 
+<div class="resource">⭐ Reputation:
+<span id="reputation">0</span></div>
+
+<div class="resource">🪙 Supply:
+<span id="supply">1000000</span></div>
+
 <div class="resource">📈 Price:
 <span id="price">0.001</span></div>
 
@@ -388,17 +394,18 @@ let selectedBuild = null;
 let particles = [];
 
 let game = {
-
-treasury:500,
-holders:10,
-engagement:100,
-education:0,
-utility:1,
-promoters:0,
-lp:100,
-price:0.001,
-marketCap:1000
-
+  treasury: 500,
+  holders: 10,
+  engagement: 100,
+  education: 0,
+  utility: 1,
+  promoters: 0,
+  lp: 100,
+  supply: 1000000,
+  reputation: 0,
+  communityPower: 0,
+  price: 0.001,
+  marketCap: 1000
 };
 
 let buildings = [];
@@ -473,6 +480,12 @@ Math.floor(game.promoters);
 
 document.getElementById("lp").innerText =
 Math.floor(game.lp);
+
+document.getElementById("reputation").innerText =
+Math.floor(game.reputation);
+
+document.getElementById("supply").innerText =
+Math.floor(game.supply);
 
 document.getElementById("price").innerText =
 game.price;
@@ -634,33 +647,41 @@ setInterval(()=>{
 
     for(let b of buildings){
 
-        if(b.type==="community"){
-            game.holders += 0.05 * b.level;
-        }
+       if(b.type==="community"){
+    game.holders += 0.05 * b.level;
+    game.communityPower += 0.1 * b.level;
+}
 
-        if(b.type==="marketing"){
-            game.engagement += 2 * b.level;
-        }
+       if(b.type==="marketing"){
+    game.engagement += 2 * b.level;
+
+    game.holders +=
+    game.engagement * 0.0002 * b.level;
+}
 
         if(b.type==="treasury"){
             game.treasury += b.level;
         }
 
-        if(b.type==="academy"){
-            game.education += b.level;
-        }
+       if(b.type==="academy"){
+    game.education += b.level;
+    game.reputation += 0.05 * b.level;
+}
 
         if(b.type==="utility"){
-            game.utility += 0.5 * b.level;
-        }
+    game.utility += 0.2 * b.level;
+    game.reputation += 0.1 * b.level;
+}
 
         if(b.type==="influencer"){
             game.promoters += 0.2 * b.level;
         }
 
-        if(b.type==="burn"){
-            game.lp += 0.1 * b.level;
-        }
+        game.supply -= 5 * b.level;
+
+if(game.supply < 1000){
+    game.supply = 1000;
+}
 
     }
 
@@ -674,20 +695,26 @@ setInterval(()=>{
 
     }
 
-    game.marketCap = Math.floor(
+   // ================= MARKET CAP =================
+game.marketCap = Math.floor(
+  game.treasury +
+  (game.holders * 25) +
+  (game.engagement * 2) +
+  (game.utility * 500) +
+  (game.reputation * 50) +
+  Math.sqrt(game.lp) * 100
+);
 
-        game.treasury +
-        (game.holders * 10) +
-        (game.engagement * 5) +
-        (game.utility * 100) +
-        (game.lp * 20)
+// ================= LP → PRICE LOGIC =================
+const stability = game.lp / (game.lp + 500);
+const volatility = 1 - (stability * 0.6);
 
-    );
-
-    game.price = (
-        game.marketCap / 1000000
-    ).toFixed(6);
-
+game.price = Number(
+  (
+    (game.marketCap / Math.max(game.supply, 1)) *
+    volatility
+  ).toFixed(6)
+);
     ui();
 
 },1000);
@@ -813,160 +840,211 @@ TILE
 
 // ================= BUILDINGS =================
 function drawBuildings(){
+
 for(let b of buildings){
 
-let px=b.x*TILE-cameraX;
-let py=b.y*TILE-cameraY;
+let px = b.x * TILE - cameraX;
+let py = b.y * TILE - cameraY;
 
-ctx.fillStyle = B[b.type]?.color || "#ffffff";
+// tieň
+ctx.fillStyle = "rgba(0,0,0,0.3)";
+ctx.fillRect(px+8, py+50, 48, 8);
 
+// ================= TOWN HALL =================
 if(b.type==="townhall"){
-ctx.fillRect(px+4,py+4,56,56);
+
+ctx.fillStyle="#334155";
+ctx.fillRect(px+10,py+20,44,34);
+
+ctx.fillStyle="#00d4ff";
+ctx.beginPath();
+ctx.moveTo(px+6,py+20);
+ctx.lineTo(px+32,py+2);
+ctx.lineTo(px+58,py+20);
+ctx.closePath();
+ctx.fill();
+
+ctx.fillStyle="#111";
+ctx.fillRect(px+24,py+30,16,24);
+
+ctx.fillStyle="#fff";
+ctx.fillRect(px+14,py+28,8,8);
+ctx.fillRect(px+42,py+28,8,8);
 }
 
-// SHAPES
+// ================= COMMUNITY =================
 if(b.type==="community"){
 
 ctx.fillStyle="#22c55e";
-ctx.fillRect(px+12,py+24,40,28);
+ctx.fillRect(px+14,py+26,14,14);
+
+ctx.fillRect(px+36,py+26,14,14);
 
 ctx.fillStyle="#16a34a";
+
 ctx.beginPath();
-ctx.moveTo(px+8,py+24);
-ctx.lineTo(px+32,py+4);
-ctx.lineTo(px+56,py+24);
-ctx.closePath();
+ctx.moveTo(px+12,py+26);
+ctx.lineTo(px+21,py+14);
+ctx.lineTo(px+30,py+26);
 ctx.fill();
 
-ctx.fillStyle="#0f172a";
-ctx.fillRect(px+26,py+34,12,18);
-
+ctx.beginPath();
+ctx.moveTo(px+34,py+26);
+ctx.lineTo(px+43,py+14);
+ctx.lineTo(px+52,py+26);
+ctx.fill();
 }
 
+// ================= MARKETING =================
+if(b.type==="marketing"){
+
+ctx.fillStyle="#ffffff";
+ctx.fillRect(px+10,py+10,44,24);
+
+ctx.fillStyle="#475569";
+ctx.fillRect(px+28,py+34,8,20);
+
+ctx.strokeStyle="#22c55e";
+ctx.lineWidth=3;
+
+ctx.beginPath();
+ctx.moveTo(px+16,py+26);
+ctx.lineTo(px+24,py+22);
+ctx.lineTo(px+34,py+18);
+ctx.lineTo(px+46,py+12);
+ctx.stroke();
+}
+
+// ================= TREASURY =================
 if(b.type==="treasury"){
 
-ctx.fillStyle="#6b7280";
-ctx.fillRect(px+12,py+16,40,36);
-
-ctx.fillStyle="#f59e0b";
-ctx.beginPath();
-ctx.moveTo(px+20,py+16);
-ctx.lineTo(px+32,py+4);
-ctx.lineTo(px+44,py+16);
-ctx.closePath();
-ctx.fill();
+ctx.fillStyle="#64748b";
+ctx.fillRect(px+10,py+10,44,44);
 
 ctx.strokeStyle="#111";
 ctx.lineWidth=2;
-ctx.beginPath();
-ctx.moveTo(px+20,py+40);
-ctx.lineTo(px+44,py+40);
-ctx.stroke();
+ctx.strokeRect(px+10,py+10,44,44);
 
-}
+ctx.fillStyle="#eab308";
 
-if(b.type==="marketing"){
-
-ctx.fillStyle="#84cc16";
-ctx.fillRect(px+10,py+10,44,44);
-
-ctx.strokeStyle="#365314";
-
-for(let i=0;i<4;i++){
-ctx.beginPath();
-ctx.moveTo(px+18+i*8,py+14);
-ctx.lineTo(px+18+i*8,py+48);
-ctx.stroke();
-}
-
-}
-  
-if(b.type==="academy"){
-
-ctx.fillStyle="#a855f7";
-ctx.fillRect(px+12,py+12,40,40);
-
-ctx.fillStyle="#ffffff";
 ctx.beginPath();
 ctx.arc(px+32,py+32,10,0,Math.PI*2);
 ctx.fill();
 
-ctx.fillStyle="#00d4ff";
-ctx.fillRect(px+28,py+6,8,12);
-
+ctx.fillStyle="#111";
+ctx.fillRect(px+30,py+22,4,20);
+ctx.fillRect(px+22,py+30,20,4);
 }
 
+// ================= ACADEMY =================
+if(b.type==="academy"){
+
+ctx.fillStyle="#ffffff";
+
+ctx.fillRect(px+12,py+16,18,28);
+ctx.fillRect(px+34,py+16,18,28);
+
+ctx.strokeStyle="#000";
+ctx.lineWidth=1;
+
+ctx.beginPath();
+ctx.moveTo(px+32,py+16);
+ctx.lineTo(px+32,py+44);
+ctx.stroke();
+
+ctx.fillStyle="#a855f7";
+ctx.fillRect(px+12,py+10,40,6);
+}
+
+// ================= UTILITY =================
 if(b.type==="utility"){
 
-ctx.fillStyle="#00d4ff";
-ctx.fillRect(px+10,py+24,44,28);
-
 ctx.fillStyle="#94a3b8";
-ctx.fillRect(px+18,py+8,10,20);
-ctx.fillRect(px+36,py+8,10,20);
+ctx.fillRect(px+12,py+24,40,24);
 
+ctx.fillStyle="#00d4ff";
+
+ctx.beginPath();
+ctx.moveTo(px+34,py+8);
+ctx.lineTo(px+24,py+28);
+ctx.lineTo(px+34,py+28);
+ctx.lineTo(px+26,py+52);
+ctx.lineTo(px+44,py+24);
+ctx.lineTo(px+34,py+24);
+ctx.fill();
 }
 
+// ================= INFLUENCER =================
 if(b.type==="influencer"){
 
-ctx.fillStyle="#ef4444";
-ctx.fillRect(px+10,py+14,44,38);
-
 ctx.fillStyle="#111";
-ctx.fillRect(px+28,py+20,8,24);
+ctx.fillRect(px+18,py+8,28,48);
 
 ctx.strokeStyle="#fff";
-ctx.strokeRect(px+10,py+14,44,38);
+ctx.strokeRect(px+18,py+8,28,48);
 
-}
+ctx.fillStyle="#ef4444";
 
-if(b.type==="burn"){
-
-ctx.fillStyle="#eab308";
-ctx.fillRect(px+12,py+16,40,36);
-
-ctx.fillStyle="#ff4500";
-ctx.fillRect(px+24,py+24,16,16);
-
-ctx.strokeStyle="#fff";
-ctx.strokeRect(px+12,py+16,40,36);
-
-}
-
-if(b.type==="townhall"){
-
-ctx.fillStyle="#475569";
-ctx.fillRect(px+8,py+20,48,36);
-
-ctx.fillStyle="#00d4ff";
 ctx.beginPath();
-ctx.moveTo(px+4,py+20);
-ctx.lineTo(px+32,py);
-ctx.lineTo(px+60,py+20);
+ctx.moveTo(px+32,py+16);
+ctx.lineTo(px+24,py+32);
+ctx.lineTo(px+40,py+32);
 ctx.closePath();
 ctx.fill();
 
-ctx.fillStyle="#111";
-ctx.fillRect(px+24,py+30,16,26);
-
-ctx.fillStyle="#ffffff";
-ctx.fillRect(px+14,py+28,8,8);
-ctx.fillRect(px+42,py+28,8,8);
-
+ctx.fillStyle="#fff";
+ctx.fillRect(px+28,py+34,8,8);
 }
 
-// level
+// ================= BURN =================
+if(b.type==="burn"){
+
+ctx.fillStyle="#6b7280";
+ctx.fillRect(px+12,py+20,40,30);
+
+ctx.fillStyle="#ff4500";
+
+ctx.beginPath();
+ctx.moveTo(px+32,py+8);
+ctx.lineTo(px+24,py+24);
+ctx.lineTo(px+32,py+20);
+ctx.lineTo(px+40,py+24);
+ctx.closePath();
+ctx.fill();
+
+ctx.fillStyle="#dc2626";
+
+ctx.beginPath();
+ctx.moveTo(px+32,py+14);
+ctx.lineTo(px+28,py+24);
+ctx.lineTo(px+32,py+20);
+ctx.lineTo(px+36,py+24);
+ctx.closePath();
+ctx.fill();
+}
+
+// LEVEL
 ctx.fillStyle="white";
 ctx.font="12px Arial";
-ctx.fillText("Lv."+b.level,px+8,py+16);
+ctx.fillText("Lv."+b.level, px+8, py+14);
 
-// select highlight
+// SELECT
 if(selected===b){
-ctx.strokeStyle="#fff";
+
+ctx.strokeStyle="#ffffff";
 ctx.lineWidth=3;
-ctx.strokeRect(px+4,py+4,56,56);
+
+ctx.strokeRect(
+px+4,
+py+4,
+56,
+56
+);
+
 }
+
 }
+
 }
 
 // ================= PARTICLES =================
@@ -984,6 +1062,9 @@ particles=particles.filter(p=>p.life>0);
 }
 
 setInterval(()=>{
+
+// LP stabilita (0 až 1)
+const lpStability = game.lp / (game.lp + 500);
 
 localStorage.setItem(
 "mgot_save",
@@ -1004,7 +1085,23 @@ try{
 
 const data = JSON.parse(save);
 
-if(data.game) game = data.game;
+if(data.game){
+  game = {
+    treasury: 500,
+    holders: 10,
+    engagement: 100,
+    education: 0,
+    utility: 1,
+    promoters: 0,
+    lp: 100,
+    supply: 1000000,
+    reputation: 0,
+    communityPower: 0,
+    price: 0.001,
+    marketCap: 1000,
+    ...data.game
+  };
+}
 if(data.buildings) buildings = data.buildings;
 
 let hasTownHall = buildings.some(
@@ -1097,17 +1194,20 @@ function newGame(){
 
     localStorage.removeItem("mgot_save");
 
-    game = {
-        treasury:500,
-        holders:10,
-        engagement:100,
-        education:0,
-        utility:1,
-        promoters:0,
-        lp:100,
-        price:0.001,
-        marketCap:1000
-    };
+  game = {
+  treasury: 500,
+  holders: 10,
+  engagement: 100,
+  education: 0,
+  utility: 1,
+  promoters: 0,
+  lp: 100,
+  supply: 1000000,
+  reputation: 0,
+  communityPower: 0,
+  price: 0.001,
+  marketCap: 1000
+};
 
     buildings = [{
         x:10,
