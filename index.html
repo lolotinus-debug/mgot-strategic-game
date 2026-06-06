@@ -673,42 +673,9 @@ function generateMap(){
       else if(r < 0.35) mapData[x][y] = "forest";
       else mapData[x][y] = "grass";
     }
-  }
-}
 
 generateMap(); // 🔥 DÔLEŽITÉ
 
-    }
-}
-
-function generateMap(){
-
-for(let x=0;x<MAP_SIZE;x++){
-
-mapData[x] = [];
-
-for(let y=0;y<MAP_SIZE;y++){
-
-let r = Math.random();
-
-if(r < 0.10){
-mapData[x][y] = "water";
-}
-else if(r < 0.20){
-mapData[x][y] = "mountain";
-}
-else if(r < 0.35){
-mapData[x][y] = "forest";
-}
-else{
-mapData[x][y] = "grass";
-}
-
-}
-
-}
-
-}
   
 // ================= MAP ZONES =================
 function drawMap(){
