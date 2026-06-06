@@ -353,9 +353,17 @@ function selectBuild(t){
     b.style.outline="none";
   });
 
-  if(window.event?.target){
-    window.event.target.style.outline="2px solid white";
+ document.querySelectorAll("#leftPanel button").forEach(b=>{
+  b.style.outline="none";
+});
+
+const buttons = document.querySelectorAll("#leftPanel button");
+
+buttons.forEach(b=>{
+  if(b.innerText.includes(t)){
+    b.style.outline="2px solid white";
   }
+});
 
   document.getElementById("info").innerHTML = `
     <b>Selected:</b> ${t}<br>
