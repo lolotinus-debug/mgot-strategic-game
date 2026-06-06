@@ -275,30 +275,46 @@ font-size:9px;
 <body>
 
 <div id="topbar">
-<div class="resource">💰 Gold: <span id="gold">500</span></div>
-<div class="resource">🌾 Food: <span id="food">100</span></div>
-<div class="resource">⚡ Energy: <span id="energy">100</span></div>
-<div class="resource">👥 Population: <span id="population">10</span></div>
-<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
-<div class="resource">🔬 Tech: <span id="tech">1</span></div>
-<div class="resource">🪖 Soldiers: <span id="soldiers">0</span></div>
-<div class="resource">🌍 Continent: Map</div>
+
+<div class="resource">💎 Treasury:
+<span id="treasury">500</span></div>
+
+<div class="resource">👥 Holders:
+<span id="holders">10</span></div>
+
+<div class="resource">⚡ Engagement:
+<span id="engagement">100</span></div>
+
+<div class="resource">🧠 Education:
+<span id="education">0</span></div>
+
+<div class="resource">🔷 Utility:
+<span id="utility">1</span></div>
+
+<div class="resource">🚀 Promoters:
+<span id="promoters">0</span></div>
+
+<div class="resource">🏦 LP:
+<span id="lp">100</span></div>
+
+<div class="resource">📈 Price:
+<span id="price">0.001</span></div>
+
+<div class="resource">💰 MC:
+<span id="marketCap">1000</span></div>
 
 </div>
 
 <div id="leftPanel">
 <h3>🏗 Buildings</h3>
 
-<button onclick="selectBuild('house')">🏠 House (100)</button>
-<button onclick="selectBuild('farm')">🌾 Farm (120)</button>
-<button onclick="selectBuild('mine')">⛏ Mine (150)</button>
-<button onclick="selectBuild('lab')">🧠 Lab (200)</button>
-<button onclick="selectBuild('plant')">⚡ Plant (200)</button>
-
-<hr style="margin:10px 0;border:1px solid #333">
-
-<button onclick="selectBuild('armory')">🪖 Armory (300)</button>
-<button onclick="selectBuild('forge')">🔨 Forge (300)</button>
+<button onclick="selectBuild('community')">🏘 Community Hub (100)</button>
+<button onclick="selectBuild('marketing')">📢 Marketing Center (120)</button>
+<button onclick="selectBuild('treasury')">🏦 Treasury Vault (150)</button>
+<button onclick="selectBuild('academy')">🎓 Education Center (200)</button>
+<button onclick="selectBuild('utility')">⚡ Utility Lab (250)</button>
+<button onclick="selectBuild('influencer')">🚀 Influencer Agency (300)</button>
+<button onclick="selectBuild('burn')">🔥 Burn Engine (350)</button>
 </div>
 
 <div id="rightPanel">
@@ -372,17 +388,21 @@ let selectedBuild = null;
 let particles = [];
 
 let game = {
-gold:500,
-food:100,
-energy:100,
-knowledge:0,
-soldiers:0,
-population:10,
-technologyLevel:1
+
+treasury:500,
+holders:10,
+engagement:100,
+education:0,
+utility:1,
+promoters:0,
+lp:100,
+price:0.001,
+marketCap:1000
+
 };
 
 let buildings = [];
-  
+
 buildings.push({
 x:10,
 y:10,
@@ -392,14 +412,23 @@ level:1
 
 // ================= BUILD COSTS =================
 const B = {
+
 townhall:{cost:0,color:"#ffffff"},
-house:{cost:100,color:"#22c55e"},
-farm:{cost:120,color:"#84cc16"},
-mine:{cost:150,color:"#f59e0b"},
-lab:{cost:200,color:"#a855f7"},
-plant:{cost:200,color:"#00d4ff"},
-armory:{cost:300,color:"#ef4444"},
-forge:{cost:300,color:"#eab308"}
+
+community:{cost:100,color:"#22c55e"},
+
+marketing:{cost:120,color:"#3b82f6"},
+
+treasury:{cost:150,color:"#f59e0b"},
+
+academy:{cost:200,color:"#a855f7"},
+
+utility:{cost:250,color:"#00d4ff"},
+
+influencer:{cost:300,color:"#ef4444"},
+
+burn:{cost:350,color:"#eab308"}
+
 };
 
 // ================= LOG =================
@@ -424,14 +453,33 @@ color
 
 // ================= UPDATE UI =================
 function ui(){
-document.getElementById("gold").innerText=Math.floor(game.gold);
-document.getElementById("food").innerText=Math.floor(game.food);
-document.getElementById("energy").innerText=Math.floor(game.energy);
-document.getElementById("knowledge").innerText=Math.floor(game.knowledge);
-document.getElementById("tech").innerText=game.technologyLevel;
-document.getElementById("soldiers").innerText=Math.floor(game.soldiers);
-document.getElementById("population").innerText=Math.floor(game.population);
-}
+document.getElementById("treasury").innerText =
+Math.floor(game.treasury);
+
+document.getElementById("holders").innerText =
+Math.floor(game.holders);
+
+document.getElementById("engagement").innerText =
+Math.floor(game.engagement);
+
+document.getElementById("education").innerText =
+Math.floor(game.education);
+
+document.getElementById("utility").innerText =
+Math.floor(game.utility);
+
+document.getElementById("promoters").innerText =
+Math.floor(game.promoters);
+
+document.getElementById("lp").innerText =
+Math.floor(game.lp);
+
+document.getElementById("price").innerText =
+game.price;
+
+document.getElementById("marketCap").innerText =
+Math.floor(game.marketCap);
+} 
 
 // ================= INFO =================
 function updateInfo(){
@@ -459,37 +507,39 @@ Upgrade cost: ${selected.level * 120}<br>
 }
 
 // ================= UPGRADE =================
+
 function upgrade(){
 
-if(!selected){
-return;
-}
+    if(!selected){
+        return;
+    }
 
-if(selected.type === "townhall"){
-log("❌ Town Hall cannot be upgraded");
-return;
-}
+    if(selected.type === "townhall"){
+        log("❌ Headquarters cannot be upgraded");
+        return;
+    }
 
-let cost = selected.level * 120;
+    let cost = selected.level * 120;
 
-if(game.gold < cost){
-log("❌ Not enough gold");
-return;
-}
+    if(game.treasury < cost){
+        log("❌ Not enough Treasury");
+        return;
+    }
 
-game.gold -= cost;
-selected.level++;
+    game.treasury -= cost;
 
-explosion(
-selected.x * TILE,
-selected.y * TILE,
-"#fff"
-);
+    selected.level++;
 
-log("⬆ Upgraded " + selected.type);
+    explosion(
+        selected.x * TILE,
+        selected.y * TILE,
+        "#fff"
+    );
 
-ui();
-updateInfo();
+    log("⬆ Upgraded " + selected.type);
+
+    ui();
+    updateInfo();
 
 }
 
@@ -556,12 +606,12 @@ if(!selectedBuild) return;
 
 let cost=B[selectedBuild].cost;
 
-if(game.gold<cost){
-log("❌ Not enough gold");
-return;
+if(game.treasury < cost){
+    log("❌ Not enough Treasury");
+    return;
 }
 
-game.gold-=cost;
+game.treasury -= cost;
 
 buildings.push({
 x,y,
@@ -579,70 +629,66 @@ ui();
 });
 
 // ================= ECONOMY =================
+
 setInterval(()=>{
 
-for(let b of buildings){
+    for(let b of buildings){
 
-if(b.type==="house"){
-game.population += 0.05 * b.level;
-}
+        if(b.type==="community"){
+            game.holders += 0.05 * b.level;
+        }
 
-if(b.type==="farm"){
-game.food += 2 * b.level;
-}
-  
-if(b.type==="mine"){
-let workers = b.level*2;
-if(game.population >= workers){
-game.gold += b.level;
-}
-}
+        if(b.type==="marketing"){
+            game.engagement += 2 * b.level;
+        }
 
-if(b.type==="lab"){
-if(game.energy > 0){
-game.knowledge += b.level;
-game.energy -= 0.5*b.level;
-}
-}
+        if(b.type==="treasury"){
+            game.treasury += b.level;
+        }
 
-if(b.type==="plant"){
-game.energy += 3*b.level;
-}
+        if(b.type==="academy"){
+            game.education += b.level;
+        }
 
-if(b.type==="armory"){
-b.cooldown++;
-if(b.cooldown>=5){
-game.soldiers+=b.level;
-b.cooldown=0;
-}
-}
+        if(b.type==="utility"){
+            game.utility += 0.5 * b.level;
+        }
 
-if(b.type==="forge"){
-game.soldiers+=Math.floor(b.level/2);
-}
+        if(b.type==="influencer"){
+            game.promoters += 0.2 * b.level;
+        }
 
-}
+        if(b.type==="burn"){
+            game.lp += 0.1 * b.level;
+        }
 
-game.gold -= game.soldiers * 0.02;
-if(game.gold < 0) game.gold = 0;
+    }
 
-if(game.knowledge >= 100){
-game.technologyLevel++;
-game.knowledge = 0;
-log("🧠 New Technology Level: " + game.technologyLevel);
-}
+    if(game.education >= 100){
 
-game.food -= game.population * 0.05;
-if(game.food < 0){
-game.food = 0;
+        game.utility++;
 
-if(game.population > 1){
-game.population -= 0.1;
-}
+        game.education = 0;
 
-}
-  
-ui();
+        log("🔷 New Utility Released");
+
+    }
+
+    game.marketCap = Math.floor(
+
+        game.treasury +
+        (game.holders * 10) +
+        (game.engagement * 5) +
+        (game.utility * 100) +
+        (game.lp * 20)
+
+    );
+
+    game.price = (
+        game.marketCap / 1000000
+    ).toFixed(6);
+
+    ui();
 
 },1000);
 
@@ -772,14 +818,14 @@ for(let b of buildings){
 let px=b.x*TILE-cameraX;
 let py=b.y*TILE-cameraY;
 
-ctx.fillStyle=B[b.type].color;
+ctx.fillStyle = B[b.type]?.color || "#ffffff";
 
 if(b.type==="townhall"){
 ctx.fillRect(px+4,py+4,56,56);
 }
 
 // SHAPES
-if(b.type==="house"){
+if(b.type==="community"){
 
 ctx.fillStyle="#22c55e";
 ctx.fillRect(px+12,py+24,40,28);
@@ -797,7 +843,7 @@ ctx.fillRect(px+26,py+34,12,18);
 
 }
 
-if(b.type==="mine"){
+if(b.type==="treasury"){
 
 ctx.fillStyle="#6b7280";
 ctx.fillRect(px+12,py+16,40,36);
@@ -819,7 +865,7 @@ ctx.stroke();
 
 }
 
-if(b.type==="farm"){
+if(b.type==="marketing"){
 
 ctx.fillStyle="#84cc16";
 ctx.fillRect(px+10,py+10,44,44);
@@ -835,7 +881,7 @@ ctx.stroke();
 
 }
   
-if(b.type==="lab"){
+if(b.type==="academy"){
 
 ctx.fillStyle="#a855f7";
 ctx.fillRect(px+12,py+12,40,40);
@@ -850,7 +896,7 @@ ctx.fillRect(px+28,py+6,8,12);
 
 }
 
-if(b.type==="plant"){
+if(b.type==="utility"){
 
 ctx.fillStyle="#00d4ff";
 ctx.fillRect(px+10,py+24,44,28);
@@ -861,7 +907,7 @@ ctx.fillRect(px+36,py+8,10,20);
 
 }
 
-if(b.type==="armory"){
+if(b.type==="influencer"){
 
 ctx.fillStyle="#ef4444";
 ctx.fillRect(px+10,py+14,44,38);
@@ -874,7 +920,7 @@ ctx.strokeRect(px+10,py+14,44,38);
 
 }
 
-if(b.type==="forge"){
+if(b.type==="burn"){
 
 ctx.fillStyle="#eab308";
 ctx.fillRect(px+12,py+16,40,36);
@@ -987,21 +1033,33 @@ console.log("Save corrupted");
 // ================= RENDER =================
 function render(){
 
-ctx.fillStyle="#07131f";
-ctx.fillRect(
-0,
-0,
-window.innerWidth,
-window.innerHeight
-);
+    ctx.fillStyle = "#07131f";
 
-drawMap();
-drawBuildings();
-drawParticles();
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
-requestAnimationFrame(render);
+    drawMap();
+    drawBuildings();
+    drawParticles();
+
+    requestAnimationFrame(render);
+
 }
+// START
 
+ui();
+
+document.getElementById("upgradeBtn").style.display = "none";
+document.getElementById("demolishBtn").style.display = "none";
+
+document.getElementById("info").innerHTML =
+"Nothing selected";
+
+render();
 // ================= CAMERA =================
 let touchStartX = 0;
 let touchStartY = 0;
@@ -1033,59 +1091,60 @@ if(e.key==="ArrowDown") cameraY+=32;
 });
 function newGame(){
 
-if(!confirm("Start a new game?")){
-return;
+    if(!confirm("Start a new game?")){
+        return;
+    }
+
+    localStorage.removeItem("mgot_save");
+
+    game = {
+        treasury:500,
+        holders:10,
+        engagement:100,
+        education:0,
+        utility:1,
+        promoters:0,
+        lp:100,
+        price:0.001,
+        marketCap:1000
+    };
+
+    buildings = [{
+        x:10,
+        y:10,
+        type:"townhall",
+        level:1
+    }];
+
+    particles = [];
+    selected = null;
+    selectedBuild = null;
+
+    cameraX = 0;
+    cameraY = 0;
+
+    ui();
+
+    document.getElementById("upgradeBtn").style.display = "none";
+    document.getElementById("demolishBtn").style.display = "none";
+
+    document.getElementById("info").innerHTML =
+    "Nothing selected";
+
+    log("🆕 New Game Started");
+
 }
 
-localStorage.removeItem("mgot_save");
-
-game = {
-gold:500,
-food:100,
-energy:100,
-knowledge:0,
-soldiers:0,
-population:10,
-technologyLevel:1
-};
-
-buildings = [{
-x:10,
-y:10,
-type:"townhall",
-level:1
-}];
-  
-particles = [];
-selected = null;
-selectedBuild = null;
-
-cameraX = 0;
-cameraY = 0;
-
-ui();
-  
-if(!selected){
-
-document.getElementById("upgradeBtn").style.display="none";
-document.getElementById("demolishBtn").style.display="none";
-
-document.getElementById("info").innerHTML="Nothing selected";
-
-return;
-  }
-
 // START
+
 ui();
-document.getElementById("upgradeBtn").style.display="none";
-document.getElementById("demolishBtn").style.display="none";
+
+document.getElementById("upgradeBtn").style.display = "none";
+document.getElementById("demolishBtn").style.display = "none";
 
 document.getElementById("info").innerHTML =
 "Nothing selected";
 
-}
-document.getElementById("upgradeBtn").style.display="none";
-document.getElementById("demolishBtn").style.display="none";
 render();
 
 </script>
