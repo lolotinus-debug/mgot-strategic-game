@@ -297,6 +297,9 @@ font-size:9px;
 <div class="resource">🏦 LP:
 <span id="lp">100</span></div>
 
+<div class="resource">📊 Volume:
+<span id="volume">0</span></div>  
+
 <div class="resource">⭐ Reputation:
 <span id="reputation">0</span></div>
 
@@ -405,7 +408,9 @@ let game = {
   reputation: 0,
   communityPower: 0,
   price: 0.001,
-  marketCap: 1000
+  marketCap: 1000,
+volume: 0,
+lastPrice: 0.001
 };
 
 let buildings = [];
@@ -480,6 +485,9 @@ Math.floor(game.promoters);
 
 document.getElementById("lp").innerText =
 Math.floor(game.lp);
+
+document.getElementById("volume").innerText =
+Math.floor(game.volume);  
 
 document.getElementById("reputation").innerText =
 Math.floor(game.reputation);
@@ -647,43 +655,47 @@ setInterval(()=>{
 
     for(let b of buildings){
 
-       if(b.type==="community"){
-    game.holders += 0.05 * b.level;
-    game.communityPower += 0.1 * b.level;
-}
+        if(b.type==="community"){
+            game.holders += 0.05 * b.level;
+            game.communityPower += 0.1 * b.level;
+        }
 
-       if(b.type==="marketing"){
-    game.engagement += 2 * b.level;
+        if(b.type==="marketing"){
+            game.engagement += 2 * b.level;
 
-    game.holders +=
-    game.engagement * 0.0002 * b.level;
-}
+            game.holders +=
+            game.engagement * 0.0002 * b.level;
+        }
 
         if(b.type==="treasury"){
             game.treasury += b.level;
         }
 
-       if(b.type==="academy"){
-    game.education += b.level;
-    game.reputation += 0.05 * b.level;
-}
+        if(b.type==="academy"){
+            game.education += b.level;
+            game.reputation += 0.05 * b.level;
+        }
 
         if(b.type==="utility"){
-    game.utility += 0.2 * b.level;
-    game.reputation += 0.1 * b.level;
-}
+            game.utility += 0.2 * b.level;
+            game.reputation += 0.1 * b.level;
+        }
 
         if(b.type==="influencer"){
             game.promoters += 0.2 * b.level;
         }
 
-        game.supply -= 5 * b.level;
+        if(b.type==="burn"){
+            game.supply -= (10 * b.level);
 
-if(game.supply < 1000){
-    game.supply = 1000;
-}
+            if(game.supply < 1000){
+                game.supply = 1000;
+            }
+        }
 
     }
+
+    // ================= EDUCATION =================
 
     if(game.education >= 100){
 
@@ -692,29 +704,132 @@ if(game.supply < 1000){
         game.education = 0;
 
         log("🔷 New Utility Released");
-
     }
 
-   // ================= MARKET CAP =================
-game.marketCap = Math.floor(
-  game.treasury +
-  (game.holders * 25) +
-  (game.engagement * 2) +
-  (game.utility * 500) +
-  (game.reputation * 50) +
-  Math.sqrt(game.lp) * 100
+   // ================= TRADING SIMULATION =================
+
+// uložíme starú cenu
+game.lastPrice = game.price;
+
+// BUYERS
+let buyers =
+    game.holders * 0.02 +
+    game.promoters * 0.5 +
+    game.engagement * 0.001;
+
+// SELLERS
+let sellers =
+    (game.holders * 0.01) *
+    (Math.random() * 2);
+
+// VOLUME
+let volume = buyers + sellers;
+
+game.volume = volume;
+
+// PRESSURE
+let pressure = buyers - sellers;
+
+// PRICE MOVEMENT
+game.price *= (
+    1 + pressure * 0.0005
 );
 
-// ================= LP → PRICE LOGIC =================
-const stability = game.lp / (game.lp + 500);
-const volatility = 1 - (stability * 0.6);
+// ochrana
+if(game.price < 0.000001){
+    game.price = 0.000001;
+}
 
-game.price = Number(
-  (
-    (game.marketCap / Math.max(game.supply, 1)) *
-    volatility
-  ).toFixed(6)
+// LP REACTION
+game.lp += buyers * 0.05;
+game.lp -= sellers * 0.04;
+
+// sentiment noise
+game.lp +=
+    (Math.random() - 0.5) * 0.5;
+
+// LP limits
+if(game.lp < 10){
+    game.lp = 10;
+}
+
+if(game.lp > 5000){
+    game.lp = 5000;
+}
+
+// WHALES
+if(Math.random() < 0.01){
+
+    let whale =
+        (Math.random() - 0.5) * 0.25;
+
+    game.price *=
+        (1 + whale);
+
+    log(
+        whale > 0
+        ? "🐋 Whale Buy"
+        : "🐋 Whale Sell"
+    );
+}
+
+// FOMO
+if(game.price > game.lastPrice){
+
+    game.holders +=
+        game.holders * 0.002;
+}
+
+// PANIC SELL
+if(
+    game.price <
+    game.lastPrice * 0.95
+){
+
+    game.holders -=
+        game.holders * 0.01;
+
+    if(game.holders < 1){
+        game.holders = 1;
+    }
+}
+
+// MARKET CAP
+game.marketCap =
+Math.floor(
+    game.price *
+    game.supply
 );
+
+// bezpečnosť
+if(isNaN(game.price)){
+    game.price = 0.001;
+}
+    // ================= MARKET CAP =================
+
+    game.marketCap = Math.floor(
+        game.treasury +
+        (game.holders * 25) +
+        (game.engagement * 2) +
+        (game.utility * 500) +
+        (game.reputation * 50) +
+        (game.lp * 20)
+    );
+
+    // ================= PRICE =================
+
+    game.price = Number(
+        (
+            (game.marketCap * game.lp) /
+            (game.supply * 100000)
+        ).toFixed(6)
+    );
+
+    // ochrana proti NaN
+    if(isNaN(game.price)){
+        game.price = 0;
+    }
+
     ui();
 
 },1000);
@@ -1050,21 +1165,20 @@ py+4,
 // ================= PARTICLES =================
 function drawParticles(){
 for(let p of particles){
-ctx.fillStyle=p.color;
-ctx.fillRect(p.x-cameraX,p.y-cameraY,3,3);
+ctx.fillStyle = p.color;
+ctx.fillRect(p.x - cameraX, p.y - cameraY, 3, 3);
 
-p.x+=p.vx;
-p.y+=p.vy;
+p.x += p.vx;
+p.y += p.vy;
 p.life--;
-
-}
-particles=particles.filter(p=>p.life>0);
 }
 
+particles = particles.filter(p => p.life > 0);
+}
+
+
+// ================= AUTOSAVE =================
 setInterval(()=>{
-
-// LP stabilita (0 až 1)
-const lpStability = game.lp / (game.lp + 500);
 
 localStorage.setItem(
 "mgot_save",
@@ -1074,10 +1188,11 @@ buildings
 })
 );
 
-},5000);
+}, 5000);
 
-const save =
-localStorage.getItem("mgot_save");
+
+// ================= LOAD SAVE =================
+const save = localStorage.getItem("mgot_save");
 
 if(save){
 
@@ -1085,44 +1200,43 @@ try{
 
 const data = JSON.parse(save);
 
+// safe merge (aby sa ti nezmazali nové hodnoty pri update kódu)
 if(data.game){
-  game = {
-    treasury: 500,
-    holders: 10,
-    engagement: 100,
-    education: 0,
-    utility: 1,
-    promoters: 0,
-    lp: 100,
-    supply: 1000000,
-    reputation: 0,
-    communityPower: 0,
-    price: 0.001,
-    marketCap: 1000,
-    ...data.game
-  };
+game = {
+  treasury: 500,
+  holders: 10,
+  engagement: 100,
+  education: 0,
+  utility: 1,
+  promoters: 0,
+  lp: 100,
+  supply: 1000000,
+  reputation: 0,
+  communityPower: 0,
+  price: 0.001,
+  marketCap: 1000,
+  ...data.game
+};
 }
-if(data.buildings) buildings = data.buildings;
 
-let hasTownHall = buildings.some(
-b => b.type === "townhall"
-);
+if(data.buildings){
+buildings = data.buildings;
+}
+
+// guarantee townhall exists
+let hasTownHall = buildings.some(b => b.type === "townhall");
 
 if(!hasTownHall){
-
 buildings.push({
 x:10,
 y:10,
 type:"townhall",
 level:1
 });
-
 }
 
 }catch(err){
-
-console.log("Save corrupted");
-
+console.log("Save corrupted", err);
 }
 
 }
