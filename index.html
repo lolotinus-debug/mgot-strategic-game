@@ -2,6 +2,875 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGOT Civilization Builder</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    background:#020617;
+    color:white;
+    min-height:100vh;
+    padding:20px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#22d3ee;
+}
+
+.topbar{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.resource{
+    background:#0f172a;
+    padding:15px;
+    border-radius:12px;
+    text-align:center;
+    border:1px solid #1e293b;
+}
+
+.resource span{
+    display:block;
+    margin-top:5px;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.era-box{
+    background:#0f172a;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    text-align:center;
+    border:1px solid #1e293b;
+}
+
+.era-name{
+    color:#22d3ee;
+    font-size:28px;
+    margin-top:10px;
+}
+
+.game{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.panel{
+    background:#0f172a;
+    padding:20px;
+    border-radius:12px;
+    border:1px solid #1e293b;
+}
+
+.panel h2{
+    margin-bottom:15px;
+    color:#22d3ee;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-bottom:10px;
+    border:none;
+    border-radius:10px;
+    background:#0891b2;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    transform:scale(1.02);
+}
+
+.building{
+    margin-bottom:15px;
+    padding:12px;
+    border-radius:10px;
+    background:#111827;
+}
+
+.footer{
+    margin-top:20px;
+    text-align:center;
+    color:#94a3b8;
+}
+
+@media(max-width:768px){
+    .game{
+        grid-template-columns:1fr;
+    }
+
+    .topbar{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>🧠 MGOT Civilization Builder</h1>
+
+<div class="topbar">
+    <div class="resource">
+        Knowledge
+        <span id="knowledge">0</span>
+    </div>
+
+    <div class="resource">
+        Energy
+        <span id="energy">0</span>
+    </div>
+
+    <div class="resource">
+        Community
+        <span id="community">0</span>
+    </div>
+</div>
+
+<div class="era-box">
+    <div>Current Era</div>
+    <div class="era-name" id="era">🧍 Individual</div>
+</div>
+
+<div class="game">
+
+<div class="panel">
+
+<h2>Actions</h2>
+
+<button onclick="study()">📚 Study (+1 Knowledge)</button>
+
+<button onclick="exercise()">💪 Exercise (+1 Energy)</button>
+
+<button onclick="network()">🤝 Network (+1 Community)</button>
+
+</div>
+
+<div class="panel">
+
+<h2>Buildings</h2>
+
+<div class="building">
+    📚 Learning Center<br>
+    Cost: 50 Knowledge<br>
+    +1 Knowledge/sec<br><br>
+    <button onclick="buyLearning()">Buy</button>
+</div>
+
+<div class="building">
+    💪 Gym<br>
+    Cost: 50 Energy<br>
+    +1 Energy/sec<br><br>
+    <button onclick="buyGym()">Buy</button>
+</div>
+
+<div class="building">
+    🤝 Community Hub<br>
+    Cost: 50 Community<br>
+    +1 Community/sec<br><br>
+    <button onclick="buyCommunity()">Buy</button>
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+    MGOT Civilization Builder v1.0
+</div>
+
+</div>
+
+<script>
+
+let knowledge = 0;
+let energy = 0;
+let community = 0;
+
+let learningCenters = 0;
+let gyms = 0;
+let communityHubs = 0;
+
+function updateUI(){
+
+document.getElementById("knowledge").textContent =
+Math.floor(knowledge);
+
+document.getElementById("energy").textContent =
+Math.floor(energy);
+
+document.getElementById("community").textContent =
+Math.floor(community);
+
+let era = "🧍 Individual";
+
+if(
+knowledge >= 100 &&
+energy >= 100 &&
+community >= 100
+){
+era = "👥 Tribe";
+}
+
+if(
+knowledge >= 500 &&
+energy >= 500 &&
+community >= 500
+){
+era = "🏫 Academy";
+}
+
+if(
+knowledge >= 2500 &&
+energy >= 2500 &&
+community >= 2500
+){
+era = "🏙️ City";
+}
+
+if(
+knowledge >= 10000 &&
+energy >= 10000 &&
+community >= 10000
+){
+era = "🌍 Global Network";
+}
+
+document.getElementById("era").textContent = era;
+
+saveGame();
+}
+
+function study(){
+knowledge++;
+updateUI();
+}
+
+function exercise(){
+energy++;
+updateUI();
+}
+
+function network(){
+community++;
+updateUI();
+}
+
+function buyLearning(){
+
+if(knowledge >= 50){
+knowledge -= 50;
+learningCenters++;
+updateUI();
+}
+}
+
+function buyGym(){
+
+if(energy >= 50){
+energy -= 50;
+gyms++;
+updateUI();
+}
+}
+
+function buyCommunity(){
+
+if(community >= 50){
+community -= 50;
+communityHubs++;
+updateUI();
+}
+}
+
+setInterval(()=>{
+
+knowledge += learningCenters;
+energy += gyms;
+community += communityHubs;
+
+updateUI();
+
+},1000);
+
+function saveGame(){
+
+const data = {
+knowledge,
+energy,
+community,
+learningCenters,
+gyms,
+communityHubs
+};
+
+localStorage.setItem(
+"mgot_save",
+JSON.stringify(data)
+);
+
+}
+
+function loadGame(){
+
+const save =
+localStorage.getItem("mgot_save");
+
+if(!save) return;
+
+const data = JSON.parse(save);
+
+knowledge = data.knowledge || 0;
+energy = data.energy || 0;
+community = data.community || 0;
+
+learningCenters = data.learningCenters || 0;
+gyms = data.gyms || 0;
+communityHubs = data.communityHubs || 0;
+
+}
+
+loadGame();
+updateUI();
+
+</script>
+
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MGOT Civilization</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background: radial-gradient(circle at top, #0b1b3a, #020617 70%, #000);
+    color:#dbeafe;
+}
+
+/* MOBILE FIRST */
+.container{
+    max-width:100%;
+    padding:12px;
+}
+
+h1{
+    font-size:20px;
+    text-align:center;
+    color:#38bdf8;
+    text-shadow:0 0 10px #38bdf8;
+}
+
+.card{
+    background:rgba(15,23,42,0.85);
+    border:1px solid #1e3a8a;
+    box-shadow:0 0 10px rgba(56,189,248,0.2);
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:10px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:6px;
+    border:none;
+    border-radius:10px;
+    background:#0ea5e9;
+    color:white;
+    font-size:14px;
+}
+
+button:active{
+    transform:scale(0.98);
+}
+
+.node{
+    padding:10px;
+    margin-top:6px;
+    background:#0f172a;
+    border:1px solid #1e3a8a;
+    border-radius:10px;
+    text-align:center;
+}
+
+.node:active{
+    background:#1e3a8a;
+}
+
+.good{color:#34d399;}
+.bad{color:#f87171;}
+.warn{color:#fbbf24;}
+.small{font-size:12px; opacity:0.8;}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🧠 MGOT CIVILIZATION</h1>
+
+<div class="card">
+🌍 Economy: <span id="e">50</span><br>
+🧠 Tech: <span id="t">50</span><br>
+⚔ Military: <span id="m">50</span><br>
+⚖ Stability: <span id="s">100</span><br>
+🤖 AI Power: <span id="ai">80</span>
+</div>
+
+<div class="card">
+<h3>🎮 STRATEGY OPTIONS</h3>
+
+<button onclick="act('eco')">💰 Invest Economy</button>
+<button onclick="act('tech')">🧠 Research Tech</button>
+<button onclick="act('mil')">⚔ Build Military</button>
+<button onclick="act('stability')">🛡 Stabilize Nation</button>
+</div>
+
+<div class="card">
+<h3>🌍 MAP CONTROL</h3>
+
+<div class="node" onclick="capture('EU')">EUROPE</div>
+<div class="node" onclick="capture('US')">AMERICA</div>
+<div class="node" onclick="capture('ASIA')">ASIA</div>
+<div class="node" onclick="capture('AFRICA')">AFRICA</div>
+
+<div class="small">Each region gives passive bonuses</div>
+</div>
+
+<div class="card">
+<h3>⚠ WORLD EVENT</h3>
+<div id="event" class="warn">World is unstable...</div>
+</div>
+
+<div class="card">
+<h3>🏆 STATUS</h3>
+<div id="status">Expand your civilization</div>
+</div>
+
+</div>
+
+<script>
+
+let e=50,t=50,m=50,s=100;
+let ai=80;
+
+let regions={
+EU:false,
+US:false,
+ASIA:false,
+AFRICA:false
+};
+
+function power(){
+return e+t+m+s;
+}
+
+function act(type){
+
+if(type==='eco'){
+e += 12;
+s -= 3;
+}
+
+if(type==='tech'){
+t += 15;
+e -= 5;
+}
+
+if(type==='mil'){
+m += 15;
+e -= 8;
+}
+
+if(type==='stability'){
+s += 12;
+e -= 5;
+}
+
+worldEvent();
+aiTurn();
+update();
+check();
+}
+
+function capture(r){
+
+if(m < 45){
+document.getElementById("status").innerHTML =
+"<span class='bad'>⚔ Not enough military power</span>";
+return;
+}
+
+regions[r]=true;
+m -= 10;
+ai += 8;
+
+document.getElementById("status").innerHTML =
+"<span class='good'>🌍 Captured " + r + "</span>";
+
+update();
+}
+
+function aiTurn(){
+
+ai += Math.random()*10;
+
+// AI pressure system
+if(ai > power()){
+s -= 10;
+e -= 6;
+m -= 6;
+
+document.getElementById("status").innerHTML =
+"<span class='bad'>🤖 AI is surpassing your civilization</span>";
+}
+
+// AI expansion
+if(Math.random() < 0.25){
+ai += 12;
+}
+}
+
+function worldEvent(){
+
+let events=[
+"💥 Global economic instability",
+"⚠ AI neural expansion accelerating",
+"📈 Scientific breakthrough discovered",
+"⚔ Regional conflicts rising",
+"🌍 Climate pressure increasing"
+];
+
+document.getElementById("event").innerText =
+events[Math.floor(Math.random()*events.length)];
+}
+
+function check(){
+
+let score = power() + (Object.values(regions).filter(Boolean).length * 30);
+
+if(score > 420){
+document.getElementById("status").innerHTML =
+"<span class='good'>🏆 GLOBAL DOMINATION ACHIEVED</span>";
+}
+
+if(ai > 240){
+document.getElementById("status").innerHTML =
+"<span class='bad'>💀 AI CONTROLLED THE WORLD</span>";
+}
+
+if(s <= 0){
+document.getElementById("status").innerHTML =
+"<span class='bad'>💀 CIVILIZATION COLLAPSED</span>";
+}
+}
+
+function update(){
+
+document.getElementById("e").innerText=Math.floor(e);
+document.getElementById("t").innerText=Math.floor(t);
+document.getElementById("m").innerText=Math.floor(m);
+document.getElementById("s").innerText=Math.floor(s);
+document.getElementById("ai").innerText=Math.floor(ai);
+}
+
+setInterval(worldEvent,4000);
+
+update();
+
+</script>
+
+</body>
+</html>
+
+
+Strategia na web 
+
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGOT Strategy game</title>
+
+<style>
+body {
+font-family: Arial;
+background: radial-gradient(circle,#0b1220,#020617);
+color:white;
+text-align:center;
+margin:0;
+padding:20px;
+}
+
+.container {
+max-width:700px;
+margin:auto;
+background:rgba(255,255,255,0.05);
+padding:20px;
+border-radius:12px;
+box-shadow:0 0 25px rgba(0,212,255,0.15);
+}
+
+h1 { color:#00d4ff; }
+
+.resources, .stats {
+display:flex;
+justify-content:space-around;
+padding:10px;
+background:rgba(0,0,0,0.3);
+border-radius:10px;
+margin-bottom:15px;
+flex-wrap:wrap;
+gap:10px;
+}
+
+.actions {
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:10px;
+}
+
+button {
+padding:10px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+transition:0.2s;
+}
+
+button:hover { transform:scale(1.03); }
+
+.green{background:#22c55e;}
+.blue{background:#00d4ff;color:black;}
+.orange{background:#f97316;}
+.yellow{background:#eab308;}
+.red{background:#ef4444;}
+
+.log {
+margin-top:15px;
+height:130px;
+overflow:auto;
+background:rgba(0,0,0,0.4);
+padding:10px;
+border-radius:8px;
+text-align:left;
+font-size:13px;
+color:#aaa;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⚔️ MGOT-Strategy game</h1>
+
+<div class="resources">
+<div>🪵 Wood: <span id="wood">100</span></div>
+<div>🍎 Food: <span id="food">50</span></div>
+<div>💰 Gold: <span id="gold">0</span></div>
+<div>🪨 Stone: <span id="stone">0</span></div>
+</div>
+
+<div class="stats">
+<div>🧍 Units: <span id="workers">2</span></div>
+<div>🏠 Houses: <span id="houses">1</span></div>
+<div>⛏️ Mines: <span id="mines">0</span></div>
+<div>🏦 Economy Level: <span id="eco">1</span></div>
+</div>
+
+<div class="actions">
+
+<button class="green" onclick="gather('wood')">🪵 Gather Wood</button>
+<button class="green" onclick="gather('food')">🍎 Gather Food</button>
+<button class="yellow" onclick="gather('stone')">🪨 Gather Stone</button>
+
+<button class="blue" onclick="buyWorker()">🧍 Recruit Unit (50 Food)</button>
+
+<button class="orange" onclick="buildHouse()">🏠 Build House (50 Wood)</button>
+<button class="orange" onclick="buildMine()">⛏️ Build Mine (80 Wood)</button>
+
+<button class="red" onclick="attack()">⚔️ Attack Enemy</button>
+
+<!-- TRADE SYSTEM -->
+<button onclick="trade('goldToWood')">💱 1 Gold → 1 Wood</button>
+<button onclick="trade('goldToFood')">💱 1 Gold → 1 Food</button>
+
+</div>
+
+<div class="log" id="log">MGOT Economy online...</div>
+
+</div>
+
+<script>
+
+// ================= MGOT STATE =================
+let game = {
+wood:100,
+food:50,
+gold:0,
+stone:0,
+workers:2,
+houses:1,
+mines:0,
+eco:1
+};
+
+// ================= GATHER =================
+function gather(type){
+game[type] += 1 * game.eco;
+update();
+}
+
+// ================= RECRUIT =================
+function buyWorker(){
+if(game.food >= 50){
+game.food -= 50;
+game.workers += 1;
+log("Unit recruited.");
+update();
+}
+}
+
+// ================= BUILD =================
+function buildHouse(){
+if(game.wood >= 50){
+game.wood -= 50;
+game.houses++;
+game.eco += 0.2;
+log("House built (+economy boost)");
+update();
+}
+}
+
+function buildMine(){
+if(game.wood >= 80){
+game.wood -= 80;
+game.mines++;
+log("Mine built (+gold production)");
+update();
+}
+}
+
+// ================= ATTACK =================
+function attack(){
+
+let enemy = 100 + Math.random()*150;
+let power = game.workers*10 + game.mines*8 + game.stone*2;
+
+if(power > enemy){
+game.gold += 50;
+log("Victory! +50 gold");
+} else {
+game.food -= 10;
+log("Defeat! You lost food");
+}
+
+update();
+}
+
+// ================= TRADE SYSTEM (NEW) =================
+function trade(type){
+
+if(type === "goldToWood" && game.gold >= 1){
+game.gold -= 1;
+game.wood += 1;
+log("Trade: 1 Gold → 1 Wood");
+}
+
+if(type === "goldToFood" && game.gold >= 1){
+game.gold -= 1;
+game.food += 1;
+log("Trade: 1 Gold → 1 Food");
+}
+
+update();
+}
+
+// ================= AUTO ECONOMY =================
+setInterval(()=>{
+
+game.wood += game.workers * 0.5 * game.eco;
+game.food += game.workers * 0.3 * game.eco;
+game.gold += game.mines * 0.3;
+game.stone += game.workers * 0.1;
+
+update();
+
+},1000);
+
+// ================= UI =================
+function update(){
+
+document.getElementById("wood").innerText = Math.floor(game.wood);
+document.getElementById("food").innerText = Math.floor(game.food);
+document.getElementById("gold").innerText = Math.floor(game.gold);
+document.getElementById("stone").innerText = Math.floor(game.stone);
+document.getElementById("workers").innerText = game.workers;
+document.getElementById("houses").innerText = game.houses;
+document.getElementById("mines").innerText = game.mines;
+document.getElementById("eco").innerText = game.eco.toFixed(1);
+
+}
+
+// ================= LOG =================
+function log(text){
+let div = document.getElementById("log");
+div.innerHTML += "<br>➤ " + text;
+div.scrollTop = div.scrollHeight;
+}
+
+// INIT
+update();
+
+</script>
+
+</body>
+</html>
+
+
+NAJNOVSI A FUNKCNY KOD......................................
+
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MGOT World Strategy</title>
 
@@ -275,62 +1144,37 @@ font-size:9px;
 <body>
 
 <div id="topbar">
-
-<div class="resource">💎 Treasury:
-<span id="treasury">500</span></div>
-
-<div class="resource">👥 Holders:
-<span id="holders">10</span></div>
-
-<div class="resource">⚡ Engagement:
-<span id="engagement">100</span></div>
-
-<div class="resource">🧠 Education:
-<span id="education">0</span></div>
-
-<div class="resource">🔷 Utility:
-<span id="utility">1</span></div>
-
-<div class="resource">🚀 Promoters:
-<span id="promoters">0</span></div>
-
-<div class="resource">🏦 LP:
-<span id="lp">100</span></div>
-
-<div class="resource">📈 Price:
-<span id="price">0.001</span></div>
-
-<div class="resource">💰 MC:
-<span id="marketCap">1000</span></div>
+<div class="resource">💰 Gold: <span id="gold">500</span></div>
+<div class="resource">⚡ Energy: <span id="energy">100</span></div>
+<div class="resource">👥 Population: <span id="population">10</span></div>
+<div class="resource">🧠 Knowledge: <span id="knowledge">0</span></div>
+<div class="resource">🔬 Tech: <span id="tech">1</span></div>
+<div class="resource">🪖 Soldiers: <span id="soldiers">0</span></div>
+<div class="resource">🌍 Continent: Map</div>
 
 </div>
 
 <div id="leftPanel">
 <h3>🏗 Buildings</h3>
 
-<button onclick="selectBuild('community')">🏘 Community Hub (100)</button>
-<button onclick="selectBuild('marketing')">📢 Marketing Center (120)</button>
-<button onclick="selectBuild('treasury')">🏦 Treasury Vault (150)</button>
-<button onclick="selectBuild('academy')">🎓 Education Center (200)</button>
-<button onclick="selectBuild('utility')">⚡ Utility Lab (250)</button>
-<button onclick="selectBuild('influencer')">🚀 Influencer Agency (300)</button>
-<button onclick="selectBuild('burn')">🔥 Burn Engine (350)</button>
+<button onclick="selectBuild('house')">🏠 House (100)</button>
+<button onclick="selectBuild('mine')">⛏ Mine (150)</button>
+<button onclick="selectBuild('lab')">🧠 Lab (200)</button>
+<button onclick="selectBuild('plant')">⚡ Plant (200)</button>
+
+<hr style="margin:10px 0;border:1px solid #333">
+
+<button onclick="selectBuild('armory')">🪖 Armory (300)</button>
+<button onclick="selectBuild('forge')">🔨 Forge (300)</button>
 </div>
 
 <div id="rightPanel">
 <h3>📋 Info</h3>
-
 <div id="info">Nothing selected</div>
-
-<div id="actionButtons">
-  <button id="upgradeBtn" onclick="upgrade()">⬆ Upgrade</button>
-  <button id="demolishBtn" onclick="demolish()">🗑 Demolish</button>
-</div>
-
-<hr style="margin:10px 0;border:1px solid #333">
-
-<button id="newGameBtn" onclick="newGame()">🆕 New Game</button>
-
+<button onclick="upgrade()">⬆ Upgrade</button>
+  
+<button onclick="newGame()">🆕 New Game</button>
+  
 </div>
 
 <div id="log"></div>
@@ -388,47 +1232,24 @@ let selectedBuild = null;
 let particles = [];
 
 let game = {
-
-treasury:500,
-holders:10,
-engagement:100,
-education:0,
-utility:1,
-promoters:0,
-lp:100,
-price:0.001,
-marketCap:1000
-
+gold:500,
+energy:100,
+knowledge:0,
+soldiers:0,
+population:10,
+technologyLevel:1
 };
 
 let buildings = [];
 
-buildings.push({
-x:10,
-y:10,
-type:"townhall",
-level:1
-});
-
 // ================= BUILD COSTS =================
 const B = {
-
-townhall:{cost:0,color:"#ffffff"},
-
-community:{cost:100,color:"#22c55e"},
-
-marketing:{cost:120,color:"#3b82f6"},
-
-treasury:{cost:150,color:"#f59e0b"},
-
-academy:{cost:200,color:"#a855f7"},
-
-utility:{cost:250,color:"#00d4ff"},
-
-influencer:{cost:300,color:"#ef4444"},
-
-burn:{cost:350,color:"#eab308"}
-
+house:{cost:100,color:"#22c55e"},
+mine:{cost:150,color:"#f59e0b"},
+lab:{cost:200,color:"#a855f7"},
+plant:{cost:200,color:"#00d4ff"},
+armory:{cost:300,color:"#ef4444"},
+forge:{cost:300,color:"#eab308"}
 };
 
 // ================= LOG =================
@@ -453,126 +1274,47 @@ color
 
 // ================= UPDATE UI =================
 function ui(){
-document.getElementById("treasury").innerText =
-Math.floor(game.treasury);
-
-document.getElementById("holders").innerText =
-Math.floor(game.holders);
-
-document.getElementById("engagement").innerText =
-Math.floor(game.engagement);
-
-document.getElementById("education").innerText =
-Math.floor(game.education);
-
-document.getElementById("utility").innerText =
-Math.floor(game.utility);
-
-document.getElementById("promoters").innerText =
-Math.floor(game.promoters);
-
-document.getElementById("lp").innerText =
-Math.floor(game.lp);
-
-document.getElementById("price").innerText =
-game.price;
-
-document.getElementById("marketCap").innerText =
-Math.floor(game.marketCap);
-} 
+document.getElementById("gold").innerText=Math.floor(game.gold);
+document.getElementById("energy").innerText=Math.floor(game.energy);
+document.getElementById("knowledge").innerText=Math.floor(game.knowledge);
+document.getElementById("tech").innerText=game.technologyLevel;
+document.getElementById("soldiers").innerText=Math.floor(game.soldiers);
+document.getElementById("population").innerText=Math.floor(game.population);
+}
 
 // ================= INFO =================
 function updateInfo(){
-
 if(!selected){
-
-document.getElementById("upgradeBtn").style.display = "none";
-document.getElementById("demolishBtn").style.display = "none";
-
-document.getElementById("info").innerHTML =
-"Nothing selected";
-
+document.getElementById("info").innerHTML="Nothing selected";
 return;
 }
 
-document.getElementById("upgradeBtn").style.display = "block";
-document.getElementById("demolishBtn").style.display = "block";
-
-document.getElementById("info").innerHTML = `
+document.getElementById("info").innerHTML=`
 <b>${selected.type}</b><br>
 Level: ${selected.level}<br>
-Upgrade cost: ${selected.level * 120}<br>
+Upgrade cost: ${selected.level*120}<br>
 `;
-
 }
 
 // ================= UPGRADE =================
-
 function upgrade(){
+if(!selected) return;
 
-    if(!selected){
-        return;
-    }
+let cost = selected.level*120;
 
-    if(selected.type === "townhall"){
-        log("❌ Headquarters cannot be upgraded");
-        return;
-    }
-
-    let cost = selected.level * 120;
-
-    if(game.treasury < cost){
-        log("❌ Not enough Treasury");
-        return;
-    }
-
-    game.treasury -= cost;
-
-    selected.level++;
-
-    explosion(
-        selected.x * TILE,
-        selected.y * TILE,
-        "#fff"
-    );
-
-    log("⬆ Upgraded " + selected.type);
-
-    ui();
-    updateInfo();
-
-}
-
-// ================= DEMOLISH =================
-function demolish(){
-
-if(!selected){
+if(game.gold<cost){
+log("❌ Not enough gold");
 return;
 }
 
-if(selected.type === "townhall"){
-log("❌ Town Hall cannot be demolished");
-return;
-}
+game.gold-=cost;
+selected.level++;
 
-let index = buildings.indexOf(selected);
+explosion(selected.x*TILE,selected.y*TILE,"#fff");
 
-if(index !== -1){
-
-buildings.splice(index,1);
-
-log("🗑 Building removed");
-
-selected = null;
-
-document.getElementById("upgradeBtn").style.display = "none";
-document.getElementById("demolishBtn").style.display = "none";
-
-document.getElementById("info").innerHTML =
-"Nothing selected";
-
-}
-
+log("⬆ Upgraded "+selected.type);
+ui();
+updateInfo();
 }
 
 // ================= CLICK =================
@@ -606,12 +1348,12 @@ if(!selectedBuild) return;
 
 let cost=B[selectedBuild].cost;
 
-if(game.treasury < cost){
-    log("❌ Not enough Treasury");
-    return;
+if(game.gold<cost){
+log("❌ Not enough gold");
+return;
 }
 
-game.treasury -= cost;
+game.gold-=cost;
 
 buildings.push({
 x,y,
@@ -629,186 +1371,80 @@ ui();
 });
 
 // ================= ECONOMY =================
-
 setInterval(()=>{
 
-    for(let b of buildings){
+for(let b of buildings){
 
-        if(b.type==="community"){
-            game.holders += 0.05 * b.level;
-        }
+if(b.type==="house"){
+game.population += 0.05 * b.level;
+}
 
-        if(b.type==="marketing"){
-            game.engagement += 2 * b.level;
-        }
+if(b.type==="mine"){
+let workers = b.level*2;
+if(game.population >= workers){
+game.gold += b.level;
+}
+}
 
-        if(b.type==="treasury"){
-            game.treasury += b.level;
-        }
+if(b.type==="lab"){
+if(game.energy > 0){
+game.knowledge += b.level;
+game.energy -= 0.5*b.level;
+}
+}
 
-        if(b.type==="academy"){
-            game.education += b.level;
-        }
+if(b.type==="plant"){
+game.energy += 3*b.level;
+}
 
-        if(b.type==="utility"){
-            game.utility += 0.5 * b.level;
-        }
+if(b.type==="armory"){
+b.cooldown++;
+if(b.cooldown>=5){
+game.soldiers+=b.level;
+b.cooldown=0;
+}
+}
 
-        if(b.type==="influencer"){
-            game.promoters += 0.2 * b.level;
-        }
+if(b.type==="forge"){
+game.soldiers+=Math.floor(b.level/2);
+}
 
-        if(b.type==="burn"){
-            game.lp += 0.1 * b.level;
-        }
+}
 
-    }
+game.gold -= game.soldiers * 0.02;
+if(game.gold < 0) game.gold = 0;
 
-    if(game.education >= 100){
+if(game.knowledge >= 100){
+game.technologyLevel++;
+game.knowledge = 0;
+log("🧠 New Technology Level: " + game.technologyLevel);
+}
 
-        game.utility++;
-
-        game.education = 0;
-
-        log("🔷 New Utility Released");
-
-    }
-
-    game.marketCap = Math.floor(
-
-        game.treasury +
-        (game.holders * 10) +
-        (game.engagement * 5) +
-        (game.utility * 100) +
-        (game.lp * 20)
-
-    );
-
-    game.price = (
-        game.marketCap / 1000000
-    ).toFixed(6);
-
-    ui();
+ui();
 
 },1000);
-
-// ================= MAP DATA =================
-
-const MAP_SIZE = 50;
-
-const mapData = [];
-
-for(let x=0;x<MAP_SIZE;x++){
-
-    mapData[x] = [];
-
-    for(let y=0;y<MAP_SIZE;y++){
-
-        let r = Math.random();
-
-        if(r < 0.10){
-
-            mapData[x][y] = "water";
-
-        }else if(r < 0.20){
-
-            mapData[x][y] = "mountain";
-
-        }else if(r < 0.35){
-
-            mapData[x][y] = "forest";
-
-        }else{
-
-            mapData[x][y] = "grass";
-
-        }
-
-    }
-}
-
-function generateMap(){
-
-for(let x=0;x<MAP_SIZE;x++){
-
-mapData[x] = [];
-
-for(let y=0;y<MAP_SIZE;y++){
-
-let r = Math.random();
-
-if(r < 0.10){
-mapData[x][y] = "water";
-}
-else if(r < 0.20){
-mapData[x][y] = "mountain";
-}
-else if(r < 0.35){
-mapData[x][y] = "forest";
-}
-else{
-mapData[x][y] = "grass";
-}
-
-}
-
-}
-
-}
   
 // ================= MAP ZONES =================
 function drawMap(){
+for(let x=0;x<50;x++){
+for(let y=0;y<50;y++){
 
-for(let x=0;x<MAP_SIZE;x++){
+let color="#0b1b2b";
 
-for(let y=0;y<MAP_SIZE;y++){
+// Europe zone
+if(x<15) color="#0f172a";
 
-let tile = mapData[x][y];
+// Africa zone
+else if(x<30) color="#0a2a1a";
 
-if(tile==="grass"){
-ctx.fillStyle="#22c55e";
-}
+// Asia zone
+else color="#2a1a0a";
 
-if(tile==="forest"){
-ctx.fillStyle="#166534";
-}
-
-if(tile==="mountain"){
-ctx.fillStyle="#6b7280";
-}
-
-if(tile==="water"){
-ctx.fillStyle="#2563eb";
-}
-
-let px = x * TILE - cameraX;
-let py = y * TILE - cameraY;
-
-let baseColor = ctx.fillStyle;
-
-let grad = ctx.createLinearGradient(
-px,
-py,
-px + TILE,
-py + TILE
-);
-
-grad.addColorStop(0, baseColor);
-grad.addColorStop(1, "#00000022");
-
-ctx.fillStyle = grad;
-
-ctx.fillRect(
-px,
-py,
-TILE,
-TILE
-);
+ctx.fillStyle=color;
+ctx.fillRect(x*TILE-cameraX,y*TILE-cameraY,TILE,TILE);
 
 }
-
 }
-
 }
 
 // ================= BUILDINGS =================
@@ -818,141 +1454,42 @@ for(let b of buildings){
 let px=b.x*TILE-cameraX;
 let py=b.y*TILE-cameraY;
 
-ctx.fillStyle = B[b.type]?.color || "#ffffff";
-
-if(b.type==="townhall"){
-ctx.fillRect(px+4,py+4,56,56);
-}
+ctx.fillStyle=B[b.type].color;
 
 // SHAPES
-if(b.type==="community"){
-
-ctx.fillStyle="#22c55e";
-ctx.fillRect(px+12,py+24,40,28);
-
-ctx.fillStyle="#16a34a";
+if(b.type==="house"){
 ctx.beginPath();
-ctx.moveTo(px+8,py+24);
-ctx.lineTo(px+32,py+4);
-ctx.lineTo(px+56,py+24);
+ctx.moveTo(px+32,py+10);
+ctx.lineTo(px+54,py+54);
+ctx.lineTo(px+10,py+54);
 ctx.closePath();
 ctx.fill();
-
-ctx.fillStyle="#0f172a";
-ctx.fillRect(px+26,py+34,12,18);
-
 }
 
-if(b.type==="treasury"){
+if(b.type==="mine") ctx.fillRect(px+10,py+10,44,44);
 
-ctx.fillStyle="#6b7280";
-ctx.fillRect(px+12,py+16,40,36);
-
-ctx.fillStyle="#f59e0b";
+if(b.type==="lab"){
 ctx.beginPath();
-ctx.moveTo(px+20,py+16);
-ctx.lineTo(px+32,py+4);
-ctx.lineTo(px+44,py+16);
-ctx.closePath();
+ctx.arc(px+32,py+32,22,0,Math.PI*2);
 ctx.fill();
-
-ctx.strokeStyle="#111";
-ctx.lineWidth=2;
-ctx.beginPath();
-ctx.moveTo(px+20,py+40);
-ctx.lineTo(px+44,py+40);
-ctx.stroke();
-
 }
 
-if(b.type==="marketing"){
-
-ctx.fillStyle="#84cc16";
-ctx.fillRect(px+10,py+10,44,44);
-
-ctx.strokeStyle="#365314";
-
-for(let i=0;i<4;i++){
-ctx.beginPath();
-ctx.moveTo(px+18+i*8,py+14);
-ctx.lineTo(px+18+i*8,py+48);
-ctx.stroke();
+if(b.type==="plant"){
+ctx.fillRect(px+26,py+8,12,48);
 }
 
+if(b.type==="armory"){
+ctx.fillRect(px+18,py+18,28,28);
+ctx.strokeStyle="red";
+ctx.strokeRect(px+10,py+10,44,44);
 }
-  
-if(b.type==="academy"){
 
-ctx.fillStyle="#a855f7";
-ctx.fillRect(px+12,py+12,40,40);
-
-ctx.fillStyle="#ffffff";
+if(b.type==="forge"){
 ctx.beginPath();
-ctx.arc(px+32,py+32,10,0,Math.PI*2);
+ctx.arc(px+32,py+32,18,0,Math.PI*2);
 ctx.fill();
-
-ctx.fillStyle="#00d4ff";
-ctx.fillRect(px+28,py+6,8,12);
-
-}
-
-if(b.type==="utility"){
-
-ctx.fillStyle="#00d4ff";
-ctx.fillRect(px+10,py+24,44,28);
-
-ctx.fillStyle="#94a3b8";
-ctx.fillRect(px+18,py+8,10,20);
-ctx.fillRect(px+36,py+8,10,20);
-
-}
-
-if(b.type==="influencer"){
-
-ctx.fillStyle="#ef4444";
-ctx.fillRect(px+10,py+14,44,38);
-
-ctx.fillStyle="#111";
-ctx.fillRect(px+28,py+20,8,24);
-
-ctx.strokeStyle="#fff";
-ctx.strokeRect(px+10,py+14,44,38);
-
-}
-
-if(b.type==="burn"){
-
-ctx.fillStyle="#eab308";
-ctx.fillRect(px+12,py+16,40,36);
-
-ctx.fillStyle="#ff4500";
-ctx.fillRect(px+24,py+24,16,16);
-
-ctx.strokeStyle="#fff";
-ctx.strokeRect(px+12,py+16,40,36);
-
-}
-
-if(b.type==="townhall"){
-
-ctx.fillStyle="#475569";
-ctx.fillRect(px+8,py+20,48,36);
-
-ctx.fillStyle="#00d4ff";
-ctx.beginPath();
-ctx.moveTo(px+4,py+20);
-ctx.lineTo(px+32,py);
-ctx.lineTo(px+60,py+20);
-ctx.closePath();
-ctx.fill();
-
-ctx.fillStyle="#111";
-ctx.fillRect(px+24,py+30,16,26);
-
-ctx.fillStyle="#ffffff";
-ctx.fillRect(px+14,py+28,8,8);
-ctx.fillRect(px+42,py+28,8,8);
-
+ctx.strokeStyle="yellow";
+ctx.strokeRect(px+8,py+8,48,48);
 }
 
 // level
@@ -1007,21 +1544,6 @@ const data = JSON.parse(save);
 if(data.game) game = data.game;
 if(data.buildings) buildings = data.buildings;
 
-let hasTownHall = buildings.some(
-b => b.type === "townhall"
-);
-
-if(!hasTownHall){
-
-buildings.push({
-x:10,
-y:10,
-type:"townhall",
-level:1
-});
-
-}
-
 }catch(err){
 
 console.log("Save corrupted");
@@ -1033,56 +1555,22 @@ console.log("Save corrupted");
 // ================= RENDER =================
 function render(){
 
-    ctx.fillStyle = "#07131f";
+ctx.fillStyle="#07131f";
+ctx.fillRect(
+0,
+0,
+window.innerWidth,
+window.innerHeight
+);
 
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+drawMap();
+drawBuildings();
+drawParticles();
 
-    drawMap();
-    drawBuildings();
-    drawParticles();
-
-    requestAnimationFrame(render);
-
+requestAnimationFrame(render);
 }
-// START
 
-ui();
-
-document.getElementById("upgradeBtn").style.display = "none";
-document.getElementById("demolishBtn").style.display = "none";
-
-document.getElementById("info").innerHTML =
-"Nothing selected";
-
-render();
 // ================= CAMERA =================
-let touchStartX = 0;
-let touchStartY = 0;
-
-canvas.addEventListener("touchstart",(e)=>{
-
-touchStartX = e.touches[0].clientX;
-touchStartY = e.touches[0].clientY;
-
-});
-
-canvas.addEventListener("touchmove",(e)=>{
-
-let dx = e.touches[0].clientX - touchStartX;
-let dy = e.touches[0].clientY - touchStartY;
-
-cameraX -= dx;
-cameraY -= dy;
-
-touchStartX = e.touches[0].clientX;
-touchStartY = e.touches[0].clientY;
-
-});
 window.addEventListener("keydown",(e)=>{
 if(e.key==="ArrowLeft") cameraX-=32;
 if(e.key==="ArrowRight") cameraX+=32;
@@ -1091,63 +1579,42 @@ if(e.key==="ArrowDown") cameraY+=32;
 });
 function newGame(){
 
-    if(!confirm("Start a new game?")){
-        return;
-    }
-
-    localStorage.removeItem("mgot_save");
-
-    game = {
-        treasury:500,
-        holders:10,
-        engagement:100,
-        education:0,
-        utility:1,
-        promoters:0,
-        lp:100,
-        price:0.001,
-        marketCap:1000
-    };
-
-    buildings = [{
-        x:10,
-        y:10,
-        type:"townhall",
-        level:1
-    }];
-
-    particles = [];
-    selected = null;
-    selectedBuild = null;
-
-    cameraX = 0;
-    cameraY = 0;
-
-    ui();
-
-    document.getElementById("upgradeBtn").style.display = "none";
-    document.getElementById("demolishBtn").style.display = "none";
-
-    document.getElementById("info").innerHTML =
-    "Nothing selected";
-
-    log("🆕 New Game Started");
-
+if(!confirm("Start a new game?")){
+return;
 }
 
-// START
+localStorage.removeItem("mgot_save");
+
+game = {
+gold:500,
+energy:100,
+knowledge:0,
+soldiers:0,
+population:10,
+technologyLevel:1
+};
+
+buildings = [];
+particles = [];
+selected = null;
+selectedBuild = null;
+
+cameraX = 0;
+cameraY = 0;
 
 ui();
-
-document.getElementById("upgradeBtn").style.display = "none";
-document.getElementById("demolishBtn").style.display = "none";
 
 document.getElementById("info").innerHTML =
 "Nothing selected";
 
+}
+// START
+ui();
 render();
 
 </script>
 
 </body>
 </html>
+
+
