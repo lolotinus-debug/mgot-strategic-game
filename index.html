@@ -353,21 +353,9 @@ function selectBuild(t){
     b.style.outline="none";
   });
 
- document.querySelectorAll("#leftPanel button").forEach(b=>{
-  b.style.outline="none";
-});
-
-const buttons = document.querySelectorAll("#leftPanel button");
-  
-selectedBuild = t; // OK
-
-console.log("Selected build:", selectedBuild);
-  
-buttons.forEach(b=>{
-  if(b.innerText.includes(t)){
-    b.style.outline="2px solid white";
+  if(window.event?.target){
+    window.event.target.style.outline="2px solid white";
   }
-});
 
   document.getElementById("info").innerHTML = `
     <b>Selected:</b> ${t}<br>
@@ -542,9 +530,13 @@ canvas.addEventListener("click",(e)=>{
   
 const rect = canvas.getBoundingClientRect();
 
-const x = Math.floor((e.clientX - rect.left + cameraX) / TILE);
-const y = Math.floor((e.clientY - rect.top + cameraY) / TILE);
-console.log("BUILD TRY:", selectedBuild, x, y);
+const x = Math.floor(
+(e.clientX - rect.left + cameraX) / TILE
+);
+
+const y = Math.floor(
+(e.clientY - rect.top + cameraY) / TILE
+);
 
 console.log("CLICK WORLD:", x, y, selectedBuild);
 console.log("CLICK DETECTED");
@@ -560,10 +552,8 @@ return;
 }
 
 // build
-if(!selectedBuild){
-  log("⚠ Vyber budovu najprv");
-  return;
-}
+if(!selectedBuild) return;
+
 let cost=B[selectedBuild].cost;
 
 if(game.gold<cost){
@@ -662,21 +652,63 @@ const MAP_SIZE = 50;
 
 const mapData = [];
 
-function generateMap(){
-  for(let x=0;x<MAP_SIZE;x++){
-    mapData[x] = [];
-    for(let y=0;y<MAP_SIZE;y++){
-      let r = Math.random();
+for(let x=0;x<MAP_SIZE;x++){
 
-      if(r < 0.10) mapData[x][y] = "water";
-      else if(r < 0.20) mapData[x][y] = "mountain";
-      else if(r < 0.35) mapData[x][y] = "forest";
-      else mapData[x][y] = "grass";
+    mapData[x] = [];
+
+    for(let y=0;y<MAP_SIZE;y++){
+
+        let r = Math.random();
+
+        if(r < 0.10){
+
+            mapData[x][y] = "water";
+
+        }else if(r < 0.20){
+
+            mapData[x][y] = "mountain";
+
+        }else if(r < 0.35){
+
+            mapData[x][y] = "forest";
+
+        }else{
+
+            mapData[x][y] = "grass";
+
+        }
+
     }
-  }
 }
 
-generateMap();
+function generateMap(){
+
+for(let x=0;x<MAP_SIZE;x++){
+
+mapData[x] = [];
+
+for(let y=0;y<MAP_SIZE;y++){
+
+let r = Math.random();
+
+if(r < 0.10){
+mapData[x][y] = "water";
+}
+else if(r < 0.20){
+mapData[x][y] = "mountain";
+}
+else if(r < 0.35){
+mapData[x][y] = "forest";
+}
+else{
+mapData[x][y] = "grass";
+}
+
+}
+
+}
+
+}
   
 // ================= MAP ZONES =================
 function drawMap(){
