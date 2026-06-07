@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MGOT World Strategy</title>
+<title>MGOT Trading Strategy</title>
 
 <style>
 *{
@@ -32,7 +32,7 @@ width:100%;
 height:60px;
 background:#0f172a;
 display:flex;
-justify-content:center;
+justify-content:flex-start;
 align-items:center;
 gap:15px;
 border-bottom:2px solid #00d4ff;
@@ -45,6 +45,18 @@ padding:0 10px;
 color:#00d4ff;
 font-weight:bold;
 }
+
+/* ================= LOGO ================= */
+
+#logo{
+width:42px;
+height:42px;
+object-fit:cover;
+border-radius:50%;
+border:2px solid #00d4ff;
+box-shadow:0 0 10px #00d4ff88;
+flex-shrink:0;
+}  
 
 /* ================= LEFT PANEL ================= */
 
@@ -117,13 +129,30 @@ line-height:1.5;
 font-size:14px;
 }
 
+#logoRight{
+width:70px;
+height:70px;
+object-fit:contain;
+image-rendering:auto;
+display:block;
+margin:0 auto 10px auto;
+
+border-radius:12px;
+border:2px solid #00d4ff;
+
+background:#0f172a;
+padding:3px;
+
+box-shadow:0 0 10px #00d4ff55;
+}
+
 /* ================= LOG ================= */
 
 #log{
 position:fixed;
 bottom:10px;
 left:10px;
-width:420px;
+width:260px;
 height:180px;
 overflow:auto;
 background:#000;
@@ -276,41 +305,55 @@ font-size:9px;
 
 <div id="topbar">
 
-<div class="resource">💎 Treasury:
-<span id="treasury">500</span></div>
+  <img src="logo.png" id="logo">
 
-<div class="resource">👥 Holders:
-<span id="holders">10</span></div>
+  <div class="resource">💎 Treasury:
+    <span id="treasury">500</span>
+  </div>
 
-<div class="resource">⚡ Engagement:
-<span id="engagement">100</span></div>
+  <div class="resource">👥 Holders:
+    <span id="holders">10</span>
+  </div>
 
-<div class="resource">🧠 Education:
-<span id="education">0</span></div>
+  <div class="resource">⚡ Engagement:
+    <span id="engagement">100</span>
+  </div>
 
-<div class="resource">🔷 Utility:
-<span id="utility">1</span></div>
+  <div class="resource">🧠 Education:
+    <span id="education">0</span>
+  </div>
 
-<div class="resource">🚀 Promoters:
-<span id="promoters">0</span></div>
+  <div class="resource">🔷 Utility:
+    <span id="utility">1</span>
+  </div>
 
-<div class="resource">🏦 LP:
-<span id="lp">100</span></div>
+  <div class="resource">🚀 Promoters:
+    <span id="promoters">0</span>
+  </div>
 
-<div class="resource">📊 Volume:
-<span id="volume">0</span></div>  
+  <div class="resource">🏦 LP:
+    <span id="lp">100</span>
+  </div>
 
-<div class="resource">⭐ Reputation:
-<span id="reputation">0</span></div>
+  <div class="resource">📊 Volume:
+    <span id="volume">0</span>
+  </div>
 
-<div class="resource">🪙 Supply:
-<span id="supply">1000000</span></div>
+  <div class="resource">⭐ Reputation:
+    <span id="reputation">0</span>
+  </div>
 
-<div class="resource">📈 Price:
-<span id="price">0.001</span></div>
+  <div class="resource">🪙 Supply:
+    <span id="supply">1000000</span>
+  </div>
 
-<div class="resource">💰 MC:
-<span id="marketCap">1000</span></div>
+  <div class="resource">📈 Price:
+    <span id="price">0.001</span>
+  </div>
+
+  <div class="resource">💰 MC:
+    <span id="marketCap">1000</span>
+  </div>
 
 </div>
 
@@ -328,6 +371,8 @@ font-size:9px;
 
 <div id="rightPanel">
 <h3>📋 Info</h3>
+
+<img src="logo.png" id="logoRight">
 
 <div id="info">Nothing selected</div>
 
@@ -352,15 +397,13 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas(){
-const dpr = window.devicePixelRatio || 1;
 
-canvas.width = window.innerWidth * dpr;
-canvas.height = window.innerHeight * dpr;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-canvas.style.width = window.innerWidth + "px";
-canvas.style.height = window.innerHeight + "px";
+canvas.style.width = "100vw";
+canvas.style.height = "100vh";
 
-ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 
 resizeCanvas();
@@ -370,6 +413,9 @@ const TILE = 64;
 
 let cameraX = 0;
 let cameraY = 0;
+
+let hubTimer = 0;
+let hubLevel = 0;
 
 function selectBuild(t){
   selectedBuild = t;
@@ -398,8 +444,8 @@ let particles = [];
 
 let game = {
   treasury: 500,
-  holders: 10,
-  engagement: 100,
+  holders: 1,
+  engagement: 1,
   education: 0,
   utility: 1,
   promoters: 0,
@@ -409,8 +455,8 @@ let game = {
   communityPower: 0,
   price: 0.001,
   marketCap: 1000,
-volume: 0,
-lastPrice: 0.001
+  volume: 0,
+  lastPrice: 0.001,
 };
 
 let buildings = [];
@@ -496,8 +542,8 @@ document.getElementById("supply").innerText =
 Math.floor(game.supply);
 
 document.getElementById("price").innerText =
-game.price;
-
+game.price.toPrecision(4);
+  
 document.getElementById("marketCap").innerText =
 Math.floor(game.marketCap);
 } 
@@ -598,7 +644,7 @@ document.getElementById("info").innerHTML =
 
 // ================= CLICK =================
 canvas.addEventListener("click",(e)=>{
-  
+
 const rect = canvas.getBoundingClientRect();
 
 const x = Math.floor(
@@ -609,23 +655,51 @@ const y = Math.floor(
 (e.clientY - rect.top + cameraY) / TILE
 );
 
-console.log("CLICK WORLD:", x, y, selectedBuild);
-console.log("CLICK DETECTED");
-console.log("selectedBuild:", selectedBuild);
-  
-// select
+// výber budovy
 for(let b of buildings){
-if(b.x===x&&b.y===y){
-selected=b;
+
+    if(b.x===x && b.y===y){
+
+        selected = b;
+
+        updateInfo();
+
+        return;
+    }
+}
+
+// nič nie je vybrané
+selected = null;
 updateInfo();
-return;
-}
+
+// musí byť zvolená budova
+if(!selectedBuild){
+    return;
 }
 
-// build
-if(!selectedBuild) return;
+// mapa mimo rozsahu
+if(
+    x < 0 ||
+    y < 0 ||
+    x >= MAP_SIZE ||
+    y >= MAP_SIZE
+){
+    return;
+}
 
-let cost=B[selectedBuild].cost;
+// voda
+if(mapData[x][y] === "water"){
+    log("❌ Cannot build on water");
+    return;
+}
+
+// obsadené políčko
+if(buildings.some(b => b.x===x && b.y===y)){
+    log("❌ Tile occupied");
+    return;
+}
+
+let cost = B[selectedBuild].cost;
 
 if(game.treasury < cost){
     log("❌ Not enough Treasury");
@@ -635,18 +709,23 @@ if(game.treasury < cost){
 game.treasury -= cost;
 
 buildings.push({
-x,y,
-type:selectedBuild,
-level:1,
-cooldown:0
+    x:x,
+    y:y,
+    type:selectedBuild,
+    level:1,
+    cooldown:0
 });
 
-console.log("ADDED BUILDING:", buildings);
+explosion(
+    x*TILE,
+    y*TILE,
+    B[selectedBuild].color
+);
 
-explosion(x*TILE,y*TILE,B[selectedBuild].color);
+log("🏗 " + selectedBuild + " built");
 
-log("🏗 "+selectedBuild+" built");
 ui();
+
 });
 
 // ================= ECONOMY =================
@@ -655,46 +734,60 @@ setInterval(()=>{
 
     for(let b of buildings){
 
-        if(b.type==="community"){
-            game.holders += 0.05 * b.level;
-            game.communityPower += 0.1 * b.level;
-        }
-
-        if(b.type==="marketing"){
-            game.engagement += 2 * b.level;
-
-            game.holders +=
-            game.engagement * 0.0002 * b.level;
-        }
-
-        if(b.type==="treasury"){
-            game.treasury += b.level;
-        }
-
-        if(b.type==="academy"){
-            game.education += b.level;
-            game.reputation += 0.05 * b.level;
-        }
-
-        if(b.type==="utility"){
-            game.utility += 0.2 * b.level;
-            game.reputation += 0.1 * b.level;
-        }
-
-        if(b.type==="influencer"){
-            game.promoters += 0.2 * b.level;
-        }
-
-        if(b.type==="burn"){
-            game.supply -= (10 * b.level);
-
-            if(game.supply < 1000){
-                game.supply = 1000;
-            }
-        }
-
+    // COMMUNITY = iba holder growth
+    if(b.type==="community"){
+        // nič nepridáva engagement
     }
 
+    // MARKETING = jediný zdroj engagementu
+    if(b.type==="marketing"){
+
+        let maxEngagement =
+            game.holders * 3 * b.level;
+
+        if(game.engagement < maxEngagement){
+
+            game.engagement += b.level;
+
+            if(game.engagement > maxEngagement){
+                game.engagement = maxEngagement;
+            }
+        }
+    }
+
+    if(b.type==="treasury"){
+        game.treasury += b.level;
+    }
+
+    if(b.type==="academy"){
+        game.education += b.level;
+        game.reputation += 0.05 * b.level;
+    }
+
+    if(b.type==="utility"){
+        game.utility += 0.2 * b.level;
+        game.reputation += 0.1 * b.level;
+    }
+
+    if(b.type==="influencer"){
+
+        game.promoters +=
+            0.2 * b.level;
+
+        game.holders +=
+            (game.engagement * 0.0005)
+            * b.level;
+    }
+
+    if(b.type==="burn"){
+
+        game.supply -= (10 * b.level);
+
+        if(game.supply < 1000){
+            game.supply = 1000;
+        }
+    }
+}
     // ================= EDUCATION =================
 
     if(game.education >= 100){
@@ -706,128 +799,106 @@ setInterval(()=>{
         log("🔷 New Utility Released");
     }
 
-   // ================= TRADING SIMULATION =================
+    // ================= HUB DETECTION =================
+    hubLevel = 0;
 
-// uložíme starú cenu
-game.lastPrice = game.price;
+    for(let b of buildings){
+        if(b.type === "community"){
+            hubLevel += b.level;
+        }
+    }
 
-// BUYERS
-let buyers =
+    // ak nemáš Hub, nič nerastie
+    if(hubLevel === 0){
+        ui();
+        return;
+    }
+
+   // ================= HUB HOLDER SYSTEM =================
+
+hubTimer++;
+
+let interval = 60;
+
+interval -= (hubLevel - 1) * 10;
+
+if(interval < 10){
+    interval = 10;
+}
+
+if(hubTimer >= interval){
+
+    game.holders += 1;
+
+    hubTimer = 0;
+
+    log("👥 +1 Holder (Hub Lv." + hubLevel + ")");
+}
+
+    // ================= TRADING SIMULATION =================
+
+    game.lastPrice = game.price;
+
+  let buyers =
     game.holders * 0.02 +
     game.promoters * 0.5 +
     game.engagement * 0.001;
 
-// SELLERS
-let sellers =
-    (game.holders * 0.01) *
-    (Math.random() * 2);
+    let sellers =
+        (game.holders * 0.01) *
+        (Math.random() * 2);
 
-// VOLUME
-let volume = buyers + sellers;
+    let volume = buyers + sellers;
+    game.volume = volume;
 
-game.volume = volume;
+    let pressure = buyers - sellers;
 
-// PRESSURE
-let pressure = buyers - sellers;
+game.lp += buyers * 0.01;
+game.lp -= sellers * 0.0098;
 
-// PRICE MOVEMENT
-game.price *= (
-    1 + pressure * 0.0005
-);
+let fairPrice =
+    game.lp /
+    (game.supply * 0.1);
 
-// ochrana
-if(game.price < 0.000001){
-    game.price = 0.000001;
-}
+game.price +=
+    (fairPrice - game.price) * 0.05;
 
-// LP REACTION
-game.lp += buyers * 0.05;
-game.lp -= sellers * 0.04;
-
-// sentiment noise
-game.lp +=
-    (Math.random() - 0.5) * 0.5;
-
-// LP limits
-if(game.lp < 10){
-    game.lp = 10;
-}
-
-if(game.lp > 5000){
-    game.lp = 5000;
-}
-
-// WHALES
-if(Math.random() < 0.01){
-
-    let whale =
-        (Math.random() - 0.5) * 0.25;
-
-    game.price *=
-        (1 + whale);
-
-    log(
-        whale > 0
-        ? "🐋 Whale Buy"
-        : "🐋 Whale Sell"
-    );
-}
-
-// FOMO
-if(game.price > game.lastPrice){
-
-    game.holders +=
-        game.holders * 0.002;
-}
-
-// PANIC SELL
-if(
-    game.price <
-    game.lastPrice * 0.95
-){
-
-    game.holders -=
-        game.holders * 0.01;
-
-    if(game.holders < 1){
-        game.holders = 1;
+    if(game.price < 0.000001){
+        game.price = 0.000001;
     }
-}
 
-// MARKET CAP
-game.marketCap =
-Math.floor(
-    game.price *
-    game.supply
-);
+    game.lp += buyers * 0.01;
+    game.lp -= sellers * 0.0098;
 
-// bezpečnosť
-if(isNaN(game.price)){
-    game.price = 0.001;
-}
-    // ================= MARKET CAP =================
+    game.lp += (Math.random() - 0.5) * 0.5;
 
-    game.marketCap = Math.floor(
-        game.treasury +
-        (game.holders * 25) +
-        (game.engagement * 2) +
-        (game.utility * 500) +
-        (game.reputation * 50) +
-        (game.lp * 20)
-    );
+    if(game.lp < 10) game.lp = 10;
+    if(game.lp > 50000000) game.lp = 50000000;
 
-    // ================= PRICE =================
+    if(Math.random() < 0.01){
+        let whale = (Math.random() - 0.5) * 0.25;
+        game.price *= (1 + whale);
 
-    game.price = Number(
-        (
-            (game.marketCap * game.lp) /
-            (game.supply * 100000)
-        ).toFixed(6)
-    );
+        log(
+            whale > 0
+            ? "🐋 Whale Buy"
+            : "🐋 Whale Sell"
+        );
+    }
 
-    // ochrana proti NaN
+    if(game.price > game.lastPrice){
+        game.holders += game.holders * 0.002;
+    }
+
+    if(game.price < game.lastPrice * 0.95){
+        game.holders -= game.holders * 0.01;
+        if(game.holders < 1) game.holders = 1;
+    }
+
+    game.marketCap = Math.floor(game.price * game.supply);
+
     if(isNaN(game.price)){
-        game.price = 0;
+        game.price = 0.001;
     }
 
     ui();
@@ -837,120 +908,166 @@ if(isNaN(game.price)){
 // ================= MAP DATA =================
 
 const MAP_SIZE = 50;
-
 const mapData = [];
 
-for(let x=0;x<MAP_SIZE;x++){
-
-    mapData[x] = [];
-
-    for(let y=0;y<MAP_SIZE;y++){
-
-        let r = Math.random();
-
-        if(r < 0.10){
-
-            mapData[x][y] = "water";
-
-        }else if(r < 0.20){
-
-            mapData[x][y] = "mountain";
-
-        }else if(r < 0.35){
-
-            mapData[x][y] = "forest";
-
-        }else{
-
-            mapData[x][y] = "grass";
-
-        }
-
-    }
+function noise(x, y){
+    // jednoduchý pseudo-noise (stabilný, smooth)
+    let n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+    return n - Math.floor(n);
 }
 
 function generateMap(){
 
-for(let x=0;x<MAP_SIZE;x++){
+    for(let x=0; x<MAP_SIZE; x++){
 
-mapData[x] = [];
+        mapData[x] = [];
 
-for(let y=0;y<MAP_SIZE;y++){
+        for(let y=0; y<MAP_SIZE; y++){
 
-let r = Math.random();
+            let h = noise(x * 0.15, y * 0.15);
+            let m = noise(x * 0.25 + 100, y * 0.25 + 100);
 
-if(r < 0.10){
-mapData[x][y] = "water";
-}
-else if(r < 0.20){
-mapData[x][y] = "mountain";
-}
-else if(r < 0.35){
-mapData[x][y] = "forest";
-}
-else{
-mapData[x][y] = "grass";
+            if(h < 0.22){
+                mapData[x][y] = "water";
+            }
+            else if(h > 0.78){
+                mapData[x][y] = "mountain";
+            }
+            else if(m > 0.60){
+                mapData[x][y] = "forest";
+            }
+            else{
+                mapData[x][y] = "grass";
+            }
+        }
+    }
+
+    // ROADS
+    for(let y=5; y<MAP_SIZE; y+=8){
+
+        for(let x=0; x<MAP_SIZE; x++){
+
+            if(mapData[x][y] !== "water"){
+                mapData[x][y] = "road";
+            }
+        }
+    }
 }
 
+generateMap();
+// ================= ROADS =================
+
+function drawRoads(){
+
+    ctx.strokeStyle = "#8b7355";
+    ctx.lineWidth = 12;
+    ctx.lineCap = "round";
+
+    for(let i=0;i<buildings.length;i++){
+
+        let a = buildings[i];
+
+        let ax = a.x * TILE + TILE/2 - cameraX;
+        let ay = a.y * TILE + TILE/2 - cameraY;
+
+        let nearest = null;
+        let dist = Infinity;
+
+        for(let j=0;j<buildings.length;j++){
+
+            if(i === j) continue;
+
+            let b = buildings[j];
+
+            let d =
+                Math.abs(a.x - b.x) +
+                Math.abs(a.y - b.y);
+
+            if(d < dist){
+                dist = d;
+                nearest = b;
+            }
+        }
+
+        if(nearest){
+
+            let bx =
+                nearest.x * TILE +
+                TILE/2 - cameraX;
+
+            let by =
+                nearest.y * TILE +
+                TILE/2 - cameraY;
+
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+        }
+    }
 }
 
-}
 
-}
-  
 // ================= MAP ZONES =================
 function drawMap(){
 
-for(let x=0;x<MAP_SIZE;x++){
+    for(let x=0; x<MAP_SIZE; x++){
 
-for(let y=0;y<MAP_SIZE;y++){
+        for(let y=0; y<MAP_SIZE; y++){
 
-let tile = mapData[x][y];
+            let px = x * TILE - cameraX;
+            let py = y * TILE - cameraY;
 
-if(tile==="grass"){
-ctx.fillStyle="#22c55e";
-}
+            let tile = mapData[x][y];
 
-if(tile==="forest"){
-ctx.fillStyle="#166534";
-}
+            if(tile==="water"){
+                ctx.fillStyle="#2563eb";
+            }
+            else if(tile==="grass"){
+                let shades=[
+                    "#65a30d",
+                    "#4d7c0f",
+                    "#3f6212",
+                    "#4ade80"
+                ];
 
-if(tile==="mountain"){
-ctx.fillStyle="#6b7280";
-}
+                ctx.fillStyle =
+                    shades[(x+y)%shades.length];
+            }
+            else if(tile==="forest"){
+                ctx.fillStyle="#166534";
+            }
+            else if(tile==="mountain"){
+                ctx.fillStyle="#6b7280";
+            }
+            else if(tile==="road"){
+                ctx.fillStyle="#8b7355";
+            }
 
-if(tile==="water"){
-ctx.fillStyle="#2563eb";
-}
+            ctx.fillRect(px,py,TILE,TILE);
 
-let px = x * TILE - cameraX;
-let py = y * TILE - cameraY;
+            let baseColor = ctx.fillStyle;
 
-let baseColor = ctx.fillStyle;
+            let grad = ctx.createLinearGradient(
+                px,
+                py,
+                px + TILE,
+                py + TILE
+            );
 
-let grad = ctx.createLinearGradient(
-px,
-py,
-px + TILE,
-py + TILE
-);
+            grad.addColorStop(0, baseColor);
+            grad.addColorStop(1, "#00000022");
 
-grad.addColorStop(0, baseColor);
-grad.addColorStop(1, "#00000022");
+            ctx.fillStyle = grad;
 
-ctx.fillStyle = grad;
-
-ctx.fillRect(
-px,
-py,
-TILE,
-TILE
-);
-
-}
-
-}
-
+            ctx.fillRect(
+                px,
+                py,
+                TILE,
+                TILE
+            );
+        }
+    }
 }
 
 // ================= BUILDINGS =================
@@ -1203,18 +1320,20 @@ const data = JSON.parse(save);
 // safe merge (aby sa ti nezmazali nové hodnoty pri update kódu)
 if(data.game){
 game = {
-  treasury: 500,
-  holders: 10,
-  engagement: 100,
-  education: 0,
-  utility: 1,
-  promoters: 0,
-  lp: 100,
-  supply: 1000000,
-  reputation: 0,
-  communityPower: 0,
-  price: 0.001,
-  marketCap: 1000,
+  treasury:500,
+  holders:10,
+  engagement:100,
+  education:0,
+  utility:1,
+  promoters:0,
+  lp:100,
+  supply:1000000,
+  reputation:0,
+  communityPower:0,
+  price:0.001,
+  marketCap:1000,
+  volume:0,
+  lastPrice:0.001,
   ...data.game
 };
 }
@@ -1244,33 +1363,30 @@ console.log("Save corrupted", err);
 // ================= RENDER =================
 function render(){
 
+    ctx.clearRect(
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+    );
+
     ctx.fillStyle = "#07131f";
 
     ctx.fillRect(
         0,
         0,
-        canvas.width,
-        canvas.height
+        window.innerWidth,
+        window.innerHeight
     );
 
     drawMap();
-    drawBuildings();
-    drawParticles();
+drawRoads();
+drawBuildings();
+drawParticles();
 
     requestAnimationFrame(render);
-
 }
-// START
 
-ui();
-
-document.getElementById("upgradeBtn").style.display = "none";
-document.getElementById("demolishBtn").style.display = "none";
-
-document.getElementById("info").innerHTML =
-"Nothing selected";
-
-render();
 // ================= CAMERA =================
 let touchStartX = 0;
 let touchStartY = 0;
@@ -1310,8 +1426,8 @@ function newGame(){
 
   game = {
   treasury: 500,
-  holders: 10,
-  engagement: 100,
+  holders: 1,
+  engagement: 1,
   education: 0,
   utility: 1,
   promoters: 0,
@@ -1320,7 +1436,9 @@ function newGame(){
   reputation: 0,
   communityPower: 0,
   price: 0.001,
-  marketCap: 1000
+  marketCap: 1000,
+  volume: 0,
+  lastPrice: 0.001,
 };
 
     buildings = [{
@@ -1355,9 +1473,6 @@ ui();
 
 document.getElementById("upgradeBtn").style.display = "none";
 document.getElementById("demolishBtn").style.display = "none";
-
-document.getElementById("info").innerHTML =
-"Nothing selected";
 
 render();
 
