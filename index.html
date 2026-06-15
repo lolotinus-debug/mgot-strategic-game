@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MGOT Trading Strategy</title>
-
 <link rel="icon" type="image/png" href="logo.png">
+  
 
 <style>
 *{
@@ -359,6 +359,7 @@ font-size:9px;
 <div id="leftPanel">
 <h3>🏗 Buildings</h3>
 
+<button onclick="selectBuild('road')">🛣 Road (5)</button>  
 <button onclick="selectBuild('community')">🏘 Community Hub (100)</button>
 <button onclick="selectBuild('marketing')">📢 Marketing Center (120)</button>
 <button onclick="selectBuild('treasury')">🏦 Treasury Vault (150)</button>
@@ -408,7 +409,7 @@ canvas.style.height = "100vh";
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-const TILE = 64;
+const TILE = 48;
 
 let cameraX = 0;
 let cameraY = 0;
@@ -471,23 +472,16 @@ level:1
 const B = {
 
 townhall:{cost:0,color:"#ffffff"},
-
+road:{cost:5,color:"#8b7355"},
 community:{cost:100,color:"#22c55e"},
-
 marketing:{cost:120,color:"#3b82f6"},
-
 treasury:{cost:150,color:"#f59e0b"},
-
 academy:{cost:200,color:"#a855f7"},
-
 utility:{cost:250,color:"#00d4ff"},
-
 influencer:{cost:300,color:"#ef4444"},
-
 burn:{cost:350,color:"#eab308"}
 
 };
-
 // ================= LOG =================
 function log(t){
 const d=document.createElement("div");
@@ -575,40 +569,62 @@ Upgrade cost: ${selected.level * 120}<br>
 // ================= UPGRADE =================
 
 function upgrade(){
+  if(selected.type==="road"){
+    log("❌ Roads cannot be upgraded");
+    return;
+}
 
-    if(!selected){
-        return;
-    }
+    if(!selected) return;
 
     if(selected.type === "townhall"){
-        log("❌ Headquarters cannot be upgraded");
+        let roll = Math.random();
+
+        if(roll < 0.6){
+            game.price *= 0.85;
+            log("📉 HQ upgrade failed → price -15%");
+        } else {
+            let pump = 1 + (Math.random() * 0.25 + 0.05);
+            game.price *= pump;
+            game.lp *= 1 + (pump - 1) * 0.8;
+            log("🚀 HQ upgrade success → pump event");
+        }
+
+        game.marketCap = game.price * game.supply;
+        ui();
+      updateInfo();
         return;
     }
 
     let cost = selected.level * 120;
 
-    if(game.treasury < cost){
+    let clusterBonus = 0;
+
+    for(let b of buildings){
+        let dx = Math.abs(b.x - selected.x);
+        let dy = Math.abs(b.y - selected.y);
+        let dist = dx + dy;
+
+        if(dist <= 3){
+            clusterBonus++;
+        }
+    }
+
+    let clusterMultiplier = Math.min(clusterBonus * 0.08, 0.35);
+    let finalCost = Math.floor(cost * (1 - clusterMultiplier));
+
+    if(game.treasury < finalCost){
         log("❌ Not enough Treasury");
         return;
     }
 
-    game.treasury -= cost;
+    game.treasury -= finalCost;
+selected.level++;
 
-    selected.level++;
+log("⬆ Upgraded " + selected.type);
 
-    explosion(
-        selected.x * TILE,
-        selected.y * TILE,
-        "#fff"
-    );
-
-    log("⬆ Upgraded " + selected.type);
-
-    ui();
-    updateInfo();
-
+ui();
+updateInfo();
 }
-
 // ================= DEMOLISH =================
 function demolish(){
 
@@ -706,6 +722,22 @@ if(game.treasury < cost){
 }
 
 game.treasury -= cost;
+
+if(selectedBuild==="road"){
+
+    let nearRoad =
+        buildings.some(b =>
+            Math.abs(b.x-x)+
+            Math.abs(b.y-y)===1
+        );
+
+    if(buildings.filter(b=>b.type==="road").length>0
+       && !nearRoad){
+
+        log("❌ Road must connect");
+        return;
+    }
+}
 
 buildings.push({
     x:x,
@@ -907,157 +939,443 @@ game.price +=
 // ================= MAP DATA =================
 
 const MAP_SIZE = 50;
-const mapData = [];
+let mapData = [];
 
+// ===== improved noise =====
 function noise(x, y){
-    // jednoduchý pseudo-noise (stabilný, smooth)
-    let n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+    let n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
     return n - Math.floor(n);
 }
 
-function generateMap(){
+// ===== lake expansion (AoE style water bodies) =====
+function expandWater(iterations = 3){
+
+    for(let i=0;i<iterations;i++){
+
+        let newMap = JSON.parse(JSON.stringify(mapData));
+
+        for(let x=0; x<MAP_SIZE; x++){
+            for(let y=0; y<MAP_SIZE; y++){
+
+                if(mapData[x][y] !== "water") continue;
+
+                let dirs = [
+                    [1,0],[-1,0],[0,1],[0,-1],
+                    [1,1],[-1,-1],[1,-1],[-1,1]
+                ];
+
+                for(let d of dirs){
+
+                    let nx = x + d[0];
+                    let ny = y + d[1];
+
+                    if(
+                        nx>=0 && ny>=0 &&
+                        nx<MAP_SIZE && ny<MAP_SIZE
+                    ){
+
+                        if(Math.random() < 0.28){
+                            newMap[nx][ny] = "water";
+                        }
+                    }
+                }
+            }
+        }
+
+        mapData = newMap;
+    }
+}
+
+// ===== forest clustering =====
+function expandForest(){
+
+    let newMap =
+        JSON.parse(JSON.stringify(mapData));
 
     for(let x=0; x<MAP_SIZE; x++){
 
-        mapData[x] = [];
-
         for(let y=0; y<MAP_SIZE; y++){
 
-            let h = noise(x * 0.15, y * 0.15);
-            let m = noise(x * 0.25 + 100, y * 0.25 + 100);
+            if(mapData[x][y] !== "forest"){
+                continue;
+            }
 
-            if(h < 0.22){
-                mapData[x][y] = "water";
-            }
-            else if(h > 0.78){
-                mapData[x][y] = "mountain";
-            }
-            else if(m > 0.60){
-                mapData[x][y] = "forest";
-            }
-            else{
-                mapData[x][y] = "grass";
+            let dirs = [
+                [1,0],
+                [-1,0],
+                [0,1],
+                [0,-1]
+            ];
+
+            for(let d of dirs){
+
+                let nx = x + d[0];
+                let ny = y + d[1];
+
+                if(
+                    nx >= 0 &&
+                    ny >= 0 &&
+                    nx < MAP_SIZE &&
+                    ny < MAP_SIZE
+                ){
+
+                    if(
+                        newMap[nx][ny] === "grass" &&
+                        Math.random() < 0.22
+                    ){
+                        newMap[nx][ny] = "forest";
+                    }
+                }
             }
         }
     }
 
-    // ROADS
-    for(let y=5; y<MAP_SIZE; y+=8){
+    for(let x=0; x<MAP_SIZE; x++){
+        for(let y=0; y<MAP_SIZE; y++){
+            mapData[x][y] = newMap[x][y];
+        }
+    }
+}
 
-        for(let x=0; x<MAP_SIZE; x++){
+  function smoothTerrain(passes){
 
-            if(mapData[x][y] !== "water"){
-                mapData[x][y] = "road";
+    for(let p=0; p<passes; p++){
+
+        let copy =
+            JSON.parse(JSON.stringify(mapData));
+
+        for(let x=1; x<MAP_SIZE-1; x++){
+
+            for(let y=1; y<MAP_SIZE-1; y++){
+
+                let counts = {};
+
+                for(let dx=-1; dx<=1; dx++){
+
+                    for(let dy=-1; dy<=1; dy++){
+
+                        let t = copy[x+dx][y+dy];
+
+                        counts[t] =
+                            (counts[t] || 0) + 1;
+                    }
+                }
+
+                let best = copy[x][y];
+                let max = 0;
+
+                for(let k in counts){
+
+                    if(counts[k] > max){
+
+                        max = counts[k];
+                        best = k;
+                    }
+                }
+
+                mapData[x][y] = best;
             }
         }
     }
+}
+// ================= GENERATE MAP =================
+
+function generateMap(){
+
+    mapData.length = 0;
+
+    for(let x=0;x<MAP_SIZE;x++){
+
+        mapData[x]=[];
+
+        for(let y=0;y<MAP_SIZE;y++){
+
+            let h=
+                noise(x*0.025,y*0.025)*0.55+
+                noise(x*0.06,y*0.06)*0.30+
+                noise(x*0.12,y*0.12)*0.15;
+
+            let m=
+                noise(x*0.035+100,y*0.035+100);
+
+            if(h<0.05){
+
+                mapData[x][y]="water";
+
+            }else if(h>0.88){
+
+                mapData[x][y]="mountain";
+
+            }else if(m>0.62){
+
+                mapData[x][y]="forest";
+
+            }else{
+
+                mapData[x][y]="grass";
+            }
+        }
+    }
+
+    expandWater(1);
+
+    expandForest();
+
+    smoothTerrain(3);
 }
 
 generateMap();
 // ================= ROADS =================
 
+function hasRoad(x,y){
+
+    return buildings.some(b =>
+        (b.type==="road" || b.type==="townhall")
+        &&
+        b.x===x
+        &&
+        b.y===y
+    );
+}
+
 function drawRoads(){
 
-    ctx.strokeStyle = "#8b7355";
-    ctx.lineWidth = 12;
-    ctx.lineCap = "round";
+for(let r of buildings){
 
-    for(let i=0;i<buildings.length;i++){
+    if(r.type!=="road") continue;
 
-        let a = buildings[i];
+    let px = r.x*TILE-cameraX;
+    let py = r.y*TILE-cameraY;
 
-        let ax = a.x * TILE + TILE/2 - cameraX;
-        let ay = a.y * TILE + TILE/2 - cameraY;
+    let top    = hasRoad(r.x,r.y-1);
+    let bottom = hasRoad(r.x,r.y+1);
+    let left   = hasRoad(r.x-1,r.y);
+    let right  = hasRoad(r.x+1,r.y);
 
-        let nearest = null;
-        let dist = Infinity;
+    // základ
+    ctx.fillStyle="#8b7355";
 
-        for(let j=0;j<buildings.length;j++){
+    // stred
+    ctx.fillRect(px+10,py+10,28,28);
 
-            if(i === j) continue;
+    if(top)
+        ctx.fillRect(px+10,py,28,20);
 
-            let b = buildings[j];
+    if(bottom)
+        ctx.fillRect(px+10,py+28,28,20);
 
-            let d =
-                Math.abs(a.x - b.x) +
-                Math.abs(a.y - b.y);
+    if(left)
+        ctx.fillRect(px,py+10,20,28);
 
-            if(d < dist){
-                dist = d;
-                nearest = b;
-            }
-        }
+    if(right)
+        ctx.fillRect(px+28,py+10,20,28);
 
-        if(nearest){
+    // svetlejší stred
+    ctx.fillStyle="#b08968";
 
-            let bx =
-                nearest.x * TILE +
-                TILE/2 - cameraX;
+    ctx.fillRect(px+14,py+14,20,20);
 
-            let by =
-                nearest.y * TILE +
-                TILE/2 - cameraY;
+    if(top)
+        ctx.fillRect(px+14,py,20,18);
 
-            ctx.beginPath();
-            ctx.moveTo(ax, ay);
-            ctx.lineTo(bx, by);
-            ctx.stroke();
-        }
-    }
+    if(bottom)
+        ctx.fillRect(px+14,py+30,20,18);
+
+    if(left)
+        ctx.fillRect(px,py+14,18,20);
+
+    if(right)
+        ctx.fillRect(px+30,py+14,18,20);
+}
 }
 
 
 // ================= MAP ZONES =================
 function drawMap(){
 
-    for(let x=0; x<MAP_SIZE; x++){
+    for(let x=0;x<MAP_SIZE;x++){
 
-        for(let y=0; y<MAP_SIZE; y++){
+        for(let y=0;y<MAP_SIZE;y++){
 
-            let px = x * TILE - cameraX;
-            let py = y * TILE - cameraY;
+            let px=
+                x*TILE-cameraX;
 
-            let tile = mapData[x][y];
+            let py=
+                y*TILE-cameraY;
 
-            if(tile==="water"){
-                ctx.fillStyle="#2563eb";
-            }
-            else if(tile==="grass"){
-                let shades=[
-                    "#65a30d",
-                    "#4d7c0f",
-                    "#3f6212",
-                    "#4ade80"
+            let tile=
+                mapData[x][y];
+
+            // GRASS
+
+            if(tile==="grass"){
+
+                const grass=[
+                    "#5b8c3a",
+                    "#6a9f44",
+                    "#7ab34d"
                 ];
 
-                ctx.fillStyle =
-                    shades[(x+y)%shades.length];
+                ctx.fillStyle=
+                    grass[(x+y)%3];
+
+                ctx.fillRect(
+                    px,
+                    py,
+                    TILE,
+                    TILE
+                );
             }
+
+            // WATER
+
+            else if(tile==="water"){
+
+                const water=[
+                    "#2563eb",
+                    "#3b82f6",
+                    "#60a5fa"
+                ];
+
+                ctx.fillStyle=
+                    water[(x+y)%3];
+
+                ctx.fillRect(
+                    px,
+                    py,
+                    TILE,
+                    TILE
+                );
+
+                ctx.fillStyle=
+                    "rgba(255,255,255,0.12)";
+
+                ctx.fillRect(
+                    px,
+                    py,
+                    TILE,
+                    3
+                );
+            }
+
+            // FOREST
+
             else if(tile==="forest"){
-                ctx.fillStyle="#166534";
+
+                ctx.fillStyle="#5f8f3a";
+
+                ctx.fillRect(
+                    px,
+                    py,
+                    TILE,
+                    TILE
+                );
+
+                ctx.fillStyle="#14532d";
+
+                ctx.beginPath();
+                ctx.arc(
+                    px+18,
+                    py+26,
+                    10,
+                    0,
+                    Math.PI*2
+                );
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(
+                    px+30,
+                    py+18,
+                    12,
+                    0,
+                    Math.PI*2
+                );
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(
+                    px+38,
+                    py+28,
+                    10,
+                    0,
+                    Math.PI*2
+                );
+                ctx.fill();
             }
+
+            // MOUNTAIN
+
             else if(tile==="mountain"){
-                ctx.fillStyle="#6b7280";
+
+                ctx.fillStyle="#64748b";
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    px+24,
+                    py+4
+                );
+
+                ctx.lineTo(
+                    px+4,
+                    py+44
+                );
+
+                ctx.lineTo(
+                    px+44,
+                    py+44
+                );
+
+                ctx.closePath();
+
+                ctx.fill();
+
+                ctx.fillStyle="#cbd5e1";
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    px+24,
+                    py+8
+                );
+
+                ctx.lineTo(
+                    px+14,
+                    py+28
+                );
+
+                ctx.lineTo(
+                    px+34,
+                    py+28
+                );
+
+                ctx.closePath();
+
+                ctx.fill();
             }
-            else if(tile==="road"){
-                ctx.fillStyle="#8b7355";
-            }
 
-            ctx.fillRect(px,py,TILE,TILE);
+            // AOE SHADING
 
-            let baseColor = ctx.fillStyle;
+            let grad=
+                ctx.createLinearGradient(
+                    px,
+                    py,
+                    px,
+                    py+TILE
+                );
 
-            let grad = ctx.createLinearGradient(
-                px,
-                py,
-                px + TILE,
-                py + TILE
+            grad.addColorStop(
+                0,
+                "rgba(255,255,255,0.03)"
             );
 
-            grad.addColorStop(0, baseColor);
-            grad.addColorStop(1, "#00000022");
+            grad.addColorStop(
+                1,
+                "rgba(0,0,0,0.18)"
+            );
 
-            ctx.fillStyle = grad;
+            ctx.fillStyle=grad;
 
             ctx.fillRect(
                 px,
@@ -1068,189 +1386,409 @@ function drawMap(){
         }
     }
 }
-
 // ================= BUILDINGS =================
 function drawBuildings(){
 
 for(let b of buildings){
 
-let px = b.x * TILE - cameraX;
-let py = b.y * TILE - cameraY;
+    if(b.type==="road"){
+        continue;
+    }
 
-// tieň
+    let px = b.x * TILE - cameraX;
+let py = b.y * TILE - cameraY - 6;
+  // tieň
 ctx.fillStyle = "rgba(0,0,0,0.3)";
-ctx.fillRect(px+8, py+50, 48, 8);
+ctx.beginPath();
 
+ctx.ellipse(
+    px+24,
+    py+38,
+    18,
+    8,
+    0,
+    0,
+    Math.PI*2
+);
+
+ctx.fillStyle="rgba(0,0,0,0.25)";
+ctx.fill();
 // ================= TOWN HALL =================
 if(b.type==="townhall"){
 
-ctx.fillStyle="#334155";
-ctx.fillRect(px+10,py+20,44,34);
+// kamenná základňa
+ctx.fillStyle="#64748b";
+ctx.fillRect(px+8,py+24,48,28);
 
-ctx.fillStyle="#00d4ff";
+// tmavší spodok
+ctx.fillStyle="#475569";
+ctx.fillRect(px+8,py+42,48,10);
+
+// hlavná strecha
+ctx.fillStyle="#7c2d12";
+
 ctx.beginPath();
-ctx.moveTo(px+6,py+20);
-ctx.lineTo(px+32,py+2);
-ctx.lineTo(px+58,py+20);
+ctx.moveTo(px+4,py+24);
+ctx.lineTo(px+32,py+4);
+ctx.lineTo(px+60,py+24);
 ctx.closePath();
 ctx.fill();
 
-ctx.fillStyle="#111";
-ctx.fillRect(px+24,py+30,16,24);
+// svetlo na streche
+ctx.fillStyle="#b45309";
 
-ctx.fillStyle="#fff";
-ctx.fillRect(px+14,py+28,8,8);
-ctx.fillRect(px+42,py+28,8,8);
+ctx.beginPath();
+ctx.moveTo(px+10,py+22);
+ctx.lineTo(px+32,py+8);
+ctx.lineTo(px+54,py+22);
+ctx.closePath();
+ctx.fill();
+
+// ľavá veža
+ctx.fillStyle="#94a3b8";
+ctx.fillRect(px+6,py+16,10,18);
+
+ctx.fillStyle="#991b1b";
+ctx.beginPath();
+ctx.moveTo(px+4,py+16);
+ctx.lineTo(px+11,py+8);
+ctx.lineTo(px+18,py+16);
+ctx.closePath();
+ctx.fill();
+
+// pravá veža
+ctx.fillStyle="#94a3b8";
+ctx.fillRect(px+48,py+16,10,18);
+
+ctx.fillStyle="#991b1b";
+ctx.beginPath();
+ctx.moveTo(px+46,py+16);
+ctx.lineTo(px+53,py+8);
+ctx.lineTo(px+60,py+16);
+ctx.closePath();
+ctx.fill();
+
+// brána
+ctx.fillStyle="#3f2a14";
+ctx.fillRect(px+25,py+32,14,20);
+
+// okná
+ctx.fillStyle="#f8fafc";
+ctx.fillRect(px+14,py+30,6,6);
+ctx.fillRect(px+44,py+30,6,6);
+
+// vlajka
+ctx.strokeStyle="#d1d5db";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.moveTo(px+32,py+4);
+ctx.lineTo(px+32,py-6);
+ctx.stroke();
+
+ctx.fillStyle="#00d4ff";
+ctx.fillRect(px+32,py-6,10,6);
 }
 
 // ================= COMMUNITY =================
 if(b.type==="community"){
 
-ctx.fillStyle="#22c55e";
-ctx.fillRect(px+14,py+26,14,14);
+// dom 1
+ctx.fillStyle="#d6d3d1";
+ctx.fillRect(px+8,py+28,14,12);
 
-ctx.fillRect(px+36,py+26,14,14);
-
-ctx.fillStyle="#16a34a";
-
+ctx.fillStyle="#92400e";
 ctx.beginPath();
-ctx.moveTo(px+12,py+26);
-ctx.lineTo(px+21,py+14);
-ctx.lineTo(px+30,py+26);
+ctx.moveTo(px+6,py+28);
+ctx.lineTo(px+15,py+18);
+ctx.lineTo(px+24,py+28);
+ctx.closePath();
 ctx.fill();
 
+// dom 2
+ctx.fillStyle="#e7e5e4";
+ctx.fillRect(px+24,py+22,16,14);
+
+ctx.fillStyle="#b45309";
 ctx.beginPath();
-ctx.moveTo(px+34,py+26);
-ctx.lineTo(px+43,py+14);
-ctx.lineTo(px+52,py+26);
+ctx.moveTo(px+22,py+22);
+ctx.lineTo(px+32,py+10);
+ctx.lineTo(px+42,py+22);
+ctx.closePath();
 ctx.fill();
+
+// dom 3
+ctx.fillStyle="#d6d3d1";
+ctx.fillRect(px+42,py+30,12,10);
+
+ctx.fillStyle="#92400e";
+ctx.beginPath();
+ctx.moveTo(px+40,py+30);
+ctx.lineTo(px+48,py+20);
+ctx.lineTo(px+56,py+30);
+ctx.closePath();
+ctx.fill();
+
+// studňa uprostred
+ctx.fillStyle="#64748b";
+ctx.fillRect(px+28,py+38,8,6);
+
+ctx.strokeStyle="#94a3b8";
+ctx.strokeRect(px+28,py+38,8,6);
 }
 
 // ================= MARKETING =================
 if(b.type==="marketing"){
 
-ctx.fillStyle="#ffffff";
-ctx.fillRect(px+10,py+10,44,24);
+// budova
+ctx.fillStyle="#cbd5e1";
+ctx.fillRect(px+10,py+20,44,26);
 
-ctx.fillStyle="#475569";
-ctx.fillRect(px+28,py+34,8,20);
+ctx.fillStyle="#94a3b8";
+ctx.fillRect(px+10,py+40,44,6);
 
-ctx.strokeStyle="#22c55e";
-ctx.lineWidth=3;
+// strecha
+ctx.fillStyle="#2563eb";
 
 ctx.beginPath();
-ctx.moveTo(px+16,py+26);
-ctx.lineTo(px+24,py+22);
-ctx.lineTo(px+34,py+18);
-ctx.lineTo(px+46,py+12);
+ctx.moveTo(px+8,py+20);
+ctx.lineTo(px+32,py+8);
+ctx.lineTo(px+56,py+20);
+ctx.closePath();
+ctx.fill();
+
+// billboard
+ctx.fillStyle="#ffffff";
+ctx.fillRect(px+18,py+4,28,12);
+
+ctx.strokeStyle="#111827";
+ctx.strokeRect(px+18,py+4,28,12);
+
+// rastúci graf
+ctx.strokeStyle="#22c55e";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.moveTo(px+22,py+12);
+ctx.lineTo(px+28,py+10);
+ctx.lineTo(px+34,py+8);
+ctx.lineTo(px+42,py+6);
 ctx.stroke();
+
+// stĺp billboardu
+ctx.fillStyle="#475569";
+ctx.fillRect(px+30,py+16,4,8);
+
+// okná
+ctx.fillStyle="#f8fafc";
+ctx.fillRect(px+16,py+26,6,6);
+ctx.fillRect(px+42,py+26,6,6);
 }
 
 // ================= TREASURY =================
 if(b.type==="treasury"){
 
-ctx.fillStyle="#64748b";
-ctx.fillRect(px+10,py+10,44,44);
+// kamenná pevnosť
+ctx.fillStyle="#475569";
+ctx.fillRect(px+8,py+14,48,40);
 
-ctx.strokeStyle="#111";
-ctx.lineWidth=2;
-ctx.strokeRect(px+10,py+10,44,44);
+// základ + tieň
+ctx.fillStyle="#334155";
+ctx.fillRect(px+8,py+44,48,10);
 
+// kovové dvere
+ctx.fillStyle="#1f2937";
+ctx.fillRect(px+26,py+30,12,24);
+
+// zlatý symbol (coin)
 ctx.fillStyle="#eab308";
-
 ctx.beginPath();
-ctx.arc(px+32,py+32,10,0,Math.PI*2);
+ctx.arc(px+32,py+22,8,0,Math.PI*2);
 ctx.fill();
 
-ctx.fillStyle="#111";
-ctx.fillRect(px+30,py+22,4,20);
-ctx.fillRect(px+22,py+30,20,4);
+// + znak prosperity
+ctx.strokeStyle="#111827";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.moveTo(px+32,py+16);
+ctx.lineTo(px+32,py+28);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(px+26,py+22);
+ctx.lineTo(px+38,py+22);
+ctx.stroke();
+
+// malé striešky (fort vibe)
+ctx.fillStyle="#64748b";
+ctx.beginPath();
+ctx.moveTo(px+6,py+14);
+ctx.lineTo(px+32,py+2);
+ctx.lineTo(px+58,py+14);
+ctx.closePath();
+ctx.fill();
 }
 
 // ================= ACADEMY =================
 if(b.type==="academy"){
 
-ctx.fillStyle="#ffffff";
+// hlavná budova
+ctx.fillStyle="#e2e8f0";
+ctx.fillRect(px+10,py+18,44,34);
 
-ctx.fillRect(px+12,py+16,18,28);
-ctx.fillRect(px+34,py+16,18,28);
+// spodok / základ
+ctx.fillStyle="#94a3b8";
+ctx.fillRect(px+10,py+46,44,8);
 
-ctx.strokeStyle="#000";
-ctx.lineWidth=1;
+// strecha (temple style)
+ctx.fillStyle="#7c3aed";
 
 ctx.beginPath();
-ctx.moveTo(px+32,py+16);
-ctx.lineTo(px+32,py+44);
+ctx.moveTo(px+6,py+18);
+ctx.lineTo(px+32,py+6);
+ctx.lineTo(px+58,py+18);
+ctx.closePath();
+ctx.fill();
+
+// stĺpy (kolonáda)
+ctx.fillStyle="#cbd5e1";
+ctx.fillRect(px+18,py+26,4,20);
+ctx.fillRect(px+28,py+26,4,20);
+ctx.fillRect(px+38,py+26,4,20);
+ctx.fillRect(px+48,py+26,4,20);
+
+// vstup
+ctx.fillStyle="#0f172a";
+ctx.fillRect(px+28,py+34,8,18);
+
+// kniha / symbol vzdelania
+ctx.strokeStyle="#a855f7";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.moveTo(px+20,py+14);
+ctx.lineTo(px+44,py+14);
 ctx.stroke();
 
-ctx.fillStyle="#a855f7";
-ctx.fillRect(px+12,py+10,40,6);
+ctx.beginPath();
+ctx.moveTo(px+20,py+14);
+ctx.lineTo(px+20,py+20);
+ctx.lineTo(px+44,py+20);
+ctx.lineTo(px+44,py+14);
+ctx.stroke();
 }
 
 // ================= UTILITY =================
 if(b.type==="utility"){
 
-ctx.fillStyle="#94a3b8";
-ctx.fillRect(px+12,py+24,40,24);
+// hlavná tech budova
+ctx.fillStyle="#334155";
+ctx.fillRect(px+10,py+20,44,32);
 
+// reaktor core
 ctx.fillStyle="#00d4ff";
+ctx.beginPath();
+ctx.arc(px+32,py+30,8,0,Math.PI*2);
+ctx.fill();
+
+// energia glow
+ctx.fillStyle="rgba(0,212,255,0.25)";
+ctx.beginPath();
+ctx.arc(px+32,py+30,14,0,Math.PI*2);
+ctx.fill();
+
+// horný modul
+ctx.fillStyle="#94a3b8";
+ctx.fillRect(px+14,py+10,36,12);
+
+// lightning znak
+ctx.strokeStyle="#00d4ff";
+ctx.lineWidth=2;
 
 ctx.beginPath();
-ctx.moveTo(px+34,py+8);
-ctx.lineTo(px+24,py+28);
+ctx.moveTo(px+34,py+14);
+ctx.lineTo(px+28,py+28);
 ctx.lineTo(px+34,py+28);
-ctx.lineTo(px+26,py+52);
-ctx.lineTo(px+44,py+24);
-ctx.lineTo(px+34,py+24);
-ctx.fill();
+ctx.lineTo(px+30,py+44);
+ctx.stroke();
 }
-
 // ================= INFLUENCER =================
 if(b.type==="influencer"){
 
-ctx.fillStyle="#111";
-ctx.fillRect(px+18,py+8,28,48);
+// vysoká veža
+ctx.fillStyle="#0f172a";
+ctx.fillRect(px+22,py+6,20,52);
 
-ctx.strokeStyle="#fff";
-ctx.strokeRect(px+18,py+8,28,48);
-
-ctx.fillStyle="#ef4444";
+// antena
+ctx.strokeStyle="#f8fafc";
+ctx.lineWidth=2;
 
 ctx.beginPath();
-ctx.moveTo(px+32,py+16);
-ctx.lineTo(px+24,py+32);
-ctx.lineTo(px+40,py+32);
+ctx.moveTo(px+32,py+6);
+ctx.lineTo(px+32,py-6);
+ctx.stroke();
+
+// signál vlny
+ctx.beginPath();
+ctx.arc(px+32,py+10,6,0,Math.PI*2);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.arc(px+32,py+10,12,0,Math.PI*2);
+ctx.strokeStyle="rgba(255,255,255,0.3)";
+ctx.stroke();
+
+// “live” obrazovka
+ctx.fillStyle="#ef4444";
+ctx.fillRect(px+24,py+28,16,10);
+
+// play symbol
+ctx.fillStyle="#fff";
+ctx.beginPath();
+ctx.moveTo(px+30,py+30);
+ctx.lineTo(px+30,py+36);
+ctx.lineTo(px+36,py+33);
 ctx.closePath();
 ctx.fill();
-
-ctx.fillStyle="#fff";
-ctx.fillRect(px+28,py+34,8,8);
 }
-
 // ================= BURN =================
 if(b.type==="burn"){
 
-ctx.fillStyle="#6b7280";
-ctx.fillRect(px+12,py+20,40,30);
+// základ reaktora
+ctx.fillStyle="#1f2937";
+ctx.fillRect(px+10,py+22,44,28);
 
-ctx.fillStyle="#ff4500";
-
+// core
+ctx.fillStyle="#ef4444";
 ctx.beginPath();
-ctx.moveTo(px+32,py+8);
-ctx.lineTo(px+24,py+24);
-ctx.lineTo(px+32,py+20);
-ctx.lineTo(px+40,py+24);
+ctx.arc(px+32,py+34,8,0,Math.PI*2);
+ctx.fill();
+
+// plameň 1
+ctx.fillStyle="#f97316";
+ctx.beginPath();
+ctx.moveTo(px+32,py+10);
+ctx.lineTo(px+24,py+28);
+ctx.lineTo(px+32,py+26);
+ctx.lineTo(px+40,py+28);
 ctx.closePath();
 ctx.fill();
 
+// plameň 2 (vnútro)
 ctx.fillStyle="#dc2626";
-
 ctx.beginPath();
 ctx.moveTo(px+32,py+14);
-ctx.lineTo(px+28,py+24);
-ctx.lineTo(px+32,py+20);
-ctx.lineTo(px+36,py+24);
+ctx.lineTo(px+28,py+28);
+ctx.lineTo(px+32,py+24);
+ctx.lineTo(px+36,py+28);
 ctx.closePath();
+ctx.fill();
+
+// energetický glow
+ctx.fillStyle="rgba(239,68,68,0.2)";
+ctx.beginPath();
+ctx.arc(px+32,py+34,14,0,Math.PI*2);
 ctx.fill();
 }
 
