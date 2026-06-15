@@ -353,7 +353,12 @@ font-size:9px;
   <div class="resource">💰 MC:
     <span id="marketCap">1000</span>
   </div>
-
+  
+<div class="resource">
+⏳ Time:
+<span id="timer">30:00</span>
+</div>
+  
 </div>
 
 <div id="leftPanel">
@@ -414,6 +419,11 @@ const TILE = 48;
 let cameraX = 0;
 let cameraY = 0;
 
+let zoom = 1;
+
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 3;
+
 let hubTimer = 0;
 let hubLevel = 0;
 
@@ -440,8 +450,14 @@ function selectBuild(t){
 let selected = null;
 let selectedBuild = null;
 
-let particles = [];
+let townHallPlaced = false;
 
+selectedBuild = "townhall";
+
+let walkers = [];
+let particles = [];
+let gameTime = 1800; // 30 minút v sekundách
+let gameEnded = false;
 let game = {
   treasury: 500,
   holders: 1,
@@ -460,13 +476,6 @@ let game = {
 };
 
 let buildings = [];
-
-buildings.push({
-x:10,
-y:10,
-type:"townhall",
-level:1
-});
 
 // ================= BUILD COSTS =================
 const B = {
@@ -491,15 +500,27 @@ document.getElementById("log").prepend(d);
 
 // ================= PARTICLES (EXPLOSION) =================
 function explosion(x,y,color){
-for(let i=0;i<12;i++){
+
+for(let i=0;i<35;i++){
+
 particles.push({
-x,y,
-vx:(Math.random()-0.5)*6,
-vy:(Math.random()-0.5)*6,
-life:30,
-color
+
+x:x + TILE/2,
+y:y + TILE/2,
+
+vx:(Math.random()-0.5)*4,
+vy:(Math.random()-0.5)*4 - Math.random()*2,
+
+life:40 + Math.random()*20,
+
+size:2 + Math.random()*4,
+
+color:color
+
 });
+
 }
+
 }
 
 // ================= UPDATE UI =================
@@ -540,7 +561,17 @@ game.price.toPrecision(4);
 document.getElementById("marketCap").innerText =
 Math.floor(game.marketCap);
 } 
+function updateTimer(){
 
+let min = Math.floor(gameTime / 60);
+let sec = gameTime % 60;
+
+document.getElementById("timer").innerText =
+String(min).padStart(2,"0") +
+":" +
+String(sec).padStart(2,"0");
+
+}
 // ================= INFO =================
 function updateInfo(){
 
@@ -624,6 +655,7 @@ log("⬆ Upgraded " + selected.type);
 
 ui();
 updateInfo();
+updateTimer();
 }
 // ================= DEMOLISH =================
 function demolish(){
@@ -662,13 +694,20 @@ canvas.addEventListener("click",(e)=>{
 
 const rect = canvas.getBoundingClientRect();
 
-const x = Math.floor(
-(e.clientX - rect.left + cameraX) / TILE
-);
+const worldX =
+(e.clientX - rect.left) / zoom
++ cameraX;
 
-const y = Math.floor(
-(e.clientY - rect.top + cameraY) / TILE
-);
+const worldY =
+(e.clientY - rect.top) / zoom
++ cameraY;
+
+const x =
+Math.floor(worldX / TILE);
+
+const y =
+Math.floor(worldY / TILE);
+
 
 // výber budovy
 for(let b of buildings){
@@ -692,6 +731,17 @@ if(!selectedBuild){
     return;
 }
 
+const hasTownHall =
+    buildings.some(b => b.type==="townhall");
+
+if(
+    selectedBuild !== "townhall" &&
+    !hasTownHall
+){
+    log("🏛 First build Town Hall");
+    return;
+}  
+  
 // mapa mimo rozsahu
 if(
     x < 0 ||
@@ -713,7 +763,14 @@ if(buildings.some(b => b.x===x && b.y===y)){
     log("❌ Tile occupied");
     return;
 }
-
+// iba jedna radnica za hru
+if(
+    selectedBuild === "townhall" &&
+    townHallPlaced
+){
+    log("❌ Town Hall already exists");
+    return;
+}
 let cost = B[selectedBuild].cost;
 
 if(game.treasury < cost){
@@ -725,16 +782,48 @@ game.treasury -= cost;
 
 if(selectedBuild==="road"){
 
+    const hasTownHall =
+        buildings.some(
+            b=>b.type==="townhall"
+        );
+
+    if(!hasTownHall){
+        log("🏛 Build Town Hall first");
+        return;
+    }
+
     let nearRoad =
         buildings.some(b =>
             Math.abs(b.x-x)+
             Math.abs(b.y-y)===1
         );
 
-    if(buildings.filter(b=>b.type==="road").length>0
-       && !nearRoad){
+    let nearTownHall =
+        buildings.some(b =>
+            b.type==="townhall" &&
+            Math.abs(b.x-x)+
+            Math.abs(b.y-y)===1
+        );
 
+    if(
+        buildings.filter(
+            b=>b.type==="road"
+        ).length>0
+        &&
+        !nearRoad
+    ){
         log("❌ Road must connect");
+        return;
+    }
+
+    if(
+        buildings.filter(
+            b=>b.type==="road"
+        ).length===0
+        &&
+        !nearTownHall
+    ){
+        log("❌ First road must touch Town Hall");
         return;
     }
 }
@@ -746,11 +835,21 @@ buildings.push({
     level:1,
     cooldown:0
 });
+if(selectedBuild === "townhall"){
 
+    townHallPlaced = true;
+
+    selectedBuild = null;
+
+    document.getElementById("info").innerHTML =
+    "🏛 Town Hall placed<br>Select a building.";
+
+    log("🏛 Town Hall founded");
+}
 explosion(
-    x*TILE,
-    y*TILE,
-    B[selectedBuild].color
+x*TILE,
+y*TILE,
+"#ffd700"
 );
 
 log("🏗 " + selectedBuild + " built");
@@ -763,7 +862,9 @@ ui();
 
 setInterval(()=>{
 
-    for(let b of buildings){
+if(gameEnded) return;
+
+for(let b of buildings){
 
     // COMMUNITY = iba holder growth
     if(b.type==="community"){
@@ -819,6 +920,8 @@ setInterval(()=>{
         }
     }
 }
+  game.engagement += game.promoters * 0.05;
+game.engagement += game.holders * 0.0005;
     // ================= EDUCATION =================
 
     if(game.education >= 100){
@@ -931,12 +1034,76 @@ game.price +=
     if(isNaN(game.price)){
         game.price = 0.001;
     }
+// ================= POPULATION CONTROL =================
 
+let maxWalkers = Math.floor(
+
+    game.holders * 0.05 +
+
+    game.engagement * 0.01 +
+
+    game.promoters * 2
+
+);
+
+if(maxWalkers < 1){
+    maxWalkers = 1;
+}
+
+if(maxWalkers > 100){
+    maxWalkers = 100;
+}
+
+// ak komunita klesne,
+// časť ľudí zmizne
+
+while(walkers.length > maxWalkers){
+
+    walkers.splice(
+        Math.floor(
+            Math.random()*walkers.length
+        ),
+        1
+    );
+
+}
     ui();
 
 },1000);
 
 // ================= MAP DATA =================
+
+function endGame(){
+
+gameEnded = true;
+
+alert(
+"🏆 Game Over\n\n" +
+"Market Cap: " + Math.floor(game.marketCap) +
+"\nHolders: " + Math.floor(game.holders)
+);
+
+}
+
+setInterval(()=>{
+
+if(gameEnded) return;
+
+if(gameTime > 0){
+
+    gameTime--;
+
+    updateTimer();
+
+}
+
+if(gameTime <= 0){
+
+    endGame();
+
+}
+
+},1000);  
 
 const MAP_SIZE = 50;
 let mapData = [];
@@ -1124,8 +1291,36 @@ function generateMap(){
     smoothTerrain(3);
 }
 
-generateMap();
-// ================= ROADS =================
+if(localStorage.getItem("mgot_save")){
+
+    try{
+
+        const tmp =
+            JSON.parse(
+                localStorage.getItem("mgot_save")
+            );
+
+        if(
+            tmp.mapData &&
+            tmp.mapData.length === MAP_SIZE
+        ){
+            mapData = tmp.mapData;
+        }else{
+            generateMap();
+        }
+
+    }catch(e){
+
+        generateMap();
+
+    }
+
+}else{
+
+    generateMap();
+
+}
+  // ================= ROADS =================
 
 function hasRoad(x,y){
 
@@ -1137,58 +1332,299 @@ function hasRoad(x,y){
         b.y===y
     );
 }
+setInterval(()=>{
 
+let roads = buildings.filter(
+    b => b.type==="road"
+);
+
+if(roads.length===0) return;
+
+// ================= MAX WALKERS =================
+
+let basePop = game.holders * 0.03;
+let engagementPop = game.engagement * 0.02;
+let influencerPop = game.promoters * 3;
+
+// synergy bonus (dôležité!)
+let synergy = 1 + (game.engagement / 500) * (game.promoters / 10);
+
+let maxWalkers = Math.floor(
+    (basePop + engagementPop + influencerPop) * synergy
+);
+
+// minimálne 1
+if(maxWalkers < 1){
+    maxWalkers = 1;
+}
+
+// kvôli výkonu
+if(maxWalkers > 100){
+    maxWalkers = 100;
+}
+
+// ak je už dosť ľudí
+let spawnSpeed = 3000;
+
+// viac engagement = rýchlejší svet
+spawnSpeed -= game.engagement * 2;
+
+// influenceri zrýchlia “viral movement”
+spawnSpeed -= game.promoters * 100;
+
+// clamp
+spawnSpeed = Math.max(300, spawnSpeed);
+
+// ================= SPAWN =================
+
+let r = roads[
+    Math.floor(
+        Math.random()*roads.length
+    )
+];
+
+walkers.push({
+
+    x:r.x,
+    y:r.y,
+
+    px:r.x*TILE+24,
+    py:r.y*TILE+24,
+
+    speed:
+        0.6 +
+        Math.random()*0.8,
+
+    target:null
+
+});
+
+},3000);
+
+function updateWalkers(){
+
+for(let w of walkers){
+
+if(!w.target){
+
+let options=[];
+
+[
+[1,0],
+[-1,0],
+[0,1],
+[0,-1]
+].forEach(d=>{
+
+let nx=w.x+d[0];
+let ny=w.y+d[1];
+
+if(hasRoad(nx,ny)){
+options.push({
+x:nx,
+y:ny
+});
+}
+
+});
+
+if(options.length){
+
+w.target=
+options[
+Math.floor(
+Math.random()*options.length
+)
+];
+
+}
+
+}
+
+if(w.target){
+
+let tx =
+w.target.x*TILE+24;
+
+let ty =
+w.target.y*TILE+24;
+
+let dx=tx-w.px;
+let dy=ty-w.py;
+
+let dist =
+Math.hypot(dx,dy);
+
+if(dist<2){
+
+w.x=w.target.x;
+w.y=w.target.y;
+
+w.target=null;
+
+}else{
+
+w.px +=
+dx/dist*w.speed;
+
+w.py +=
+dy/dist*w.speed;
+
+}
+
+}
+
+}
+
+}  
+
+  function drawWalkers(){
+
+for(let w of walkers){
+
+let px =
+w.px-cameraX;
+
+let py =
+w.py-cameraY;
+
+ctx.fillStyle="#f5deb3";
+
+ctx.beginPath();
+ctx.arc(
+px,
+py-5,
+3,
+0,
+Math.PI*2
+);
+ctx.fill();
+
+ctx.strokeStyle="#ffffff";
+
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.moveTo(px,py-2);
+ctx.lineTo(px,py+5);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(px,py+1);
+ctx.lineTo(px-3,py+8);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(px,py+1);
+ctx.lineTo(px+3,py+8);
+ctx.stroke();
+
+}
+
+}
+  
 function drawRoads(){
 
 for(let r of buildings){
 
     if(r.type!=="road") continue;
 
-    let px = r.x*TILE-cameraX;
-    let py = r.y*TILE-cameraY;
+    let px = r.x * TILE - cameraX;
+    let py = r.y * TILE - cameraY;
 
-    let top    = hasRoad(r.x,r.y-1);
-    let bottom = hasRoad(r.x,r.y+1);
-    let left   = hasRoad(r.x-1,r.y);
-    let right  = hasRoad(r.x+1,r.y);
+    let top    = hasRoad(r.x, r.y-1);
+    let bottom = hasRoad(r.x, r.y+1);
+    let left   = hasRoad(r.x-1, r.y);
+    let right  = hasRoad(r.x+1, r.y);
 
-    // základ
-    ctx.fillStyle="#8b7355";
+    // ================= ZÁKLAD CESTY =================
 
-    // stred
-    ctx.fillRect(px+10,py+10,28,28);
+    ctx.fillStyle="#7c6244";
 
-    if(top)
-        ctx.fillRect(px+10,py,28,20);
-
-    if(bottom)
-        ctx.fillRect(px+10,py+28,28,20);
-
-    if(left)
-        ctx.fillRect(px,py+10,20,28);
-
-    if(right)
-        ctx.fillRect(px+28,py+10,20,28);
-
-    // svetlejší stred
-    ctx.fillStyle="#b08968";
-
-    ctx.fillRect(px+14,py+14,20,20);
+    ctx.fillRect(px+4,py+4,40,40);
 
     if(top)
-        ctx.fillRect(px+14,py,20,18);
+        ctx.fillRect(px+4,py,40,24);
 
     if(bottom)
-        ctx.fillRect(px+14,py+30,20,18);
+        ctx.fillRect(px+4,py+24,40,24);
 
     if(left)
-        ctx.fillRect(px,py+14,18,20);
+        ctx.fillRect(px,py+4,24,40);
 
     if(right)
-        ctx.fillRect(px+30,py+14,18,20);
-}
+        ctx.fillRect(px+24,py+4,24,40);
+
+    // ================= SVETLEJŠÍ STRED =================
+
+    ctx.fillStyle="#b8956a";
+
+    ctx.fillRect(px+8,py+8,32,32);
+
+    if(top)
+        ctx.fillRect(px+8,py,32,20);
+
+    if(bottom)
+        ctx.fillRect(px+8,py+28,32,20);
+
+    if(left)
+        ctx.fillRect(px,py+8,20,32);
+
+    if(right)
+        ctx.fillRect(px+28,py+8,20,32);
+
+    // ================= KAMENNÁ TEXTÚRA =================
+
+    ctx.fillStyle="#d6c2a3";
+
+    for(let i=0;i<10;i++){
+
+        let rx = px + 6 + ((i * 13) % 34);
+        let ry = py + 6 + ((i * 17) % 34);
+
+        ctx.fillRect(rx,ry,2,2);
+    }
+
+    ctx.fillStyle="#8f7352";
+
+    for(let i=0;i<8;i++){
+
+        let rx = px + 8 + ((i * 11) % 30);
+        let ry = py + 8 + ((i * 19) % 30);
+
+        ctx.fillRect(rx,ry,1,1);
+    }
+
+    // ================= OKRAJE =================
+
+    ctx.strokeStyle="#5a4632";
+    ctx.lineWidth=1;
+
+    ctx.strokeRect(
+        px+4,
+        py+4,
+        40,
+        40
+    );
+
+    // ================= TIENE =================
+
+    ctx.strokeStyle="rgba(0,0,0,0.15)";
+
+    if(top)
+        ctx.strokeRect(px+4,py,40,24);
+
+    if(bottom)
+        ctx.strokeRect(px+4,py+24,40,24);
+
+    if(left)
+        ctx.strokeRect(px,py+4,24,40);
+
+    if(right)
+        ctx.strokeRect(px+24,py+4,24,40);
 }
 
+}
 
 // ================= MAP ZONES =================
 function drawMap(){
@@ -1387,7 +1823,94 @@ function drawMap(){
     }
 }
 // ================= BUILDINGS =================
-function drawBuildings(){
+// ================= GHOST BUILDING =================
+
+let hoverTileX = 0;
+let hoverTileY = 0;
+
+canvas.addEventListener("mousemove",(e)=>{
+
+const rect = canvas.getBoundingClientRect();
+
+const worldX =
+(e.clientX - rect.left)/zoom + cameraX;
+
+const worldY =
+(e.clientY - rect.top)/zoom + cameraY;
+
+hoverTileX =
+Math.floor(worldX / TILE);
+
+hoverTileY =
+Math.floor(worldY / TILE);
+
+});
+
+function drawGhostBuilding(){
+
+if(!selectedBuild) return;
+
+if(
+hoverTileX < 0 ||
+hoverTileY < 0 ||
+hoverTileX >= MAP_SIZE ||
+hoverTileY >= MAP_SIZE
+){
+return;
+}
+
+let px =
+hoverTileX*TILE - cameraX;
+
+let py =
+hoverTileY*TILE - cameraY;
+
+let valid = true;
+
+if(
+mapData[hoverTileX][hoverTileY] === "water"
+){
+valid = false;
+}
+
+if(
+buildings.some(
+b=>b.x===hoverTileX &&
+b.y===hoverTileY
+)
+){
+valid = false;
+}
+
+ctx.fillStyle =
+valid
+? "rgba(0,255,0,0.35)"
+: "rgba(255,0,0,0.35)";
+
+ctx.fillRect(
+px,
+py,
+TILE,
+TILE
+);
+
+ctx.strokeStyle =
+valid
+? "#00ff00"
+: "#ff0000";
+
+ctx.lineWidth = 2;
+
+ctx.strokeRect(
+px,
+py,
+TILE,
+TILE
+);
+
+}
+  
+  function drawBuildings(){
 
 for(let b of buildings){
 
@@ -1395,8 +1918,8 @@ for(let b of buildings){
         continue;
     }
 
-    let px = b.x * TILE - cameraX;
-let py = b.y * TILE - cameraY - 6;
+let px = b.x * TILE - cameraX - 6;
+let py = b.y * TILE - cameraY - 4;
   // tieň
 ctx.fillStyle = "rgba(0,0,0,0.3)";
 ctx.beginPath();
@@ -1818,18 +2341,38 @@ py+4,
 
 // ================= PARTICLES =================
 function drawParticles(){
+
 for(let p of particles){
+
+ctx.globalAlpha = p.life / 60;
+
 ctx.fillStyle = p.color;
-ctx.fillRect(p.x - cameraX, p.y - cameraY, 3, 3);
+
+ctx.beginPath();
+ctx.arc(
+p.x - cameraX,
+p.y - cameraY,
+p.size,
+0,
+Math.PI*2
+);
+ctx.fill();
 
 p.x += p.vx;
 p.y += p.vy;
+
+p.vy += 0.05; // gravitácia
+
 p.life--;
 }
 
-particles = particles.filter(p => p.life > 0);
-}
+ctx.globalAlpha = 1;
 
+particles = particles.filter(
+p => p.life > 0
+);
+
+}
 
 // ================= AUTOSAVE =================
 setInterval(()=>{
@@ -1838,7 +2381,10 @@ localStorage.setItem(
 "mgot_save",
 JSON.stringify({
 game,
-buildings
+buildings,
+gameTime,
+gameEnded,
+mapData
 })
 );
 
@@ -1875,21 +2421,23 @@ game = {
 };
 }
 
+if(data.mapData){
+    mapData = data.mapData;
+}  
+  
 if(data.buildings){
 buildings = data.buildings;
 }
 
-// guarantee townhall exists
-let hasTownHall = buildings.some(b => b.type === "townhall");
-
-if(!hasTownHall){
-buildings.push({
-x:10,
-y:10,
-type:"townhall",
-level:1
-});
+if(data.gameTime !== undefined){
+    gameTime = data.gameTime;
 }
+
+if(data.gameEnded !== undefined){
+    gameEnded = data.gameEnded;
+}
+  
+// guarantee townhall exists
 
 }catch(err){
 console.log("Save corrupted", err);
@@ -1901,25 +2449,40 @@ console.log("Save corrupted", err);
 function render(){
 
     ctx.clearRect(
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-    );
+    0,
+    0,
+    canvas.width,
+    canvas.height
+);
 
-    ctx.fillStyle = "#07131f";
+ctx.save();
 
-    ctx.fillRect(
-        0,
-        0,
-        window.innerWidth,
-        window.innerHeight
-    );
+ctx.scale(
+    zoom,
+    zoom
+);
 
-    drawMap();
+ctx.fillStyle="#07131f";
+
+ctx.fillRect(
+    0,
+    0,
+    canvas.width/zoom,
+    canvas.height/zoom
+);
+
+drawMap();
 drawRoads();
+
+updateWalkers();
+drawWalkers();
+
+drawGhostBuilding();
+
 drawBuildings();
 drawParticles();
+
+ctx.restore();
 
     requestAnimationFrame(render);
 }
@@ -1940,19 +2503,56 @@ canvas.addEventListener("touchmove",(e)=>{
 let dx = e.touches[0].clientX - touchStartX;
 let dy = e.touches[0].clientY - touchStartY;
 
-cameraX -= dx;
-cameraY -= dy;
+cameraX -= dx / zoom;
+cameraY -= dy / zoom;
 
 touchStartX = e.touches[0].clientX;
 touchStartY = e.touches[0].clientY;
 
 });
 window.addEventListener("keydown",(e)=>{
-if(e.key==="ArrowLeft") cameraX-=32;
-if(e.key==="ArrowRight") cameraX+=32;
-if(e.key==="ArrowUp") cameraY-=32;
-if(e.key==="ArrowDown") cameraY+=32;
+if(e.key==="ArrowLeft") cameraX-=32/zoom;
+if(e.key==="ArrowRight") cameraX+=32/zoom;
+if(e.key==="ArrowUp") cameraY-=32/zoom;
+if(e.key==="ArrowDown") cameraY+=32/zoom;
 });
+
+canvas.addEventListener("wheel",(e)=>{
+
+e.preventDefault();
+
+let oldZoom = zoom;
+
+if(e.deltaY < 0){
+
+zoom *= 1.1;
+
+}else{
+
+zoom *= 0.9;
+
+}
+
+zoom = Math.max(
+MIN_ZOOM,
+Math.min(MAX_ZOOM,zoom)
+);
+
+const mouseX = e.offsetX;
+const mouseY = e.offsetY;
+
+cameraX +=
+(mouseX/oldZoom)
+-
+(mouseX/zoom);
+
+cameraY +=
+(mouseY/oldZoom)
+-
+(mouseY/zoom);
+
+});
+  
 function newGame(){
 
     if(!confirm("Start a new game?")){
@@ -1961,47 +2561,53 @@ function newGame(){
 
     localStorage.removeItem("mgot_save");
 
-  game = {
-  treasury: 500,
-  holders: 1,
-  engagement: 1,
-  education: 0,
-  utility: 1,
-  promoters: 0,
-  lp: 100,
-  supply: 1000000,
-  reputation: 0,
-  communityPower: 0,
-  price: 0.001,
-  marketCap: 1000,
-  volume: 0,
-  lastPrice: 0.001,
-};
+    gameTime = 1800;
+    gameEnded = false;
 
-    buildings = [{
-        x:10,
-        y:10,
-        type:"townhall",
-        level:1
-    }];
+    game = {
+        treasury: 500,
+        holders: 1,
+        engagement: 1,
+        education: 0,
+        utility: 1,
+        promoters: 0,
+        lp: 100,
+        supply: 1000000,
+        reputation: 0,
+        communityPower: 0,
+        price: 0.001,
+        marketCap: 1000,
+        volume: 0,
+        lastPrice: 0.001
+    };
 
-    particles = [];
-    selected = null;
-    selectedBuild = null;
+buildings = [];
 
-    cameraX = 0;
-    cameraY = 0;
+townHallPlaced = false;
 
-    ui();
+selected = null;
+selectedBuild = "townhall";
+walkers = [];
+particles = [];
 
-    document.getElementById("upgradeBtn").style.display = "none";
-    document.getElementById("demolishBtn").style.display = "none";
+hubTimer = 0;
+hubLevel = 0;
 
-    document.getElementById("info").innerHTML =
-    "Nothing selected";
+cameraX = 0;
+cameraY = 0;
 
-    log("🆕 New Game Started");
+generateMap();
 
+updateTimer();
+ui();
+
+document.getElementById("upgradeBtn").style.display = "none";
+document.getElementById("demolishBtn").style.display = "none";
+
+document.getElementById("info").innerHTML =
+"🏛 Place your Town Hall";
+
+log("🆕 New Game Started");
 }
 
 // START
@@ -2016,4 +2622,4 @@ render();
 </script>
 
 </body>
-</html>
+  </html>
